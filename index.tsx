@@ -1077,7 +1077,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                 const result = await model;
                 setProfileData(result.text || 'No data available.');
             } catch (e) {
-                setProfileData('Unable to load compound profile. Please check your connection.');
+                setProfileData(''); // Silently fail - no error message displayed
             } finally {
                 setLoading(false);
             }
@@ -1129,28 +1129,30 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                     rel="noreferrer"
                     className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white bg-zinc-950 hover:bg-black border border-zinc-800 px-5 py-3 rounded-xl transition-colors shadow-sm"
                 >
-                    <span>SOURCE</span>
+                    <span>EXTERNAL SOURCE</span>
                     <LinkIcon />
                 </a>
             </div>
 
-            {/* Profile Content */}
-            <div className="flex-1 bg-[#0a0a0a]/50 border border-zinc-800/50 rounded-2xl p-8 overflow-y-auto custom-scrollbar relative min-h-[300px] shadow-inner backdrop-blur-md">
-                {loading ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-zinc-500">
-                        <div className="relative">
-                            <div className="w-12 h-12 border-2 border-zinc-800 rounded-full"></div>
-                            <div className="absolute top-0 left-0 w-12 h-12 border-2 border-[#FF5252] border-t-transparent rounded-full animate-spin"></div>
+            {/* Profile Content - Only show when loading or has data */}
+            {(loading || profileData) && (
+                <div className="flex-1 bg-[#0a0a0a]/50 border border-zinc-800/50 rounded-2xl p-8 overflow-y-auto custom-scrollbar relative min-h-[300px] shadow-inner backdrop-blur-md">
+                    {loading ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-zinc-500">
+                            <div className="relative">
+                                <div className="w-12 h-12 border-2 border-zinc-800 rounded-full"></div>
+                                <div className="absolute top-0 left-0 w-12 h-12 border-2 border-[#FF5252] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                            <p className="text-xs uppercase tracking-widest animate-pulse font-bold">Analyzing Compound Data...</p>
                         </div>
-                        <p className="text-xs uppercase tracking-widest animate-pulse font-bold">Analyzing Compound Data...</p>
-                    </div>
-                ) : (
-                    <div
-                        className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold"
-                        dangerouslySetInnerHTML={{ __html: profileData }}
-                    />
-                )}
-            </div>
+                    ) : (
+                        <div
+                            className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold"
+                            dangerouslySetInnerHTML={{ __html: profileData }}
+                        />
+                    )}
+                </div>
+            )}
 
             {/* Integrated AI Assistant for this compound */}
             <div className="border-t border-zinc-800/50 pt-4">
@@ -1159,11 +1161,15 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${isAiOpen ? 'bg-[#FF5252]/10 border-[#FF5252]/30' : 'bg-transparent border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/30'}`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isAiOpen ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
-                            <RobotIcon />
+                        <div className={`w-8 h-8 rounded-full overflow-hidden ring-2 transition-all ${isAiOpen ? 'ring-[#FF5252]' : 'ring-zinc-700'}`}>
+                            <img
+                                src="https://yt3.googleusercontent.com/ytc/AIdro_nCLfh5kGG46B6d_MjBP0TPM_bORkhhJOON1RmFFsjsVPY=s176-c-k-c0x00ffffff-no-rj"
+                                alt="Jon"
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                         <div className="text-left">
-                            <span className="text-sm font-bold uppercase tracking-wider text-zinc-300">Ask AI about {peptide.name}</span>
+                            <span className="text-sm font-bold uppercase tracking-wider text-zinc-300">Ask Jon's AI About {peptide.name}</span>
                             <p className="text-[10px] text-zinc-500">Get specific answers about this compound only</p>
                         </div>
                     </div>
@@ -1196,10 +1202,19 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
 
                         {aiResponse ? (
                             <div className="prose prose-invert prose-sm max-w-none">
-                                <div
-                                    className="text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&>p]:text-sm"
-                                    dangerouslySetInnerHTML={{ __html: aiResponse }}
-                                />
+                                <div className="flex gap-3 items-start">
+                                    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#FF5252]/30 flex-shrink-0 mt-1">
+                                        <img
+                                            src="https://yt3.googleusercontent.com/ytc/AIdro_nCLfh5kGG46B6d_MjBP0TPM_bORkhhJOON1RmFFsjsVPY=s176-c-k-c0x00ffffff-no-rj"
+                                            alt="Jon"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div
+                                        className="flex-1 text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&>p]:text-sm"
+                                        dangerouslySetInnerHTML={{ __html: aiResponse }}
+                                    />
+                                </div>
                             </div>
                         ) : (
                             <div className="text-center py-6 text-zinc-700 text-xs uppercase tracking-widest">
