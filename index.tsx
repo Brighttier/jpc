@@ -2910,13 +2910,41 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
             <section className="py-12 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
                     {/* Cellular Advantage Logo */}
-                    <div className="mb-6 flex justify-center">
-                        <img
-                            src="/Images/cellular-advantage-logo.png"
-                            alt="Cellular Advantage Academy"
-                            className="w-24 h-24 object-contain drop-shadow-[0_0_20px_rgba(157,78,221,0.5)]"
-                        />
+                    <div className="mb-8 flex justify-center">
+                        <div className="relative">
+                            {/* Animated glow ring */}
+                            <div
+                                className="absolute inset-0 rounded-full opacity-60"
+                                style={{
+                                    background: 'conic-gradient(from 0deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
+                                    filter: 'blur(20px)',
+                                    animation: 'spin 8s linear infinite'
+                                }}
+                            />
+                            {/* Border ring */}
+                            <div
+                                className="absolute inset-[-4px] rounded-full p-[3px]"
+                                style={{
+                                    background: 'conic-gradient(from 0deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
+                                    animation: 'spin 4s linear infinite'
+                                }}
+                            >
+                                <div className="w-full h-full rounded-full bg-[#0a0a0a]" />
+                            </div>
+                            {/* Logo image */}
+                            <img
+                                src="/Images/cellular-advantage-logo.png"
+                                alt="Cellular Advantage Academy"
+                                className="relative w-36 h-36 object-contain rounded-full p-2 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
+                            />
+                        </div>
                     </div>
+                    <style>{`
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
                     <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
                         <i className="fa-solid fa-crown mr-2"></i>
                         Members-Only Access
