@@ -2183,55 +2183,74 @@ const SubscriptionStatusBar = ({
 // Shop CTA Banner Component
 const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) => (
     <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-            <div className="bg-gradient-to-br from-[#FF5252]/10 via-[#0a0a0a] to-[#FF5252]/5 border border-[#FF5252]/30 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+            <div className="bg-gradient-to-br from-[#FF5252]/10 via-[#0a0a0a] to-[#FF5252]/5 border border-[#FF5252]/30 rounded-3xl p-8 md:p-12 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent"></div>
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF5252]/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#FF5252]/10 rounded-full blur-3xl"></div>
 
-                <div className="relative z-10">
-                    <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
-                        Verified Sources
+                <div className="relative z-10 grid md:grid-cols-2 gap-8 md:gap-12">
+                    {/* Shop Section */}
+                    <div className="text-center md:text-left">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
+                            Verified Sources
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready to Stock Up?</h3>
+                        <p className="text-zinc-400 mb-6">
+                            Shop premium research compounds from our verified partner sources.
+                        </p>
+                        <button
+                            onClick={onNavigateToShop}
+                            className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-[#FF5252]/30 inline-flex items-center gap-2"
+                        >
+                            Browse Shop
+                            <i className="fa-solid fa-arrow-right"></i>
+                        </button>
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready to Stock Up?</h3>
-                    <p className="text-zinc-400 mb-8 max-w-lg mx-auto">
-                        Shop premium research compounds from our verified partner sources. All purchases support the protocol engine.
-                    </p>
-                    <button
-                        onClick={onNavigateToShop}
-                        className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-[#FF5252]/30 inline-flex items-center gap-2"
-                    >
-                        Browse Shop
-                        <i className="fa-solid fa-arrow-right"></i>
-                    </button>
+
+                    {/* Divider */}
+                    <div className="hidden md:block absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-[#FF5252]/30 to-transparent"></div>
+
+                    {/* Coaching Section */}
+                    <div className="text-center md:text-left">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
+                            Personalized Coaching
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Train With Experts</h3>
+                        <ul className="text-zinc-400 mb-6 space-y-2 text-left inline-block">
+                            <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                Custom programs
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                Ongoing support
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                Progress tracking
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                Direct mentorship
+                            </li>
+                        </ul>
+                        <button
+                            className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-[#FF5252]/30 inline-flex items-center gap-2"
+                            onClick={() => alert('Coaching sign-up coming soon!')}
+                        >
+                            <i className="fa-solid fa-user-graduate"></i>
+                            Get Coaching
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 );
 
-// Coaching Placeholder Component
-const CoachingPlaceholder = () => (
-    <section className="py-16 px-6 bg-[#08080a] border-t border-zinc-800/50">
-        <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
-                Coming Soon
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                Personalized Coaching
-            </h3>
-            <p className="text-zinc-400 mb-8 max-w-lg mx-auto">
-                One-on-one guidance from Jon & Travis. Get custom protocols tailored to your goals.
-            </p>
-            <button
-                className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-zinc-700 inline-flex items-center gap-2"
-                onClick={() => alert('Coaching waitlist coming soon!')}
-            >
-                <i className="fa-solid fa-bell"></i>
-                Join Waitlist
-            </button>
-        </div>
-    </section>
-);
+// Coaching Placeholder Component (now integrated into ShopCTABanner)
+const CoachingPlaceholder = () => null;
 
 // Academy Video Card with Rumble Support
 const AcademyVideoCardNew = ({
