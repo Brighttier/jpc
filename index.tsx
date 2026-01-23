@@ -2946,6 +2946,32 @@ const ExploreAcademyView = ({
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9d4edd] to-[#c77dff]">Academy</span>
                     </h1>
                     <p className="text-zinc-400 text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: 'Get access to the <strong class="text-white">real-world experience and results</strong> used by elite athletes and performance specialists.' }} />
+
+                    {/* Subscribe CTA - Inline */}
+                    <div className="mt-10 bg-[#0f0a14] border border-[#9d4edd]/30 rounded-3xl p-8 md:p-10 text-center relative overflow-hidden shadow-2xl max-w-xl mx-auto">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
+                        <div className="text-4xl font-black text-[#c77dff] mb-1">$27<span className="text-lg text-zinc-500 font-medium">/month</span></div>
+                        <p className="text-sm text-zinc-500 mb-8">Full access to all premium content</p>
+
+                        {user?.isAcademyMember ? (
+                            <button
+                                onClick={onEnterAcademy}
+                                className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
+                            >
+                                <i className="fa-solid fa-unlock mr-2"></i>
+                                Enter Academy
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe')}
+                                className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
+                            >
+                                Subscribe Now - $27/mo
+                            </button>
+                        )}
+                        <p className="text-[10px] text-zinc-600 mt-4 uppercase tracking-wider">Cancel anytime. No long-term commitments.</p>
+                    </div>
                 </div>
             </section>
 
@@ -3014,34 +3040,6 @@ const ExploreAcademyView = ({
                         <MemberAreaCard title="Research Library" icon={<BeakerIcon />} items={["Curated studies", "Scientific context explained simply", "What the research actually shows"]} />
                         <MemberAreaCard title="Video Library" icon={<VideoCameraIcon />} items={["Videos with Jon & Travis", "Clear explanations of each peptide", "Real experiences & results achieved"]} count={academyVideosCount} />
                     </div>
-                </div>
-            </section>
-
-            {/* Subscribe CTA */}
-            <section className="max-w-4xl mx-auto px-6 mb-20 mt-20">
-                <div className="bg-[#0f0a14] border border-[#9d4edd]/30 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
-                    <div className="text-4xl font-black text-[#c77dff] mb-1">$27<span className="text-lg text-zinc-500 font-medium">/month</span></div>
-                    <p className="text-sm text-zinc-500 mb-8">Full access to all premium content</p>
-
-                    {user?.isAcademyMember ? (
-                        <button
-                            onClick={onEnterAcademy}
-                            className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
-                        >
-                            <i className="fa-solid fa-unlock mr-2"></i>
-                            Enter Academy
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe')}
-                            className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
-                        >
-                            Subscribe Now - $27/mo
-                        </button>
-                    )}
-                    <p className="text-[10px] text-zinc-600 mt-4 uppercase tracking-wider">Cancel anytime. No long-term commitments.</p>
                 </div>
             </section>
 
