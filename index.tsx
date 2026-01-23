@@ -113,146 +113,49 @@ const PEPTIDE_DB: PeptideEntry[] = [
   { name: "5 Amino 1MQ With NADH", url: "https://peptidescalculator.com/5-amino-1mq-with-nadh", category: "Amino" },
 ];
 
-// Content Types
-interface ContentItem {
-  id: string;
-  type: 'video' | 'article';
-  title: string;
-  desc: string;
-  thumbnail?: string; 
-  duration?: string;
-  locked: boolean;
-  category: 'Daily' | 'Academy' | 'Protocol';
-  views: number;
-}
-
-interface ShopProduct {
-  id: string;
-  name: string;
-  dosage: string;
-  price: string;
-  image: string;
-  url: string;
-  desc: string;
-  features: string[];
-  clicks: number;
-}
-
-// Initial Data
-const INITIAL_CONTENT: ContentItem[] = [
+const DAILY_UPDATES = [
     {
-        id: '1',
-        type: 'video',
         title: "Morning Routine for Metabolic Health",
-        category: "Daily",
+        category: "Daily Protocol",
         duration: "02:15",
-        thumbnail: "https://images.unsplash.com/photo-1544367563-12123d8966bf?q=80&w=2070&auto=format&fit=crop", 
-        desc: "The exact peptide sequence to pin immediately upon waking for maximum fat oxidation.",
-        locked: false,
-        views: 1240
+        image: "https://images.unsplash.com/photo-1544367563-12123d8966bf?q=80&w=2070&auto=format&fit=crop", 
+        desc: "The exact peptide sequence to pin immediately upon waking for maximum fat oxidation."
     },
     {
-        id: '2',
-        type: 'video',
         title: "BPC-157: Injection Site Myths",
-        category: "Daily",
+        category: "Q&A",
         duration: "03:45",
-        thumbnail: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2080&auto=format&fit=crop",
-        desc: "Does local administration really matter? Breaking down the systemic vs local debate.",
-        locked: false,
-        views: 980
+        image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2080&auto=format&fit=crop",
+        desc: "Does local administration really matter? Breaking down the systemic vs local debate."
     },
     {
-        id: '3',
-        type: 'video',
         title: "Sleep Optimization Stack",
-        category: "Daily",
+        category: "Nightly Routine",
         duration: "04:20",
-        thumbnail: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=2071&auto=format&fit=crop",
-        desc: "Combine DSIP with these specific amino acids for deep REM cycles.",
-        locked: false,
-        views: 850
+        image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=2071&auto=format&fit=crop",
+        desc: "Combine DSIP with these specific amino acids for deep REM cycles."
     },
     {
-        id: '4',
-        type: 'video',
         title: "Cognitive Clarity Blend",
-        category: "Daily",
+        category: "Nootropics",
         duration: "03:10",
-        thumbnail: "https://images.unsplash.com/photo-1555633514-abcee6ab92e1?q=80&w=2080&auto=format&fit=crop",
-        desc: "The morning stack that replaces coffee for sustained focus without the crash.",
-        locked: false,
-        views: 720
+        image: "https://images.unsplash.com/photo-1555633514-abcee6ab92e1?q=80&w=2080&auto=format&fit=crop",
+        desc: "The morning stack that replaces coffee for sustained focus without the crash."
     },
     {
-        id: '5',
-        type: 'video',
         title: "IGF-1 LR3 vs DES",
-        category: "Daily",
+        category: "Advanced",
         duration: "05:45",
-        thumbnail: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2070&auto=format&fit=crop",
-        desc: "Understanding the half-life differences and specific use cases for hypertrophy.",
-        locked: false,
-        views: 560
+        image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2070&auto=format&fit=crop",
+        desc: "Understanding the half-life differences and specific use cases for hypertrophy."
     },
     {
-        id: '6',
-        type: 'video',
         title: "Peptide Reconstitution Guide",
-        category: "Daily",
+        category: "Basics",
         duration: "01:50",
-        thumbnail: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop",
-        desc: "Step-by-step visual guide to mixing your vials with bacteriostatic water safely.",
-        locked: false,
-        views: 1500
-    },
-    {
-        id: '7',
-        type: 'video',
-        title: "Advanced Stacking Protocols", 
-        desc: "Combining GH secretagogues with metabolic agents for maximum effect.", 
-        thumbnail: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop",
-        category: "Academy",
-        locked: true,
-        duration: "28:10",
-        views: 310
-    },
-    {
-        id: '8',
-        type: 'video',
-        title: "Injury Repair Blueprint", 
-        desc: "The exact BPC-157 & TB-500 cycling schedule for acute injuries.", 
-        thumbnail: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=2070&auto=format&fit=crop",
-        category: "Academy",
-        locked: true,
-        duration: "18:30",
-        views: 450
-    },
-];
-
-const INITIAL_PRODUCTS: ShopProduct[] = [
-    {
-        id: 'ret-glp-3',
-        name: "RET-GLP-3 (Retatrutide)",
-        dosage: "10mg / 15mg",
-        price: "$150.00+",
-        image: "https://images.unsplash.com/photo-1624720114708-0763412388dd?q=80&w=2070&auto=format&fit=crop", 
-        url: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/`,
-        desc: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
-        features: ["Fat Loss", "Metabolic Boost"],
-        clicks: 145
-    },
-    {
-        id: 'tz',
-        name: "Tirzepatide (TZ)",
-        dosage: "10mg / 30mg",
-        price: "$130.00+",
-        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=2030&auto=format&fit=crop",
-        url: `https://www.maxperformance4you.com/product/tz-tirzepatide/`,
-        desc: "Dual agonist (GLP-1, GIP) for significant weight management.",
-        features: ["Weight Loss", "Insulin Control"],
-        clicks: 210
-    },
+        image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop",
+        desc: "Step-by-step visual guide to mixing your vials with bacteriostatic water safely."
+    }
 ];
 
 // --- Types ---
@@ -270,7 +173,6 @@ interface User {
     email: string;
     hasAssessment: boolean;
     isAcademyMember: boolean;
-    isAdmin: boolean;
 }
 
 // --- Icons ---
@@ -348,18 +250,6 @@ const ZapIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
 );
 
-const EditIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-);
-
-const TrashIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-);
-
-const PlusIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-);
-
 // --- Components ---
 
 const AmbientBackground = () => (
@@ -385,692 +275,893 @@ const StepHeader = ({ step, title }: { step: string, title: string }) => (
   </div>
 );
 
-// --- Missing Components Implementation ---
-
-const Badge = ({ icon, text }: { icon: any, text: string }) => (
-    <div className="flex flex-col items-center gap-3 group">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-900/50 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF5252] group-hover:border-[#FF5252]/50 group-hover:bg-[#FF5252]/5 shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
-           <span className="text-2xl">{icon}</span>
-        </div>
-        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest group-hover:text-white transition-colors">{text}</span>
-    </div>
+const InputField = ({ value, onChange, unit, placeholder, step = "1", type = "number" }: any) => (
+  <div className="relative group">
+    <input
+      type={type}
+      step={step}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-100 px-5 py-4 rounded-xl focus:outline-none focus:border-[#FF5252] focus:bg-zinc-900 focus:ring-1 focus:ring-[#FF5252]/20 transition-all placeholder-zinc-700 font-mono text-lg shadow-sm"
+    />
+    {unit && (
+      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 font-medium text-xs pointer-events-none uppercase tracking-wide bg-zinc-900/80 px-2 py-1 rounded">
+        {unit}
+      </span>
+    )}
+  </div>
 );
 
-const VideoCard = ({ title, desc, image, duration, onClick }: any) => (
-    <div onClick={onClick} className="group cursor-pointer">
-        <div className="relative overflow-hidden rounded-2xl mb-4 aspect-video bg-zinc-800">
-            <img src={image} alt={title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
-            <div className="absolute bottom-3 right-3 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
-                {duration}
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-12 h-12 bg-[#FF5252] rounded-full flex items-center justify-center text-white shadow-lg transform scale-50 group-hover:scale-100 transition-transform">
-                    <PlayIcon />
-                </div>
-            </div>
-        </div>
-        <h3 className="text-white font-bold text-lg leading-tight mb-2 group-hover:text-[#FF5252] transition-colors">{title}</h3>
-        <p className="text-zinc-500 text-sm line-clamp-2">{desc}</p>
-    </div>
-);
+const PeptideSelector = ({ selectedPeptide, onSelect }: { selectedPeptide: PeptideEntry | null, onSelect: (p: PeptideEntry) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-const AcademyVideoCard = ({ title, desc, locked, duration }: any) => (
-    <div className={`relative group ${locked ? 'opacity-75' : 'cursor-pointer'}`}>
-        <div className="relative overflow-hidden rounded-2xl mb-4 aspect-video bg-zinc-900 border border-zinc-800 group-hover:border-zinc-700 transition-colors">
-            {locked ? (
-                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
-                     <LockIcon />
-                     <span className="text-xs font-bold uppercase tracking-widest mt-2 text-zinc-300">Member Only</span>
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [wrapperRef]);
+
+  const filteredPeptides = PEPTIDE_DB.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="flex flex-col gap-2 relative z-30" ref={wrapperRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full bg-zinc-900/50 border border-zinc-800 text-zinc-100 px-5 py-4 rounded-xl cursor-pointer flex items-center justify-between hover:bg-zinc-900 hover:border-zinc-700 transition-all shadow-sm ${isOpen ? 'border-[#FF5252] ring-1 ring-[#FF5252]/20' : ''}`}
+      >
+        <span className={`text-lg font-mono truncate ${selectedPeptide ? 'text-white' : 'text-zinc-600'}`}>
+          {selectedPeptide?.name || "Select Peptide..."}
+        </span>
+        <div className={`text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#FF5252]' : ''}`}>
+           <i className="fa-solid fa-chevron-down"></i>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-3 bg-[#0a0a0a] border border-zinc-800 rounded-xl shadow-2xl z-50 max-h-80 flex flex-col overflow-hidden ring-1 ring-zinc-800/50 backdrop-blur-xl">
+          <div className="p-3 border-b border-zinc-800/50 bg-zinc-900/30">
+             <div className="relative">
+                 <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs"></i>
+                 <input 
+                    autoFocus
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search library..."
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-[#FF5252] placeholder-zinc-600"
+                 />
+             </div>
+          </div>
+          <div className="overflow-y-auto custom-scrollbar flex-1 p-1">
+             {filteredPeptides.length > 0 ? (
+               filteredPeptides.map((peptide, idx) => (
+                 <div 
+                   key={idx}
+                   onClick={() => {
+                     onSelect(peptide);
+                     setIsOpen(false);
+                     setSearch('');
+                   }}
+                   className="px-4 py-3 hover:bg-[#FF5252]/10 hover:text-[#FF5252] cursor-pointer text-sm text-zinc-400 font-mono transition-colors rounded-lg flex justify-between items-center group"
+                 >
+                   <span>{peptide.name}</span>
+                   <span className="text-[10px] uppercase text-zinc-700 group-hover:text-[#FF5252]/50 border border-zinc-800 group-hover:border-[#FF5252]/20 px-1.5 py-0.5 rounded">{peptide.category}</span>
                  </div>
-            ) : (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                     <div className="w-12 h-12 bg-[#9d4edd] rounded-full flex items-center justify-center text-white shadow-lg transform scale-50 group-hover:scale-100 transition-transform">
-                        <PlayIcon />
-                    </div>
-                </div>
-            )}
-             <div className="absolute bottom-3 right-3 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded z-0">
-                {duration}
-            </div>
-            {/* Placeholder for academy video thumbnail */}
-            <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
-                 <VideoCameraIcon />
-            </div>
+               ))
+             ) : (
+                <div className="px-4 py-8 text-center text-xs text-zinc-600 italic">No compounds found</div>
+             )}
+          </div>
         </div>
-        <h3 className="text-white font-bold text-lg leading-tight mb-2 group-hover:text-[#9d4edd] transition-colors">{title}</h3>
-        <p className="text-zinc-500 text-sm line-clamp-2">{desc}</p>
+      )}
     </div>
-);
+  );
+};
 
-const AuthModal = ({ isOpen, onClose, onLogin }: any) => {
-    if (!isOpen) return null;
+const SyringeSelector = ({ capacity, setCapacity }: { capacity: SyringeCapacity, setCapacity: (c: SyringeCapacity) => void }) => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
-            <div className="bg-[#0e0e10] border border-zinc-800 rounded-2xl p-8 w-full max-w-md relative z-10 animate-fadeIn">
-                <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><i className="fa-solid fa-times"></i></button>
-                <div className="text-center mb-8">
-                     <Logo />
-                     <h2 className="text-2xl font-black text-white mt-6">Member Access</h2>
-                     <p className="text-zinc-500 text-sm mt-2">Enter your details to access your protocols.</p>
-                </div>
-                <div className="space-y-4">
-                    <input type="email" placeholder="Email Address" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-[#FF5252] outline-none transition-colors" />
-                    <input type="password" placeholder="Password" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-[#FF5252] outline-none transition-colors" />
-                    <button onClick={() => onLogin({ email: 'user@example.com', hasAssessment: true, isAcademyMember: true })} className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-red-900/20">
-                        Sign In
-                    </button>
-                    <p className="text-center text-xs text-zinc-600 mt-4">Don't have an account? <span className="text-white underline cursor-pointer">Join the Academy</span></p>
-                </div>
-            </div>
+        <div className="p-1 bg-zinc-900/50 border border-zinc-800 rounded-xl flex gap-1">
+            {[
+                { val: 30, label: '0.3 mL', sub: '30 Units' },
+                { val: 50, label: '0.5 mL', sub: '50 Units' },
+                { val: 100, label: '1.0 mL', sub: '100 Units' }
+            ].map((opt) => (
+                <button
+                    key={opt.val}
+                    onClick={() => setCapacity(opt.val as SyringeCapacity)}
+                    className={`flex-1 py-3 rounded-lg transition-all duration-300 relative overflow-hidden group ${
+                        capacity === opt.val 
+                        ? 'bg-zinc-800 text-white shadow-lg ring-1 ring-zinc-700' 
+                        : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+                    }`}
+                >
+                    <div className="relative z-10 flex flex-col items-center">
+                         <span className={`text-sm font-bold ${capacity === opt.val ? 'text-[#FF5252]' : 'group-hover:text-white'}`}>{opt.label}</span>
+                         <span className="text-[10px] uppercase tracking-wide opacity-60">{opt.sub}</span>
+                    </div>
+                    {capacity === opt.val && (
+                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FF5252]"></div>
+                    )}
+                </button>
+            ))}
         </div>
     );
 };
 
-const AssessmentWizard = ({ onComplete, onCancel }: any) => {
-    const [step, setStep] = useState(1);
-    
-    const nextStep = () => {
-        if (step < 3) setStep(step + 1);
-        else onComplete({ email: 'newuser@example.com', hasAssessment: true, isAcademyMember: false });
-    };
+const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacity: SyringeCapacity }) => {
+    const percentage = Math.min((result.unitsToDraw / capacity) * 100, 100);
+    const isOverCapacity = result.unitsToDraw > capacity;
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            <AmbientBackground />
-            <div className="w-full max-w-2xl bg-[#0e0e10] border border-zinc-800 rounded-3xl p-8 md:p-12 relative z-10 shadow-2xl">
-                <div className="flex justify-between items-center mb-8">
-                    <Logo />
-                    <button onClick={onCancel} className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-widest">Cancel</button>
+        <div className="bg-gradient-to-br from-[#121212] to-black rounded-2xl p-8 border border-zinc-800 relative overflow-hidden shadow-2xl">
+            {/* Glossy overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+
+            <div className="relative z-10">
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                             <div className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse"></div>
+                             <p className="text-[#FF5252] text-xs font-bold uppercase tracking-widest">Calculated Protocol</p>
+                        </div>
+                        <p className="text-zinc-400 text-sm font-light">Target Dose: <span className="text-white font-mono font-bold text-lg">{result.doseMg * 1000}</span> <span className="text-zinc-600 text-xs">mcg</span></p>
+                    </div>
+                    <div className="text-right">
+                         <p className="text-5xl md:text-6xl font-black text-white font-mono tracking-tighter leading-none">
+                            {result.unitsToDraw > 0 ? result.unitsToDraw.toFixed(1) : '0'}
+                        </p>
+                         <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold block mt-1">Units to Draw</span>
+                    </div>
                 </div>
 
-                <div className="mb-8">
-                    <div className="flex gap-2 mb-4">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-[#FF5252]' : 'bg-zinc-800'}`}></div>
+                {/* Ruler Graphic */}
+                <div className="relative h-16 w-full bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden mb-6 shadow-inner">
+                    {/* Fill */}
+                    <div 
+                        className={`absolute top-0 left-0 h-full transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) ${isOverCapacity ? 'bg-red-900/40' : 'bg-gradient-to-r from-[#FF5252]/60 to-[#FF5252]'}`}
+                        style={{ width: `${isNaN(percentage) ? 0 : percentage}%` }}
+                    >
+                         <div className="absolute right-0 top-0 h-full w-[2px] bg-[#fff] shadow-[0_0_15px_rgba(255,255,255,0.8)] z-20"></div>
+                    </div>
+
+                    {/* Ticks */}
+                    <div className="absolute inset-0 flex justify-between px-4 z-10">
+                        {[...Array(21)].map((_, i) => (
+                             <div key={i} className="flex flex-col justify-end h-full pb-0">
+                                <div className={`w-[1px] bg-zinc-600 ${i % 5 === 0 ? 'h-5 opacity-80' : 'h-2 opacity-30'}`}></div>
+                             </div>
                         ))}
                     </div>
-                    <span className="text-[#FF5252] font-mono text-xs font-bold uppercase tracking-widest">Step {step} of 3</span>
-                    <h2 className="text-3xl font-black text-white mt-2 mb-2">
-                        {step === 1 && "What is your primary goal?"}
-                        {step === 2 && "Current experience level?"}
-                        {step === 3 && "Any medical conditions?"}
-                    </h2>
-                    <p className="text-zinc-400">This helps us tailor the protocol engine to your physiology.</p>
+                    
+                    {/* Labels */}
+                     <div className="absolute bottom-6 left-0 w-full flex justify-between px-3 pointer-events-none opacity-50">
+                        <span className="text-[10px] text-zinc-400 font-mono">0</span>
+                        <span className="text-[10px] text-zinc-400 font-mono">{capacity/2}</span>
+                        <span className="text-[10px] text-zinc-400 font-mono">{capacity}</span>
+                     </div>
+                </div>
+                
+                {isOverCapacity && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6 flex items-center gap-3 animate-pulse">
+                        <i className="fa-solid fa-triangle-exclamation text-red-500"></i>
+                        <p className="text-red-400 text-xs font-bold uppercase">Volume exceeds syringe capacity</p>
+                    </div>
+                )}
+
+                <div className="bg-zinc-900/30 backdrop-blur-sm p-5 rounded-xl border border-zinc-800/50 flex flex-col gap-3">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-zinc-400">Total Volume</span>
+                        <strong className="text-white font-mono">{result.unitsToDraw > 0 ? result.unitsToDraw.toFixed(1) : 0} Units</strong>
+                    </div>
+                     <div className="flex justify-between items-center text-sm">
+                        <span className="text-zinc-400">Concentration</span>
+                        <strong className="text-zinc-300 font-mono">{result.concentration.toFixed(2)} mg/ml</strong>
+                    </div>
+                     <div className="h-[1px] bg-zinc-800 w-full my-1"></div>
+                     <div className="text-xs text-zinc-500 leading-relaxed italic">
+                        "For a {result.doseMg * 1000}mcg dose, draw to tick mark {Math.round(result.unitsToDraw)}."
+                    </div>
                 </div>
 
-                <div className="space-y-3 mb-8">
-                    {step === 1 && (
-                        <>
-                            {['Fat Loss & Metabolism', 'Muscle Hypertrophy', 'Cognitive Performance', 'Injury Repair'].map(opt => (
-                                <button key={opt} onClick={nextStep} className="w-full text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-[#FF5252] transition-all text-sm font-bold text-zinc-300 hover:text-white group flex items-center justify-between">
-                                    {opt} <ArrowRightIcon />
-                                </button>
-                            ))}
-                        </>
-                    )}
-                    {step === 2 && (
-                         <>
-                            {['Beginner (No exposure)', 'Intermediate (Some usage)', 'Advanced (Bio-hacker)'].map(opt => (
-                                <button key={opt} onClick={nextStep} className="w-full text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-[#FF5252] transition-all text-sm font-bold text-zinc-300 hover:text-white group flex items-center justify-between">
-                                    {opt} <ArrowRightIcon />
-                                </button>
-                            ))}
-                        </>
-                    )}
-                    {step === 3 && (
-                         <>
-                            {['None / Healthy', 'Autoimmune Issues', 'Metabolic Syndrome', 'Other'].map(opt => (
-                                <button key={opt} onClick={nextStep} className="w-full text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-[#FF5252] transition-all text-sm font-bold text-zinc-300 hover:text-white group flex items-center justify-between">
-                                    {opt} <ArrowRightIcon />
-                                </button>
-                            ))}
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const CalculatorView = ({ onBack }: any) => {
-    const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [vialQuantity, setVialQuantity] = useState<number>(5); // mg
-    const [waterAdded, setWaterAdded] = useState<number>(2); // ml
-    const [desiredDose, setDesiredDose] = useState<number>(250); // mcg
-    const [syringeSize, setSyringeSize] = useState<SyringeCapacity>(100); // units
-
-    const filteredPeptides = PEPTIDE_DB.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const result: CalculationResult | null = (() => {
-        if (!selectedPeptide) return null;
-        // Logic: 
-        // 1. Concentration = VialQty (mg) / WaterAdded (ml) = mg/ml
-        // 2. Dose in mg = DesiredDose (mcg) / 1000
-        // 3. Volume to inject (ml) = Dose (mg) / Concentration (mg/ml)
-        // 4. Units (ticks) = Volume (ml) * 100 (assuming U-100 syringe standard conversion)
-        
-        const concentration = vialQuantity / waterAdded; // mg/ml
-        const doseMg = desiredDose / 1000;
-        const volumeToInject = doseMg / concentration;
-        const unitsToDraw = volumeToInject * 100;
-
-        return { concentration, doseMg, volumeToInject, unitsToDraw };
-    })();
-
-    return (
-        <div className="min-h-screen bg-[#050505] text-white font-inter pb-20">
-             <AmbientBackground />
-             <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button onClick={onBack} className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group">
-                        <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>Back
+                <button className="w-full mt-6 bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:shadow-[0_0_25px_rgba(255,82,82,0.4)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3">
+                    <SaveIcon />
+                    Save to Protocol
                 </button>
-                <span className="font-serif italic text-zinc-500">Peptide Calculator</span>
-                <div className="w-6"></div>
-            </div>
-
-            <div className="max-w-4xl mx-auto px-6 pt-12">
-                {!selectedPeptide ? (
-                    <div className="animate-fadeIn">
-                        <h1 className="text-4xl font-black text-white mb-6 text-center">Select Compound</h1>
-                        <div className="relative mb-8">
-                            <input 
-                                type="text" 
-                                placeholder="Search peptides..." 
-                                className="w-full bg-[#0e0e10] border border-zinc-800 rounded-2xl px-6 py-4 text-white placeholder-zinc-600 focus:border-[#FF5252] outline-none text-lg transition-all shadow-xl"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                autoFocus
-                            />
-                            <div className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-500"><SearchIcon /></div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {filteredPeptides.map((p, i) => (
-                                <button key={i} onClick={() => setSelectedPeptide(p)} className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 transition-all text-left group">
-                                    <span className="font-bold text-zinc-300 group-hover:text-white transition-colors">{p.name}</span>
-                                    <span className="text-[10px] uppercase font-bold text-zinc-600 bg-zinc-900 px-2 py-1 rounded">{p.category}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="animate-fadeIn">
-                         <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h2 className="text-3xl font-black text-white">{selectedPeptide.name}</h2>
-                                <p className="text-zinc-500 text-sm">Reconstitution Calculator</p>
-                            </div>
-                            <button onClick={() => setSelectedPeptide(null)} className="text-[#FF5252] text-xs font-bold uppercase tracking-widest hover:underline">Change</button>
-                         </div>
-
-                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            <div className="space-y-8">
-                                <div>
-                                    <StepHeader step="01" title="Vial Quantity" />
-                                    <div className="bg-[#0e0e10] p-6 rounded-2xl border border-zinc-800">
-                                        <div className="flex justify-between text-sm mb-4">
-                                            <span className="text-zinc-400">Amount of powder</span>
-                                            <span className="text-white font-mono font-bold">{vialQuantity} mg</span>
-                                        </div>
-                                        <input type="range" min="1" max="20" step="1" value={vialQuantity} onChange={e => setVialQuantity(Number(e.target.value))} className="w-full accent-[#FF5252] h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
-                                        <div className="flex justify-between text-[10px] text-zinc-600 font-mono mt-2">
-                                            <span>1mg</span>
-                                            <span>20mg</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <StepHeader step="02" title="Bacteriostatic Water" />
-                                    <div className="bg-[#0e0e10] p-6 rounded-2xl border border-zinc-800">
-                                        <div className="flex justify-between text-sm mb-4">
-                                            <span className="text-zinc-400">Water added</span>
-                                            <span className="text-white font-mono font-bold">{waterAdded} ml</span>
-                                        </div>
-                                        <input type="range" min="0.5" max="5" step="0.5" value={waterAdded} onChange={e => setWaterAdded(Number(e.target.value))} className="w-full accent-[#FF5252] h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
-                                        <div className="flex justify-between text-[10px] text-zinc-600 font-mono mt-2">
-                                            <span>0.5ml</span>
-                                            <span>5.0ml</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <StepHeader step="03" title="Desired Dosage" />
-                                    <div className="bg-[#0e0e10] p-6 rounded-2xl border border-zinc-800">
-                                        <div className="flex justify-between text-sm mb-4">
-                                            <span className="text-zinc-400">Target dose</span>
-                                            <span className="text-white font-mono font-bold">{desiredDose} mcg</span>
-                                        </div>
-                                        <input type="range" min="50" max="2000" step="50" value={desiredDose} onChange={e => setDesiredDose(Number(e.target.value))} className="w-full accent-[#FF5252] h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
-                                        <div className="flex justify-between text-[10px] text-zinc-600 font-mono mt-2">
-                                            <span>50mcg</span>
-                                            <span>2000mcg</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Result Card */}
-                            <div className="bg-zinc-900 border border-zinc-700/50 rounded-3xl p-8 flex flex-col justify-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF5252] opacity-10 blur-[50px] rounded-full"></div>
-                                
-                                <h3 className="text-zinc-400 font-bold uppercase tracking-widest text-sm mb-8 text-center">Protocol Output</h3>
-                                
-                                <div className="text-center mb-10">
-                                    <div className="text-7xl font-black text-white font-mono tracking-tighter mb-2">{result?.unitsToDraw.toFixed(1)}</div>
-                                    <span className="text-[#FF5252] font-bold uppercase tracking-widest text-sm">Units (Ticks) to Draw</span>
-                                </div>
-
-                                <div className="space-y-4 border-t border-white/10 pt-8">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-zinc-500">Reconstituted Vol.</span>
-                                        <span className="text-white font-mono">{result?.volumeToInject.toFixed(3)} ml</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-zinc-500">Concentration</span>
-                                        <span className="text-white font-mono">{result?.concentration.toFixed(1)} mg/ml</span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                                     <p className="text-[10px] text-zinc-600 leading-relaxed max-w-xs mx-auto">
-                                        *Calculation assumes a standard U-100 insulin syringe. Always consult with a medical professional.
-                                     </p>
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                )}
             </div>
         </div>
     );
 };
 
-// --- Admin Components ---
 
-const StatCard = ({ title, value, icon, colorClass }: any) => (
-    <div className="bg-[#0e0e10] border border-zinc-800 p-6 rounded-2xl flex items-center gap-6 shadow-xl">
-        <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-white ${colorClass}`}>
-            {icon}
+const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
+  const [query, setQuery] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleAsk = async () => {
+    const context = currentPeptide 
+        ? `CONTEXT: User is asking about the compound "${currentPeptide}". Answer specifically about this compound. ` 
+        : '';
+    
+    const question = query || `What are the common storage and reconstitution protocols for ${currentPeptide || 'research peptides'}?`;
+    
+    setLoading(true);
+    setResponse('');
+    
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const model = ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `${context} QUESTION: ${question}`,
+        config: {
+          systemInstruction: "You are an expert bio-science assistant specializing in peptide reconstitution and protocols. Answer user questions about storage, stability, common dosages, and handling of peptides. Keep answers concise, factual, and strictly scientific. FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown (no `**` or `##`). Do not wrap in ```html code blocks. Just return the raw HTML body content.",
+        }
+      });
+      const result = await model;
+      setResponse(result.text || 'No response generated.');
+    } catch (e) {
+      setResponse('Error: Unable to fetch advice.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 pt-8 border-t border-zinc-800/50">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${isOpen ? 'bg-zinc-900 border-[#FF5252]/30' : 'bg-transparent border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/30'}`}
+      >
+        <div className="flex items-center gap-3 text-zinc-400 group-hover:text-white">
+             <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isOpen ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                <RobotIcon />
+             </div>
+            <span className="text-sm font-bold uppercase tracking-wider">AI Protocol Assistant</span>
         </div>
-        <div>
-            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">{title}</p>
-            <h3 className="text-3xl font-black text-white font-mono mt-1">{value}</h3>
+        <div className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+            <i className="fa-solid fa-chevron-down text-zinc-600"></i>
         </div>
+      </button>
+
+      {isOpen && (
+        <div className="mt-4 bg-[#0a0a0a] border border-zinc-800 rounded-xl p-5 shadow-2xl animate-fadeIn relative overflow-hidden">
+           {/* Glow */}
+           <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF5252] rounded-full opacity-5 blur-[50px] pointer-events-none"></div>
+
+          <div className="relative z-10 flex gap-3 mb-6">
+             <input 
+              type="text" 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Ask specifics about ${currentPeptide || 'protocols'}...`}
+              className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 focus:border-[#FF5252] focus:outline-none focus:bg-black transition-colors"
+              onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+            />
+            <button 
+                onClick={handleAsk} 
+                disabled={loading} 
+                className="bg-zinc-800 hover:bg-[#FF5252] hover:text-white text-zinc-400 text-xs uppercase font-bold px-6 rounded-lg transition-all disabled:opacity-50"
+            >
+               {loading ? <i className="fa-solid fa-spinner animate-spin"></i> : 'ASK'}
+            </button>
+          </div>
+          
+          {response ? (
+             <div className="prose prose-invert prose-sm max-w-none">
+                <div 
+                    className="text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600"
+                    dangerouslySetInnerHTML={{ __html: response }}
+                />
+             </div>
+          ) : (
+              <div className="text-center py-8 text-zinc-700 text-xs uppercase tracking-widest">
+                  Ready to answer your questions
+              </div>
+          )}
+        </div>
+      )}
     </div>
-);
+  );
+};
 
-const ContentRow = ({ item, onEdit, onDelete }: any) => (
-    <div className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-800 rounded-xl mb-3 hover:border-zinc-700 transition-colors">
-        <div className="flex items-center gap-4 flex-1">
-            <div className="w-16 h-12 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0 relative">
-                {item.thumbnail ? (
-                    <img src={item.thumbnail} className="w-full h-full object-cover" />
+// --- New Component: Compound Profile ---
+const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
+    const [profileData, setProfileData] = useState<string>('');
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!peptide) return;
+        
+        const fetchProfile = async () => {
+            setLoading(true);
+            setProfileData('');
+            try {
+                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                const model = ai.models.generateContent({
+                    model: 'gemini-3-flash-preview',
+                    contents: `Generate a detailed structured profile for the research compound: ${peptide.name}. 
+                    Include sections for: 
+                    1. Description & Mechanism of Action
+                    2. Common Research Applications/Benefits (Bullet points)
+                    3. Standard Reconstitution Guidelines
+                    4. Potential Side Effects
+                    FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown (no ` + '`' + '`' + '`' + ` or **). Do not wrap in html code blocks. Just return the raw HTML body content.`,
+                    config: {
+                        systemInstruction: "You are a professional research peptide database. Output in formatted HTML. Keep it objective and scientific.",
+                    }
+                });
+                const result = await model;
+                setProfileData(result.text || 'No data available.');
+            } catch (e) {
+                setProfileData('Unable to load compound profile. Please check your connection.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [peptide]);
+
+    return (
+        <div className="space-y-6 h-full flex flex-col animate-fadeIn">
+            <div className="flex items-center justify-between p-6 bg-gradient-to-r from-zinc-900 to-transparent rounded-2xl border border-zinc-800">
+                <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 rounded-full bg-[#FF5252]/10 flex items-center justify-center text-[#FF5252] ring-1 ring-[#FF5252]/20">
+                         <InfoIcon />
+                     </div>
+                     <div>
+                         <h2 className="text-2xl font-bold text-white tracking-tight">{peptide.name}</h2>
+                         <span className="text-xs text-[#FF5252] uppercase tracking-widest font-bold bg-[#FF5252]/10 px-2 py-1 rounded-full">{peptide.category} Profile</span>
+                     </div>
+                </div>
+                <a 
+                    href={peptide.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white bg-zinc-950 hover:bg-black border border-zinc-800 px-5 py-3 rounded-xl transition-colors shadow-sm"
+                >
+                    <span>SOURCE</span>
+                    <LinkIcon />
+                </a>
+            </div>
+
+            <div className="flex-1 bg-[#0a0a0a]/50 border border-zinc-800/50 rounded-2xl p-8 overflow-y-auto custom-scrollbar relative min-h-[500px] shadow-inner backdrop-blur-md">
+                {loading ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-zinc-500">
+                        <div className="relative">
+                            <div className="w-12 h-12 border-2 border-zinc-800 rounded-full"></div>
+                            <div className="absolute top-0 left-0 w-12 h-12 border-2 border-[#FF5252] border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-xs uppercase tracking-widest animate-pulse font-bold">Analyzing Compound Data...</p>
+                    </div>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600"><PlayIcon /></div>
+                    <div 
+                        className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold"
+                        dangerouslySetInnerHTML={{ __html: profileData }}
+                    />
                 )}
             </div>
-            <div>
-                <h4 className="text-white font-bold text-sm line-clamp-1">{item.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${item.category === 'Daily' ? 'bg-blue-500/10 text-blue-500' : 'bg-[#FF5252]/10 text-[#FF5252]'}`}>{item.category}</span>
-                    <span className="text-[10px] text-zinc-500">{item.views} views</span>
-                    {item.locked && <span className="text-[10px] text-yellow-500 flex items-center gap-1"><i className="fas fa-lock"></i> Locked</span>}
-                </div>
-            </div>
+            
+             <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest opacity-50">
+                Data generated by AI Agent • Verification Recommended
+            </p>
         </div>
-        <div className="flex gap-2">
-            <button onClick={() => onEdit(item)} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"><EditIcon /></button>
-            <button onClick={() => onDelete(item.id)} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><TrashIcon /></button>
-        </div>
-    </div>
-);
+    );
+};
 
-const ShopRow = ({ product, onDelete }: any) => (
-    <div className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-800 rounded-xl mb-3 hover:border-zinc-700 transition-colors">
-        <div className="flex items-center gap-4 flex-1">
-            <div className="w-12 h-12 bg-zinc-800 rounded-full overflow-hidden flex-shrink-0">
-                <img src={product.image} className="w-full h-full object-cover" />
-            </div>
-            <div>
-                <h4 className="text-white font-bold text-sm">{product.name}</h4>
-                <div className="flex items-center gap-4 mt-1">
-                    <span className="text-[10px] text-[#FF5252] font-mono">{product.price}</span>
-                    <span className="text-[10px] text-zinc-500">{product.clicks} outbound clicks</span>
-                </div>
-            </div>
-        </div>
-        <div className="flex gap-2">
-            <button onClick={() => onDelete(product.id)} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><TrashIcon /></button>
-        </div>
-    </div>
-);
+// --- Authentication & Assessment Components ---
 
-const AdminDashboard = ({ 
-    onBack, 
-    content, 
-    products, 
-    onAddContent, 
-    onUpdateContent, 
-    onDeleteContent, 
-    onAddProduct, 
-    onDeleteProduct 
-}: any) => {
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'content' | 'shop'>('dashboard');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editingItem, setEditingItem] = useState<any>(null);
+const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () => void, onLogin: (userData: User) => void }) => {
+    const [isSignUp, setIsSignUp] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Derived Stats
-    const totalViews = content.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
-    const totalClicks = products.reduce((acc: number, curr: any) => acc + (curr.clicks || 0), 0);
-    const estRevenue = (totalClicks * 0.05 * 25).toFixed(2); // Mock: 5% conversion, $25 avg commission
+    if (!isOpen) return null;
 
-    // Form State for Content
-    const [contentForm, setContentForm] = useState({
-        title: '',
-        desc: '',
-        thumbnail: '',
-        duration: '',
-        category: 'Daily',
-        locked: false
-    });
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        // Simulate API Call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Mock User Logic
+        // Academy Users enter here directly
+        const mockUser: User = {
+            email: email,
+            hasAssessment: false, // Standard login doesn't grant protocol access automatically
+            isAcademyMember: true // Simulating purchase/sub flow
+        };
 
-    // Form State for Product
-    const [productForm, setProductForm] = useState({
-        name: '',
-        price: '',
-        image: '',
-        url: '',
-        desc: ''
-    });
-
-    const handleEditContent = (item: any) => {
-        setEditingItem(item);
-        setContentForm({
-            title: item.title,
-            desc: item.desc,
-            thumbnail: item.thumbnail,
-            duration: item.duration || '',
-            category: item.category,
-            locked: item.locked
-        });
-        setIsEditing(true);
-    };
-
-    const handleSaveContent = () => {
-        if (isEditing && editingItem) {
-            onUpdateContent({ ...editingItem, ...contentForm });
-        } else {
-            onAddContent({ ...contentForm, id: Date.now().toString(), type: 'video', views: 0 });
-        }
-        setIsEditing(false);
-        setEditingItem(null);
-        setContentForm({ title: '', desc: '', thumbnail: '', duration: '', category: 'Daily', locked: false });
-    };
-
-    const handleSaveProduct = () => {
-        onAddProduct({ 
-            ...productForm, 
-            id: Date.now().toString(), 
-            clicks: 0, 
-            dosage: 'N/A', 
-            features: ['New Product'] 
-        });
-        setProductForm({ name: '', price: '', image: '', url: '', desc: '' });
+        onLogin(mockUser);
+        setIsLoading(false);
+        onClose();
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-inter">
-            <div className="flex h-screen overflow-hidden">
-                {/* Sidebar */}
-                <div className="w-64 bg-black border-r border-zinc-900 flex flex-col">
-                    <div className="p-6">
-                        <Logo />
-                        <span className="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mt-2 block pl-10">Admin Panel</span>
-                    </div>
-                    
-                    <nav className="flex-1 p-4 space-y-2">
-                        <button 
-                            onClick={() => setActiveTab('dashboard')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-[#FF5252] text-white' : 'text-zinc-500 hover:bg-zinc-900 hover:text-white'}`}
-                        >
-                            <i className="fa-solid fa-chart-line"></i> Dashboard
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('content')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'content' ? 'bg-[#FF5252] text-white' : 'text-zinc-500 hover:bg-zinc-900 hover:text-white'}`}
-                        >
-                            <i className="fa-solid fa-video"></i> Content Manager
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('shop')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'shop' ? 'bg-[#FF5252] text-white' : 'text-zinc-500 hover:bg-zinc-900 hover:text-white'}`}
-                        >
-                            <i className="fa-solid fa-shopping-cart"></i> Affiliate Shop
-                        </button>
-                    </nav>
-
-                    <div className="p-4 border-t border-zinc-900">
-                        <button onClick={onBack} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-zinc-500 hover:text-white hover:bg-zinc-900 transition-all">
-                            <i className="fa-solid fa-sign-out-alt"></i> Exit Admin
-                        </button>
-                    </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose}></div>
+            <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-fadeIn">
+                <div className="text-center mb-8">
+                     <div className="flex justify-center mb-4"><Logo /></div>
+                     <h2 className="text-2xl font-bold text-white mb-2">{isSignUp ? 'Join the Academy' : 'Welcome Back'}</h2>
+                     <p className="text-zinc-500 text-sm">Access premium content and protocols</p>
                 </div>
 
-                {/* Main Content */}
-                <div className="flex-1 overflow-y-auto bg-[#050505] p-8">
-                    
-                    {/* Dashboard Tab */}
-                    {activeTab === 'dashboard' && (
-                        <div className="space-y-8 animate-fadeIn">
-                            <div className="mb-8">
-                                <h1 className="text-3xl font-black text-white mb-2">Dashboard Overview</h1>
-                                <p className="text-zinc-500 text-sm">Real-time performance metrics.</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <StatCard 
-                                    title="Total Content Views" 
-                                    value={totalViews.toLocaleString()} 
-                                    icon={<i className="fa-solid fa-eye"></i>} 
-                                    colorClass="bg-blue-600"
-                                />
-                                <StatCard 
-                                    title="Affiliate Clicks" 
-                                    value={totalClicks.toLocaleString()} 
-                                    icon={<i className="fa-solid fa-mouse-pointer"></i>} 
-                                    colorClass="bg-[#FF5252]"
-                                />
-                                <StatCard 
-                                    title="Est. Revenue (Mo)" 
-                                    value={`$${estRevenue}`} 
-                                    icon={<i className="fa-solid fa-dollar-sign"></i>} 
-                                    colorClass="bg-green-600"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                <div className="bg-[#0e0e10] border border-zinc-800 rounded-2xl p-6">
-                                    <h3 className="text-white font-bold mb-6">Top Performing Content</h3>
-                                    <div className="space-y-4">
-                                        {[...content].sort((a: any, b: any) => b.views - a.views).slice(0, 5).map((item: any, i: number) => (
-                                            <div key={i} className="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-3 last:border-0">
-                                                <span className="text-zinc-300 truncate w-2/3">{item.title}</span>
-                                                <span className="text-white font-mono">{item.views}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="bg-[#0e0e10] border border-zinc-800 rounded-2xl p-6">
-                                    <h3 className="text-white font-bold mb-6">Top Products</h3>
-                                    <div className="space-y-4">
-                                        {[...products].sort((a: any, b: any) => b.clicks - a.clicks).slice(0, 5).map((item: any, i: number) => (
-                                            <div key={i} className="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-3 last:border-0">
-                                                <span className="text-zinc-300 truncate w-2/3">{item.name}</span>
-                                                <span className="text-[#FF5252] font-mono font-bold">{item.clicks} clicks</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Content Manager Tab */}
-                    {activeTab === 'content' && (
-                        <div className="animate-fadeIn">
-                            <div className="flex justify-between items-end mb-8">
-                                <div>
-                                    <h1 className="text-3xl font-black text-white mb-2">Content Manager</h1>
-                                    <p className="text-zinc-500 text-sm">Manage Main Page updates & Academy videos.</p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={() => { setIsEditing(false); setEditingItem(null); setContentForm({ title: '', desc: '', thumbnail: '', duration: '', category: 'Daily', locked: false }); }}
-                                        className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all"
-                                    >
-                                        Clear Form
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                {/* Form */}
-                                <div className="lg:col-span-4 h-fit bg-[#0e0e10] border border-zinc-800 rounded-2xl p-6 sticky top-8">
-                                    <h3 className="text-white font-bold mb-6 flex items-center gap-2">
-                                        {isEditing ? <EditIcon /> : <PlusIcon />}
-                                        {isEditing ? 'Edit Content' : 'Add New Content'}
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Title</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={contentForm.title} onChange={e => setContentForm({...contentForm, title: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Category</label>
-                                            <select className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none"
-                                                value={contentForm.category} onChange={e => setContentForm({...contentForm, category: e.target.value as any})}
-                                            >
-                                                <option value="Daily">Daily Update (Landing Page)</option>
-                                                <option value="Academy">Academy (Premium)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Thumbnail URL</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={contentForm.thumbnail} onChange={e => setContentForm({...contentForm, thumbnail: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Duration</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={contentForm.duration} onChange={e => setContentForm({...contentForm, duration: e.target.value})} placeholder="e.g. 05:20"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Description</label>
-                                            <textarea className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none h-24 resize-none" 
-                                                value={contentForm.desc} onChange={e => setContentForm({...contentForm, desc: e.target.value})}
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <input type="checkbox" id="locked" className="accent-[#FF5252]" 
-                                                checked={contentForm.locked} onChange={e => setContentForm({...contentForm, locked: e.target.checked})}
-                                            />
-                                            <label htmlFor="locked" className="text-sm text-zinc-400">Premium Content (Locked)</label>
-                                        </div>
-                                        <button onClick={handleSaveContent} className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-3 rounded-xl font-bold text-sm uppercase tracking-widest transition-all mt-2">
-                                            {isEditing ? 'Update Content' : 'Publish Content'}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* List */}
-                                <div className="lg:col-span-8">
-                                    <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Existing Library</h3>
-                                    {content.map((item: any) => (
-                                        <ContentRow key={item.id} item={item} onEdit={handleEditContent} onDelete={onDeleteContent} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Shop Manager Tab */}
-                    {activeTab === 'shop' && (
-                        <div className="animate-fadeIn">
-                            <div className="mb-8">
-                                <h1 className="text-3xl font-black text-white mb-2">Affiliate Shop Manager</h1>
-                                <p className="text-zinc-500 text-sm">Manage products and track outbound clicks.</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                <div className="lg:col-span-4 h-fit bg-[#0e0e10] border border-zinc-800 rounded-2xl p-6">
-                                    <h3 className="text-white font-bold mb-6 flex items-center gap-2">
-                                        <PlusIcon /> Add Product
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Product Name</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Price Label</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} placeholder="$99.00"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Affiliate URL</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={productForm.url} onChange={e => setProductForm({...productForm, url: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Image URL</label>
-                                            <input type="text" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none" 
-                                                value={productForm.image} onChange={e => setProductForm({...productForm, image: e.target.value})}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 mb-1 block">Description</label>
-                                            <textarea className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-[#FF5252] outline-none h-20 resize-none" 
-                                                value={productForm.desc} onChange={e => setProductForm({...productForm, desc: e.target.value})}
-                                            />
-                                        </div>
-                                        <button onClick={handleSaveProduct} className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-3 rounded-xl font-bold text-sm uppercase tracking-widest transition-all mt-2">
-                                            Add Product
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="lg:col-span-8">
-                                    <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Product Inventory</h3>
-                                    {products.map((product: any) => (
-                                        <ShopRow key={product.id} product={product} onDelete={onDeleteProduct} />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                <div className="bg-zinc-900/50 p-1 rounded-xl flex mb-8">
+                    <button 
+                        onClick={() => setIsSignUp(false)}
+                        className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${!isSignUp ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        Sign In
+                    </button>
+                    <button 
+                        onClick={() => setIsSignUp(true)}
+                        className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${isSignUp ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        Subscribe
+                    </button>
                 </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Email Address</label>
+                        <input 
+                            type="email" 
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            placeholder="you@example.com"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Password</label>
+                        <input 
+                            type="password" 
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    <button 
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-red-900/20 disabled:opacity-50"
+                    >
+                        {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : (isSignUp ? 'Continue to Payment' : 'Sign In')}
+                    </button>
+                </form>
             </div>
         </div>
     );
 };
 
-// --- Updated Shop Component to use Props ---
+// --- Assessment Wizard (Replaces old AssessmentForm) ---
 
-const ShopView = ({ onBack, products, onProductClick }: { onBack: () => void, products: ShopProduct[], onProductClick: (id: string) => void }) => {
-    const affiliateId = "japrotocols"; 
+const OptionCard = ({ label, desc, selected, onClick }: any) => (
+    <div 
+        onClick={onClick}
+        className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 relative group
+        ${selected ? 'bg-[#FF5252]/10 border-[#FF5252]' : 'bg-zinc-900/30 border-zinc-800 hover:border-zinc-700'}`}
+    >
+        <div className="flex justify-between items-start">
+            <div>
+                <h4 className={`text-sm font-bold ${selected ? 'text-white' : 'text-zinc-300'}`}>{label}</h4>
+                {desc && <p className="text-xs text-zinc-500 mt-1 leading-tight">{desc}</p>}
+            </div>
+            <CircleCheckIcon checked={selected} />
+        </div>
+    </div>
+);
+
+const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) => void, onCancel: () => void }) => {
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({
+        sex: 'Male',
+        dobYear: '1985',
+        heightFt: '5',
+        heightIn: '10',
+        weight: '',
+        unit: 'Imperial',
+        goals: [] as string[],
+        injuries: [] as string[],
+        email: '',
+        password: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const toggleItem = (list: string[], item: string) => {
+        if (list.includes(item)) return list.filter(i => i !== item);
+        return [...list, item];
+    };
+
+    const handleFinish = async () => {
+        setLoading(true);
+        // Simulate API call to create account + send email
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const newUser: User = {
+            email: formData.email,
+            hasAssessment: true,
+            isAcademyMember: false // Free protocol users are not academy members by default
+        };
+        onComplete(newUser);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-4">
+            <AmbientBackground />
+            <div className="relative z-10 w-full max-w-2xl bg-[#0a0a0a] border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl animate-fadeIn flex flex-col max-h-[90vh]">
+                 
+                 {/* Wizard Header */}
+                 <div className="px-8 py-6 border-b border-zinc-800 bg-[#0a0a0a] sticky top-0 z-20 flex justify-between items-center">
+                     <button onClick={onCancel} className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                        <i className="fa-solid fa-arrow-left"></i> Back
+                     </button>
+                     <div className="flex gap-2">
+                         {[1, 2, 3].map(i => (
+                             <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${step >= i ? 'w-8 bg-[#FF5252]' : 'w-4 bg-zinc-800'}`}></div>
+                         ))}
+                     </div>
+                 </div>
+
+                 <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
+                     
+                     {/* Step 1: Basic Info */}
+                     {step === 1 && (
+                         <div className="space-y-6 animate-fadeIn">
+                             <div className="mb-6">
+                                 <div className="inline-block px-3 py-1 rounded-full bg-[#FF5252]/10 text-[#FF5252] text-[10px] font-bold uppercase tracking-widest mb-2">Step 1 of 3</div>
+                                 <h2 className="text-3xl font-bold flex items-center gap-3">
+                                     <i className="fa-solid fa-bolt text-[#FF5252]"></i>
+                                     Basic Info
+                                 </h2>
+                                 <p className="text-zinc-500 text-sm mt-1">Tell us about yourself so we can calculate proper dosages.</p>
+                             </div>
+
+                             <div className="space-y-2">
+                                 <label className="text-xs font-bold text-zinc-400 uppercase">Sex</label>
+                                 <div className="grid grid-cols-2 gap-4">
+                                     {['Male', 'Female'].map(opt => (
+                                         <button 
+                                            key={opt}
+                                            onClick={() => setFormData({...formData, sex: opt})}
+                                            className={`py-3 rounded-xl border font-bold text-sm transition-all ${formData.sex === opt ? 'bg-[#FF5252] border-[#FF5252] text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'}`}
+                                         >
+                                             {opt}
+                                         </button>
+                                     ))}
+                                 </div>
+                             </div>
+
+                             <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-400 uppercase">Height (ft/in)</label>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="number" 
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 focus:border-[#FF5252] focus:outline-none" 
+                                            placeholder="5"
+                                            value={formData.heightFt}
+                                            onChange={(e) => setFormData({...formData, heightFt: e.target.value})}
+                                        />
+                                        <input 
+                                            type="number" 
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 focus:border-[#FF5252] focus:outline-none" 
+                                            placeholder="10"
+                                            value={formData.heightIn}
+                                            onChange={(e) => setFormData({...formData, heightIn: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-400 uppercase">Weight (lbs)</label>
+                                    <input 
+                                        type="number" 
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 focus:border-[#FF5252] focus:outline-none" 
+                                        placeholder="180"
+                                        value={formData.weight}
+                                        onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                                    />
+                                </div>
+                             </div>
+
+                             <div className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800 flex items-center justify-between">
+                                 <span className="text-sm font-bold text-zinc-300">Measurement Units</span>
+                                 <div className="bg-zinc-950 p-1 rounded-lg border border-zinc-800 flex">
+                                     <button className="px-3 py-1 bg-zinc-800 rounded text-xs font-bold text-white shadow">Imperial</button>
+                                     <button className="px-3 py-1 text-zinc-500 text-xs font-bold hover:text-white transition-colors">Metric</button>
+                                 </div>
+                             </div>
+                         </div>
+                     )}
+
+                     {/* Step 2: Goals & Safety */}
+                     {step === 2 && (
+                         <div className="space-y-6 animate-fadeIn">
+                             <div className="mb-6">
+                                 <div className="inline-block px-3 py-1 rounded-full bg-[#FF5252]/10 text-[#FF5252] text-[10px] font-bold uppercase tracking-widest mb-2">Step 2 of 3</div>
+                                 <h2 className="text-3xl font-bold flex items-center gap-3">
+                                     <i className="fa-regular fa-heart text-[#FF5252]"></i>
+                                     Goals & Safety
+                                 </h2>
+                                 <p className="text-zinc-500 text-sm mt-1">Help us provide safer, more targeted suggestions.</p>
+                             </div>
+
+                             <div className="space-y-3">
+                                 <label className="text-xs font-bold text-zinc-400 uppercase">Primary Goals (Select all that apply)</label>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                     <OptionCard 
+                                        label="Fat Loss" 
+                                        desc="Optimize body composition and metabolic health"
+                                        selected={formData.goals.includes('Fat Loss')}
+                                        onClick={() => setFormData({...formData, goals: toggleItem(formData.goals, 'Fat Loss')})}
+                                     />
+                                     <OptionCard 
+                                        label="Muscle Gain" 
+                                        desc="Build lean muscle mass and strength"
+                                        selected={formData.goals.includes('Muscle Gain')}
+                                        onClick={() => setFormData({...formData, goals: toggleItem(formData.goals, 'Muscle Gain')})}
+                                     />
+                                     <OptionCard 
+                                        label="Recovery" 
+                                        desc="Accelerate healing from training and injury"
+                                        selected={formData.goals.includes('Recovery')}
+                                        onClick={() => setFormData({...formData, goals: toggleItem(formData.goals, 'Recovery')})}
+                                     />
+                                     <OptionCard 
+                                        label="Cognitive" 
+                                        desc="Enhance focus, clarity and brain health"
+                                        selected={formData.goals.includes('Cognitive')}
+                                        onClick={() => setFormData({...formData, goals: toggleItem(formData.goals, 'Cognitive')})}
+                                     />
+                                 </div>
+                             </div>
+
+                             <div className="pt-4 border-t border-zinc-800">
+                                <label className="text-xs font-bold text-zinc-400 uppercase mb-3 block">Any Current Injuries?</label>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {['None', 'Tendon/Ligament', 'Post-Surgery', 'Chronic Pain'].map(injury => (
+                                        <div 
+                                            key={injury}
+                                            onClick={() => setFormData({...formData, injuries: toggleItem(formData.injuries, injury)})}
+                                            className={`px-4 py-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-colors ${formData.injuries.includes(injury) ? 'bg-[#FF5252]/10 border-[#FF5252] text-white' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                                        >
+                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${formData.injuries.includes(injury) ? 'border-[#FF5252] bg-[#FF5252]' : 'border-zinc-600'}`}>
+                                                {formData.injuries.includes(injury) && <div className="w-1.5 h-1.5 rounded-full bg-black"></div>}
+                                            </div>
+                                            <span className="text-sm font-medium">{injury}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                             </div>
+                         </div>
+                     )}
+
+                     {/* Step 3: Account Creation / Get Protocol */}
+                     {step === 3 && (
+                         <div className="space-y-6 animate-fadeIn">
+                             <div className="mb-6">
+                                 <div className="inline-block px-3 py-1 rounded-full bg-[#FF5252]/10 text-[#FF5252] text-[10px] font-bold uppercase tracking-widest mb-2">Step 3 of 3</div>
+                                 <h2 className="text-3xl font-bold flex items-center gap-3">
+                                     <i className="fa-regular fa-paper-plane text-[#FF5252]"></i>
+                                     Get Your Free Protocol
+                                 </h2>
+                                 <p className="text-zinc-500 text-sm mt-1">Enter your email to receive your customized peptide report instantly.</p>
+                             </div>
+
+                             <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-400 uppercase">Email Address *</label>
+                                    <input 
+                                        type="email" 
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 focus:border-[#FF5252] focus:outline-none text-white placeholder-zinc-700" 
+                                        placeholder="your.email@example.com"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    />
+                                </div>
+                                
+                                <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6">
+                                    <h4 className="flex items-center gap-2 text-white font-bold mb-4">
+                                        <i className="fa-solid fa-lock text-[#FF5252]"></i>
+                                        Unlock Your Peptide Success Dashboard
+                                    </h4>
+                                    <p className="text-zinc-400 text-xs mb-4">Create a free account to save your protocol and unlock instant access to:</p>
+                                    <ul className="space-y-3">
+                                        {[
+                                            'Advanced Peptide Calculator - Precision dosing tools',
+                                            'Comprehensive Content Library - Expert guides & research',
+                                            'Your Personal Protocol Hub - Access recommendations anytime'
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex items-start gap-3 text-sm text-zinc-300">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#FF5252] mt-1.5"></div>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-400 uppercase">Create Password <span className="text-zinc-600 font-normal">(Optional - Recommended)</span></label>
+                                    <input 
+                                        type="password" 
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 focus:border-[#FF5252] focus:outline-none text-white placeholder-zinc-700" 
+                                        placeholder="••••••••••"
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    />
+                                    <p className="text-[10px] text-zinc-500">Secure your account to save your personalized protocol.</p>
+                                </div>
+                             </div>
+                         </div>
+                     )}
+
+                 </div>
+
+                 <div className="p-6 border-t border-zinc-800 bg-[#0a0a0a] flex justify-end">
+                     {step < 3 ? (
+                        <button 
+                            onClick={() => setStep(step + 1)}
+                            className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-red-900/20"
+                        >
+                            Continue
+                        </button>
+                     ) : (
+                        <button 
+                            onClick={handleFinish}
+                            disabled={loading || !formData.email}
+                            className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-red-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? <i className="fa-solid fa-spinner animate-spin"></i> : 'Send Personalized Report'}
+                        </button>
+                     )}
+                 </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Shop Component ---
+
+const ShopView = ({ onBack }: { onBack: () => void }) => {
+    const affiliateId = "japrotocols"; // Affiliate ID for tracking
+    const products = [
+        {
+            id: 'ret-glp-3',
+            name: "RET-GLP-3 (Retatrutide)",
+            dosage: "10mg / 15mg",
+            price: "$150.00+",
+            image: "https://images.unsplash.com/photo-1624720114708-0763412388dd?q=80&w=2070&auto=format&fit=crop", 
+            url: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/?ref=${affiliateId}`,
+            desc: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
+            features: ["Fat Loss", "Metabolic Boost"]
+        },
+        {
+            id: 'tz',
+            name: "Tirzepatide (TZ)",
+            dosage: "10mg / 30mg",
+            price: "$130.00+",
+            image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=2030&auto=format&fit=crop",
+            url: `https://www.maxperformance4you.com/product/tz-tirzepatide/?ref=${affiliateId}`,
+            desc: "Dual agonist (GLP-1, GIP) for significant weight management.",
+            features: ["Weight Loss", "Insulin Control"]
+        },
+        {
+            id: 'sema',
+            name: "Semaglutide",
+            dosage: "5mg",
+            price: "$99.00+",
+            image: "https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop",
+            url: `https://www.maxperformance4you.com/product/semaglutide-5mg/?ref=${affiliateId}`,
+            desc: "Gold standard GLP-1 agonist for appetite suppression.",
+            features: ["Appetite Control", "Steady Results"]
+        },
+        {
+             id: 'teso',
+             name: "Tesofensine",
+             dosage: "500mcg Caps",
+             price: "$180.00+",
+             image: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=2070&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/tesofensine-500mcg-capsules/?ref=${affiliateId}`,
+             desc: "Dopamine uptake inhibitor for mood and metabolism.",
+             features: ["Neuroprotection", "Fat Burning"]
+        },
+        {
+             id: 'aod',
+             name: "AOD-9604",
+             dosage: "5mg",
+             price: "$65.00",
+             image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=2140&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/aod-9604-5mg/?ref=${affiliateId}`,
+             desc: "Fat loss fragment of HGH, no blood sugar impact.",
+             features: ["Targeted Fat Loss", "Non-Hormonal"]
+        },
+        {
+             id: 'blend',
+             name: "BPC-157 + TB-500",
+             dosage: "10mg Blend",
+             price: "$110.00",
+             image: "https://images.unsplash.com/photo-1579165466741-7f35a4755657?q=80&w=2079&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/bpc-157-tb-500-blend/?ref=${affiliateId}`,
+             desc: "Ultimate recovery stack for joints and tissues.",
+             features: ["Rapid Healing", "Joint Support"]
+        },
+        {
+             id: 'bpc',
+             name: "BPC-157",
+             dosage: "5mg",
+             price: "$60.00",
+             image: "https://images.unsplash.com/photo-1606210123518-e3c6317df854?q=80&w=2070&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/bpc-157-5mg/?ref=${affiliateId}`,
+             desc: "Systemic healing peptide for gut and injuries.",
+             features: ["Gut Health", "Injury Repair"]
+        },
+         {
+             id: 'tb500',
+             name: "TB-500",
+             dosage: "5mg",
+             price: "$65.00",
+             image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=2069&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/tb-500-5mg/?ref=${affiliateId}`,
+             desc: "Promotes flexibility and inflammation reduction.",
+             features: ["Flexibility", "Anti-Inflammatory"]
+        },
+        {
+             id: 'ghk',
+             name: "GHK-Cu",
+             dosage: "50mg",
+             price: "$70.00",
+             image: "https://images.unsplash.com/photo-1615486511484-92e572499760?q=80&w=2070&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/ghk-cu-50mg/?ref=${affiliateId}`,
+             desc: "Copper peptide for skin elasticity and healing.",
+             features: ["Skin Health", "Tissue Repair"]
+        },
+         {
+             id: 'cjc',
+             name: "CJC-1295 + Ipamorelin",
+             dosage: "10mg Blend",
+             price: "$95.00",
+             image: "https://images.unsplash.com/photo-1581093588402-4114d5e7b998?q=80&w=2070&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/cjc-1295-ipamorelin-blend/?ref=${affiliateId}`,
+             desc: "Potent GH secretagogue stack for muscle and sleep.",
+             features: ["Muscle Growth", "Deep Sleep"]
+        },
+        {
+             id: 'nad',
+             name: "NAD+",
+             dosage: "500mg",
+             price: "$85.00",
+             image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=2140&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/nad-500mg/?ref=${affiliateId}`,
+             desc: "Cellular energy and anti-aging coenzyme.",
+             features: ["Energy", "Anti-Aging"]
+        },
+        {
+             id: '5amino',
+             name: "5-Amino-1MQ",
+             dosage: "Capsules",
+             price: "$190.00",
+             image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=2070&auto=format&fit=crop",
+             url: `https://www.maxperformance4you.com/product/5-amino-1mq/?ref=${affiliateId}`,
+             desc: "NNMT inhibitor to increase NAD+ levels and burn fat.",
+             features: ["Fat Loss", "Muscle Retention"]
+        }
+    ];
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter">
@@ -1121,10 +1212,9 @@ const ShopView = ({ onBack, products, onProductClick }: { onBack: () => void, pr
                                  </ul>
 
                                  <a 
-                                     href={`${product.url}?ref=${affiliateId}`}
+                                     href={product.url} 
                                      target="_blank" 
                                      rel="noreferrer"
-                                     onClick={() => onProductClick(product.id)}
                                      className="w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2"
                                  >
                                      View Product <i className="fa-solid fa-external-link-alt"></i>
@@ -1132,46 +1222,269 @@ const ShopView = ({ onBack, products, onProductClick }: { onBack: () => void, pr
                              </div>
                          </div>
                     ))}
+                    
+                    {/* Placeholder for future products */}
+                    <div className="bg-[#0a0a0a]/30 border border-zinc-800/50 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
+                        <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-600 text-2xl">
+                            <i className="fa-solid fa-box-open"></i>
+                        </div>
+                        <h3 className="text-xl font-bold text-zinc-500">More Coming Soon</h3>
+                        <p className="text-zinc-600 text-sm max-w-xs">We are currently vetting additional sources for longevity compounds.</p>
+                    </div>
                 </div>
             </section>
         </div>
     );
 };
 
-// --- Updated Academy View to use Props ---
+// --- Academy View Components ---
 
-const AcademyView = ({ user, onBack, onSubscribe, content }: { user: User | null, onBack: () => void, onSubscribe: () => void, content: ContentItem[] }) => {
+const AcademyVideoCard = ({ title, desc, locked, duration }: { title: string, desc: string, locked: boolean, duration: string }) => (
+    <div className={`group relative bg-[#0a0a0a] border ${locked ? 'border-zinc-800/50' : 'border-zinc-800'} rounded-2xl overflow-hidden cursor-pointer hover:border-[#FF5252]/50 transition-all duration-300 shadow-lg`}>
+        <div className="h-48 bg-zinc-900 relative flex items-center justify-center overflow-hidden">
+             {/* Thumbnail BG */}
+             <div className={`absolute inset-0 bg-gradient-to-br from-zinc-800 to-black ${locked ? 'opacity-40 grayscale' : 'opacity-80'} group-hover:opacity-60 transition-all`}></div>
+             
+            {locked ? (
+                 <div className="relative z-10 w-14 h-14 rounded-full bg-zinc-900/80 backdrop-blur-md border border-zinc-700 flex items-center justify-center text-zinc-500">
+                    <LockIcon />
+                </div>
+            ) : (
+                <div className="relative z-10 w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#FF5252] group-hover:border-[#FF5252] transition-all duration-300 shadow-xl">
+                    <PlayIcon />
+                </div>
+            )}
+            
+            <span className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-[10px] font-bold text-zinc-300">{duration}</span>
+        </div>
+        <div className="p-5">
+             <div className="flex justify-between items-start mb-2">
+                <h4 className={`text-base font-bold ${locked ? 'text-zinc-500' : 'text-white'} group-hover:text-[#FF5252] transition-colors line-clamp-1`}>{title}</h4>
+                {locked && <span className="text-[10px] uppercase font-bold text-[#FF5252] border border-[#FF5252]/30 px-2 py-0.5 rounded bg-[#FF5252]/5">Pro</span>}
+             </div>
+            <p className="text-xs text-zinc-600 leading-relaxed line-clamp-2">{desc}</p>
+        </div>
+    </div>
+);
+
+// New Component for Experts
+const CoachCard = ({ name, icon, points, gradient }: { name: string, icon: any, points: string[], gradient: string }) => (
+    <div className="relative p-8 rounded-3xl bg-[#0e0e10] border border-zinc-800 overflow-hidden group hover:border-zinc-600 transition-all duration-300">
+        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-bl-full`}></div>
+        
+        <div className="flex items-center gap-4 mb-6">
+            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-lg`}>
+                {icon}
+            </div>
+            <h3 className="text-2xl font-bold text-white">{name}</h3>
+        </div>
+
+        <ul className="space-y-4">
+            {points.map((point, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                    <CircleCheckIcon checked={true} />
+                    <span className="leading-relaxed">{point}</span>
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+
+// New Component for Feature Pillars
+const FeaturePillar = ({ title, icon, desc, colorClass }: { title: string, icon: any, desc: string, colorClass: string }) => (
+    <div className="bg-[#0e0e10] border border-zinc-800 p-6 rounded-2xl hover:bg-zinc-900 transition-colors group">
+        <div className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center text-white mb-4 shadow-lg`}>
+            {icon}
+        </div>
+        <h4 className="text-white font-bold text-lg mb-2">{title}</h4>
+        <p className="text-xs text-zinc-500 leading-relaxed group-hover:text-zinc-400">{desc}</p>
+    </div>
+);
+
+// New Component for Members Area
+const MemberAreaCard = ({ title, icon, items }: { title: string, icon: any, items: string[] }) => (
+    <div className="bg-[#0e0e10] border border-zinc-800 p-8 rounded-3xl relative overflow-hidden group hover:border-[#9d4edd]/30 transition-all">
+        <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity text-[#9d4edd]">
+            {icon}
+        </div>
+        <div className="w-12 h-12 bg-[#9d4edd]/20 rounded-xl flex items-center justify-center text-[#9d4edd] mb-6">
+            {icon}
+        </div>
+        <h3 className="text-xl font-bold text-white mb-4">{title}</h3>
+        <ul className="space-y-3">
+            {items.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-zinc-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] mt-1.5"></div>
+                    {item}
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+
+const AcademyView = ({ user, onBack, onSubscribe }: { user: User | null, onBack: () => void, onSubscribe: () => void }) => {
     const isMember = user?.isAcademyMember;
-    const academyContent = content.filter(c => c.category === 'Academy' || c.category === 'Protocol');
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
+            
+             {/* Top Bar */}
             <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button onClick={onBack} className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group">
-                        <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>Back
+                <button 
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
+                    >
+                        <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
+                        Back
                 </button>
                 <span className="font-serif italic text-zinc-500">Cellular Advantage Academy</span>
                 <div className="w-6"></div>
             </div>
 
+            {/* Header */}
             <section className="py-20 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
-                    <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">Members-Only Access</div>
-                    <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-6">Inside Cellular Advantage <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9d4edd] to-[#c77dff]">Academy</span></h1>
-                    <p className="text-zinc-400 text-lg leading-relaxed">Get access to the <strong>real-world experience and results</strong> used by elite athletes and performance specialists.</p>
+                    <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
+                        Members-Only Access
+                    </div>
+                    <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-6">
+                        Inside Cellular Advantage <br/>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9d4edd] to-[#c77dff]">Academy</span>
+                    </h1>
+                    <p className="text-zinc-400 text-lg leading-relaxed">
+                        Get access to the <strong>real-world experience and results</strong> used by elite athletes and performance specialists.
+                    </p>
                 </div>
             </section>
 
-            {/* Existing Sections Omitted for Brevity (Coaches, Pillars, Members Area) - They remain the same */}
+            {/* Meet The Experts Section (Moved from LandingPage) */}
+            <section className="py-12 bg-transparent relative border-t border-zinc-900/50">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+                        <CoachCard 
+                            name="Jon Andersen"
+                            icon={<StarIcon />}
+                            gradient="from-blue-600 to-indigo-900"
+                            points={[
+                                "Elite strength coach & performance consultant",
+                                "Former professional strongman",
+                                "Creator of Deep Water Method & multiple high-intensity training systems",
+                                "Decades of experience working with strength athletes, fighters, and high performers"
+                            ]}
+                        />
+                        <CoachCard 
+                            name="Travis Ortmayer"
+                            icon={<StarIcon />}
+                            gradient="from-pink-600 to-purple-900"
+                            points={[
+                                "Professional strongman competitor",
+                                "Multiple-time America's Strongest Man finalist",
+                                "World-class strength athlete with years of competitive experience",
+                                "Known for practical, no-nonsense performance strategies"
+                            ]}
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Core Pillars / "No Hype" Section (Moved from LandingPage) */}
+            <section className="py-16 bg-[#050505]">
+                <div className="max-w-5xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <div className="inline-block px-6 py-4 bg-zinc-900/50 rounded-2xl border border-zinc-800">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">This isn't theory. This isn't hype.</h2>
+                            <p className="text-zinc-500 text-sm">It's real-world application, lessons learned, and outcomes achieved through years of experience.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <FeaturePillar 
+                            title="Strength" 
+                            icon={<DumbbellIcon />} 
+                            desc="Build lean muscle mass and power."
+                            colorClass="bg-[#FF5252]"
+                        />
+                        <FeaturePillar 
+                            title="Fat Loss" 
+                            icon={<FlameIcon />} 
+                            desc="Optimize body composition and metabolic health."
+                            colorClass="bg-orange-500"
+                        />
+                        <FeaturePillar 
+                            title="Recovery & Healing" 
+                            icon={<HeartPulseIcon />} 
+                            desc="Accelerate healing from training and injury."
+                            colorClass="bg-pink-500"
+                        />
+                        <FeaturePillar 
+                            title="Performance Optimization" 
+                            icon={<ZapIcon />} 
+                            desc="Boost energy levels and cellular vitality."
+                            colorClass="bg-violet-500"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Inside Members Area Section (Moved from LandingPage) */}
+            <section className="py-16 bg-[#08080a] border-y border-zinc-800/50">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
+                            Premium Content
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-black text-white mb-4">Inside The Members Area</h2>
+                        <p className="text-zinc-400 max-w-lg mx-auto">Everything is broken down step by step — easy to understand, practical, and actionable.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <MemberAreaCard 
+                            title="Exclusive Articles"
+                            icon={<BookIcon />}
+                            items={[
+                                "Deep-dive breakdowns",
+                                "Educational insights",
+                                "Practical takeaways based on real use"
+                            ]}
+                        />
+                        <MemberAreaCard 
+                            title="Research Library"
+                            icon={<BeakerIcon />}
+                            items={[
+                                "Curated studies",
+                                "Scientific context explained simply",
+                                "What the research actually shows"
+                            ]}
+                        />
+                        <MemberAreaCard 
+                            title="Video Library"
+                            icon={<VideoCameraIcon />}
+                            items={[
+                                "Videos with Jon & Travis",
+                                "Clear explanations of each peptide",
+                                "Real experiences & results achieved"
+                            ]}
+                        />
+                    </div>
+                </div>
+            </section>
             
             {!isMember && (
-                <section className="max-w-4xl mx-auto px-6 mb-20 mt-10">
+                <section className="max-w-4xl mx-auto px-6 mb-20 mt-20">
                     <div className="bg-[#0f0a14] border border-[#9d4edd]/30 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
                          <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
                          <div className="text-4xl font-black text-[#c77dff] mb-1">$27<span className="text-lg text-zinc-500 font-medium">/month</span></div>
-                         <button onClick={onSubscribe} className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto mt-6">Subscribe Now - $27/mo</button>
+                         <p className="text-sm text-zinc-500 mb-8">Full access to all premium content</p>
+                         
+                         <button 
+                            onClick={onSubscribe}
+                            className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
+                        >
+                             Subscribe Now - $27/mo
+                         </button>
+                         <p className="text-[10px] text-zinc-600 mt-4 uppercase tracking-wider">Cancel anytime. No long-term commitments.</p>
                     </div>
                 </section>
             )}
@@ -1181,26 +1494,103 @@ const AcademyView = ({ user, onBack, onSubscribe, content }: { user: User | null
                     <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">THE ACADEMY</h2>
                     <p className="text-zinc-400 max-w-2xl mx-auto text-lg">Master the science of peptides. Exclusive content and expert protocols.</p>
                 </div>
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#FF5252] rounded-full"></span>
+                        Latest Protocols
+                    </h3>
+                    <div className="flex gap-2">
+                         <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-bold uppercase text-zinc-400 hover:text-white">All</button>
+                         <button className="px-4 py-2 bg-transparent border border-zinc-800 rounded-lg text-xs font-bold uppercase text-zinc-600 hover:text-white">Protocols</button>
+                         <button className="px-4 py-2 bg-transparent border border-zinc-800 rounded-lg text-xs font-bold uppercase text-zinc-600 hover:text-white">Deep Dives</button>
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                     {academyContent.map((item) => (
-                         <AcademyVideoCard 
-                            key={item.id}
-                            title={item.title} 
-                            desc={item.desc} 
-                            locked={item.locked && !isMember}
-                            duration={item.duration || "10:00"}
-                         />
-                     ))}
+                     {/* Public/Teaser Videos */}
+                     <AcademyVideoCard 
+                        title="Welcome to the Academy" 
+                        desc="An introduction to the cellular advantage methodology and what to expect." 
+                        locked={false}
+                        duration="05:22"
+                     />
+                     <AcademyVideoCard 
+                        title="The Foundation of Peptides" 
+                        desc="Understanding the basic biological mechanisms before starting." 
+                        locked={false}
+                        duration="12:45"
+                     />
+
+                     {/* Locked/Premium Videos */}
+                     <AcademyVideoCard 
+                        title="Advanced Stacking Protocols" 
+                        desc="Combining GH secretagogues with metabolic agents for maximum effect." 
+                        locked={!isMember}
+                        duration="28:10"
+                     />
+                     <AcademyVideoCard 
+                        title="Injury Repair Blueprint" 
+                        desc="The exact BPC-157 & TB-500 cycling schedule for acute injuries." 
+                        locked={!isMember}
+                        duration="18:30"
+                     />
+                      <AcademyVideoCard 
+                        title="Cognitive Enhancement Deep Dive" 
+                        desc="Nootropic peptides specifically for executive function and memory." 
+                        locked={!isMember}
+                        duration="22:15"
+                     />
+                      <AcademyVideoCard 
+                        title="Sourcing & Quality Control" 
+                        desc="How to identify high-purity compounds and avoid counterfeits." 
+                        locked={!isMember}
+                        duration="15:00"
+                     />
                 </div>
             </section>
         </div>
     );
 };
 
-// --- Updated Landing Page to use Props ---
+// --- Landing Page Components ---
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStartShop, onStartAdmin, user, updates }: any) => {
+const Badge = ({ icon, text }: { icon: any, text: string }) => (
+    <div className="flex flex-col items-center gap-3 group">
+        <div className="w-16 h-16 rounded-2xl bg-zinc-900/50 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF5252] group-hover:border-[#FF5252]/50 group-hover:bg-[#FF5252]/5 shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
+           <span className="text-2xl">{icon}</span>
+        </div>
+        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest group-hover:text-white transition-colors">{text}</span>
+    </div>
+);
+
+const VideoCard = ({ title, desc, image, duration, onClick }: { title: string, desc: string, image?: string, duration?: string, onClick?: () => void }) => (
+    <div onClick={onClick} className="group relative bg-[#0a0a0a] border border-zinc-800/50 rounded-2xl overflow-hidden cursor-pointer hover:border-[#FF5252]/50 transition-all duration-300 shadow-lg hover:shadow-[0_10px_30px_-10px_rgba(255,82,82,0.1)]">
+        <div className="h-48 bg-zinc-900 relative flex items-center justify-center overflow-hidden">
+             {image ? (
+                 <img src={image} alt={title} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-all duration-500 group-hover:scale-105" />
+             ) : (
+                 <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-black opacity-80 group-hover:opacity-60 transition-opacity"></div>
+             )}
+             
+             <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-80"></div>
+
+            {/* Play Button Overlay */}
+            <div className="relative z-10 w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#FF5252] group-hover:border-[#FF5252] transition-all duration-300 shadow-xl">
+                <PlayIcon />
+            </div>
+            
+            {duration && (
+                <span className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-[10px] font-bold text-zinc-300 z-10">{duration}</span>
+            )}
+        </div>
+        <div className="p-6">
+            <h4 className="text-base font-bold text-white mb-2 group-hover:text-[#FF5252] transition-colors line-clamp-1">{title}</h4>
+            <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{desc}</p>
+        </div>
+    </div>
+);
+
+const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStartShop, user }: { onStartCalculator: () => void, onStartAcademy: () => void, onLoginRequest: () => void, onStartShop: () => void, user: User | null }) => {
     
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
@@ -1297,6 +1687,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
                         {/* Floating Card 1: IFBB Pro (Bodybuilding Pose) */}
                         <div className="absolute top-20 -left-6 w-48 h-64 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] z-20 transform -rotate-6 hover:rotate-0 transition-all duration-300 group bg-black">
+                            {/* User: Replace src with your 'Bodybuilder Pose' image */}
                             <img 
                                 src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=2070&auto=format&fit=crop"
                                 alt="IFBB Pro"
@@ -1309,6 +1700,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
                         {/* Floating Card 2: Strongman (Car Lift) */}
                         <div className="absolute bottom-32 -left-10 w-64 h-48 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] z-30 transform rotate-3 hover:rotate-0 transition-all duration-300 group bg-black">
+                            {/* User: Replace src with your 'Strongman' image */}
                             <img 
                                 src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop"
                                 alt="Strongman"
@@ -1321,6 +1713,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
                         {/* Floating Card 3: Wrestler (Yelling) */}
                         <div className="absolute bottom-0 right-10 w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] z-40 hover:scale-110 transition-transform duration-300 bg-black">
+                            {/* User: Replace src with your 'Wrestler' image */}
                             <img 
                                 src="https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop"
                                 alt="Wrestling"
@@ -1339,7 +1732,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                 </div>
             </section>
 
-            {/* Video Section (Dynamic) */}
+            {/* Video Section */}
             <section className="py-24 relative bg-[#08080a] border-t border-zinc-900">
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="text-center mb-16">
@@ -1351,12 +1744,12 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {updates.filter((u: any) => u.category === 'Daily').map((video: any) => (
+                        {DAILY_UPDATES.map((video, idx) => (
                             <VideoCard 
-                                key={video.id}
+                                key={idx}
                                 title={video.title} 
                                 desc={video.desc}
-                                image={video.thumbnail}
+                                image={video.image}
                                 duration={video.duration}
                                 onClick={onStartAcademy}
                             />
@@ -1374,7 +1767,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Privacy</a>
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Terms</a>
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Support</a>
-                    <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors">Admin Access</button>
+                    <a href="#" className="hover:text-[#FF5252] transition-colors">Instagram</a>
                 </div>
                 <p className="text-zinc-700 text-[10px]">© 2024 JA Protocols. All rights reserved.</p>
             </footer>
@@ -1382,40 +1775,293 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
     );
 };
 
-// --- App Root ---
+// --- Calculator View Component ---
+
+const CalculatorView = ({ onBack }: { onBack: () => void }) => {
+  // State
+  const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Calculator State
+  const [vialMg, setVialMg] = useState<string>('5');
+  const [bacWaterMl, setBacWaterMl] = useState<string>('2');
+  const [desiredDoseMcg, setDesiredDoseMcg] = useState<string>('250');
+  const [syringeCapacity, setSyringeCapacity] = useState<SyringeCapacity>(100); 
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'calculator' | 'profile'>('calculator');
+
+  // Derived State (Calculations)
+  const [result, setResult] = useState<CalculationResult>({
+    concentration: 0,
+    doseMg: 0,
+    volumeToInject: 0,
+    unitsToDraw: 0
+  });
+
+  // Filter Peptides
+  const filteredPeptides = PEPTIDE_DB.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const peptidesList = filteredPeptides.filter(p => p.category === 'Peptide');
+  const aminosList = filteredPeptides.filter(p => p.category === 'Amino');
+
+  useEffect(() => {
+    const mg = parseFloat(vialMg);
+    const ml = parseFloat(bacWaterMl);
+    const dose = parseFloat(desiredDoseMcg);
+    
+    if (mg > 0 && ml > 0 && dose > 0) {
+      const concentration = mg / ml; // mg/ml
+      const doseMg = dose / 1000; // convert mcg to mg
+      const volumeToInject = doseMg / concentration; // ml
+      
+      const unitsToDraw = volumeToInject * 100;
+
+      setResult({
+        concentration,
+        doseMg,
+        volumeToInject,
+        unitsToDraw
+      });
+    } else {
+      setResult({ concentration: 0, doseMg: 0, volumeToInject: 0, unitsToDraw: 0 });
+    }
+  }, [vialMg, bacWaterMl, desiredDoseMcg]);
+
+  const handleSelectPeptide = (peptide: PeptideEntry) => {
+      setSelectedPeptide(peptide);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-zinc-200 font-inter selection:bg-[#FF5252] selection:text-white pb-20">
+      <AmbientBackground />
+
+      {/* Top Bar */}
+      <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
+           <button 
+                onClick={onBack}
+                className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
+             >
+                <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
+                Home
+           </button>
+           <span className="font-serif italic text-zinc-500">Jon Andersen Protocol Engine</span>
+           <div className="w-6"></div> {/* Spacer for center alignment */}
+      </div>
+
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12">
+        
+        {/* Left Column: Peptide List */}
+        <div className="lg:col-span-4 flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:sticky lg:top-24">
+            
+            <div className="flex flex-col gap-4">
+                <h1 className="text-4xl font-black tracking-tight text-white leading-none">
+                    COMPOUND <br /> <span className="text-[#FF5252]">LIBRARY</span>
+                </h1>
+                <div className="relative group">
+                    <i className="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-[#FF5252] transition-colors"></i>
+                    <input 
+                        type="text" 
+                        placeholder="Search database..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-4 py-4 text-sm focus:outline-none focus:border-[#FF5252] focus:bg-black transition-all shadow-inner"
+                    />
+                </div>
+            </div>
+            
+            {/* Scrollable List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar border border-zinc-800/50 rounded-2xl bg-[#0a0a0a]/50 backdrop-blur-md shadow-xl p-2">
+                 
+                 {peptidesList.length > 0 && (
+                     <div className="mb-6">
+                        <div className="flex items-center gap-2 px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-widest border-b border-zinc-800/50 mb-2">
+                            <i className="fa-solid fa-flask"></i> Peptides
+                        </div>
+                        <div className="space-y-1">
+                            {peptidesList.map((peptide, index) => (
+                                <button 
+                                    key={peptide.name}
+                                    onClick={() => handleSelectPeptide(peptide)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex justify-between items-center group border border-transparent
+                                        ${selectedPeptide?.name === peptide.name 
+                                            ? 'bg-[#FF5252] text-white shadow-lg shadow-red-900/20' 
+                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-white hover:border-zinc-800'
+                                        }`}
+                                >
+                                    <span className="truncate mr-2 font-mono">{peptide.name}</span>
+                                    {selectedPeptide?.name === peptide.name && <i className="fas fa-check text-xs"></i>}
+                                </button>
+                            ))}
+                        </div>
+                     </div>
+                 )}
+
+                 {aminosList.length > 0 && (
+                     <div className="mb-4">
+                        <div className="flex items-center gap-2 px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-widest border-b border-zinc-800/50 mb-2">
+                            <i className="fa-solid fa-bolt"></i> Aminos
+                        </div>
+                        <div className="space-y-1">
+                            {aminosList.map((amino, index) => (
+                                <button 
+                                    key={amino.name}
+                                    onClick={() => handleSelectPeptide(amino)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex justify-between items-center group border border-transparent
+                                        ${selectedPeptide?.name === amino.name 
+                                            ? 'bg-[#FF5252] text-white shadow-lg shadow-red-900/20' 
+                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-white hover:border-zinc-800'
+                                        }`}
+                                >
+                                    <span className="truncate mr-2 font-mono">{amino.name}</span>
+                                    {selectedPeptide?.name === amino.name && <i className="fas fa-check text-xs"></i>}
+                                </button>
+                            ))}
+                        </div>
+                     </div>
+                 )}
+
+            </div>
+        </div>
+
+        {/* Right Column: Calculator Dashboard */}
+        <div className="lg:col-span-8 animate-fadeIn">
+            <div className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl p-1 shadow-2xl relative overflow-hidden min-h-[800px] flex flex-col">
+                 
+                 {/* Dashboard Content Container */}
+                 <div className="bg-zinc-900/20 rounded-[22px] h-full flex-1 flex flex-col p-6 sm:p-10 relative z-10">
+                     
+                     {/* Tab Switcher - Floating Island Style */}
+                     <div className="flex justify-center mb-10">
+                        <div className="bg-black/50 backdrop-blur-xl p-1.5 rounded-2xl border border-zinc-800 inline-flex shadow-xl">
+                            <button 
+                                onClick={() => setActiveTab('calculator')}
+                                className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'calculator' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            >
+                                Dosage Calculator
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('profile')}
+                                className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'profile' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            >
+                                Compound Profile
+                            </button>
+                        </div>
+                     </div>
+
+                     {activeTab === 'calculator' ? (
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-fadeIn">
+                            {/* Input Column */}
+                            <div className="space-y-8">
+                                {/* Step 1 */}
+                                <div className="bg-zinc-900/30 p-5 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+                                    <StepHeader step="01" title="Syringe Volume" />
+                                    <SyringeSelector capacity={syringeCapacity} setCapacity={setSyringeCapacity} />
+                                </div>
+
+                                {/* Step 2 */}
+                                <div className="bg-zinc-900/30 p-5 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+                                    <StepHeader step="02" title="Peptide Details" />
+                                    <div className="space-y-4">
+                                        <PeptideSelector 
+                                            selectedPeptide={selectedPeptide} 
+                                            onSelect={handleSelectPeptide} 
+                                        />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <InputField 
+                                                value={vialMg} 
+                                                onChange={setVialMg} 
+                                                unit="mg" 
+                                                placeholder="5" 
+                                            />
+                                             <div className="flex items-center text-xs text-zinc-500 leading-tight">
+                                                Amount of powder in vial
+                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 3 */}
+                                <div className="bg-zinc-900/30 p-5 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+                                    <StepHeader step="03" title="Water Volume" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField 
+                                            value={bacWaterMl} 
+                                            onChange={setBacWaterMl} 
+                                            unit="ml" 
+                                            placeholder="2" 
+                                        />
+                                        <div className="flex items-center text-xs text-zinc-500 leading-tight">
+                                            Amount of water added to vial
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 4 */}
+                                <div className="bg-zinc-900/30 p-5 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+                                    <StepHeader step="04" title="Desired Dose" />
+                                    <InputField 
+                                        value={desiredDoseMcg} 
+                                        onChange={setDesiredDoseMcg} 
+                                        unit="mcg" 
+                                        placeholder="250" 
+                                        step="50"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Result Column */}
+                            <div className="flex flex-col gap-6">
+                                <ResultVisual result={result} capacity={syringeCapacity} />
+                                <AIAdvisor currentPeptide={selectedPeptide?.name || ''} />
+                            </div>
+                        </div>
+                     ) : (
+                         <div className="animate-fadeIn h-full">
+                             {selectedPeptide ? (
+                                <CompoundProfile peptide={selectedPeptide} />
+                             ) : (
+                                 <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-6 opacity-60">
+                                     <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center text-4xl">
+                                        <i className="fa-solid fa-microscope"></i>
+                                     </div>
+                                     <p className="font-mono text-sm uppercase tracking-widest">Select a compound to analyze</p>
+                                 </div>
+                             )}
+                         </div>
+                     )}
+                 </div>
+            </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
 
 const App = () => {
     // App Flow State
-    const [view, setView] = useState<'landing' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin'>('landing');
+    const [view, setView] = useState<'landing' | 'calculator' | 'academy' | 'assessment' | 'shop'>('landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-    // Content State (Lifted for Admin Management)
-    const [content, setContent] = useState<ContentItem[]>(INITIAL_CONTENT);
-    const [products, setProducts] = useState<ShopProduct[]>(INITIAL_PRODUCTS);
-
-    // Content Management Functions
-    const addContent = (item: ContentItem) => setContent([...content, item]);
-    const updateContent = (updatedItem: ContentItem) => setContent(content.map(c => c.id === updatedItem.id ? updatedItem : c));
-    const deleteContent = (id: string) => setContent(content.filter(c => c.id !== id));
-
-    // Shop Management Functions
-    const addProduct = (item: ShopProduct) => setProducts([...products, item]);
-    const deleteProduct = (id: string) => setProducts(products.filter(p => p.id !== id));
-    const trackProductClick = (id: string) => {
-        setProducts(products.map(p => p.id === id ? { ...p, clicks: p.clicks + 1 } : p));
-    };
 
     // Flow Logic
     const handleStartCalculator = () => {
         if (user) {
+             // If logged in, skip assessment/wizard and go straight to calculator
              setView('calculator');
         } else {
+             // New user -> Go to Wizard (which acts as signup)
              setView('assessment');
         }
     };
 
     const handleStartAcademy = () => {
+        // Academy is viewable but locked for guests or non-paid users
+        // If logged in but not paid, they see locked content
         setView('academy');
     };
 
@@ -1423,20 +2069,10 @@ const App = () => {
         setView('shop');
     };
 
-    const handleStartAdmin = () => {
-        // In a real app, check user.isAdmin here
-        setView('admin');
-    };
-
     const handleAssessmentComplete = (newUser: User) => {
-        setUser({ ...newUser, isAdmin: false });
+        setUser(newUser);
         setView('calculator');
     };
-
-    // Auto-login admin for demo (optional, can remove)
-    useEffect(() => {
-        // setUser({ email: 'admin@japrotocols.com', hasAssessment: true, isAcademyMember: true, isAdmin: true });
-    }, []);
 
     return (
         <>
@@ -1445,10 +2081,8 @@ const App = () => {
                     onStartCalculator={handleStartCalculator} 
                     onStartAcademy={handleStartAcademy}
                     onStartShop={handleStartShop}
-                    onStartAdmin={handleStartAdmin}
                     onLoginRequest={() => setIsLoginModalOpen(true)}
                     user={user}
-                    updates={content}
                 />
             )}
             
@@ -1461,29 +2095,11 @@ const App = () => {
                     user={user} 
                     onBack={() => setView('landing')} 
                     onSubscribe={() => setIsLoginModalOpen(true)}
-                    content={content}
                 />
             )}
 
             {view === 'shop' && (
-                <ShopView 
-                    onBack={() => setView('landing')} 
-                    products={products}
-                    onProductClick={trackProductClick}
-                />
-            )}
-
-            {view === 'admin' && (
-                <AdminDashboard 
-                    onBack={() => setView('landing')}
-                    content={content}
-                    products={products}
-                    onAddContent={addContent}
-                    onUpdateContent={updateContent}
-                    onDeleteContent={deleteContent}
-                    onAddProduct={addProduct}
-                    onDeleteProduct={deleteProduct}
-                />
+                <ShopView onBack={() => setView('landing')} />
             )}
 
             {view === 'assessment' && (
@@ -1496,7 +2112,7 @@ const App = () => {
             <AuthModal 
                 isOpen={isLoginModalOpen} 
                 onClose={() => setIsLoginModalOpen(false)}
-                onLogin={(userData: any) => setUser({ ...userData, isAdmin: false })}
+                onLogin={(userData) => setUser(userData)}
             />
         </>
     );
