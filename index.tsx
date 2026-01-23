@@ -2774,7 +2774,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const VIDEOS_PER_PAGE = 8;
-    const ARTICLES_PER_PAGE = 9;
+    const ARTICLES_PER_PAGE = 12;
 
     // Fetch Academy content from Firestore
     useEffect(() => {
@@ -2944,97 +2944,99 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 </div>
             </section>
 
-            {/* Category Cards */}
-            <section className="max-w-7xl mx-auto px-6 mb-10">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold text-white uppercase tracking-wider">
-                        <i className="fa-solid fa-layer-group mr-2 text-[#9d4edd]"></i>
-                        Browse by Category
-                    </h2>
-                    {selectedCategory && (
-                        <button
-                            onClick={() => setSelectedCategory(null)}
-                            className="text-xs font-bold text-zinc-400 hover:text-[#c77dff] uppercase tracking-widest transition-colors flex items-center gap-2"
-                        >
-                            <i className="fa-solid fa-times"></i>
-                            Clear Filter
-                        </button>
-                    )}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {categories.map((category, index) => {
-                        const articleCount = getArticleCountByCategory(category.slug);
-                        const isSelected = selectedCategory === category.slug;
-                        // Define gradient colors for each card
-                        const gradients = [
-                            'from-[#FF6B6B] to-[#FF8E53]',
-                            'from-[#4158D0] to-[#C850C0]',
-                            'from-[#0093E9] to-[#80D0C7]',
-                            'from-[#8EC5FC] to-[#E0C3FC]',
-                            'from-[#FA8BFF] to-[#2BD2FF]',
-                        ];
-                        const gradient = gradients[index % gradients.length];
-
-                        return (
-                            <button
-                                key={category.id}
-                                onClick={() => setSelectedCategory(isSelected ? null : category.slug)}
-                                className={`group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 ${
-                                    isSelected
-                                        ? 'ring-2 ring-[#9d4edd] scale-[1.02]'
-                                        : 'hover:scale-[1.02]'
-                                }`}
-                            >
-                                {/* Background gradient */}
-                                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
-                                {/* Dark overlay for readability */}
-                                <div className="absolute inset-0 bg-black/30"></div>
-                                {/* Content */}
-                                <div className="relative z-10">
-                                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-                                        <i className={`${category.icon || 'fa-solid fa-folder'} text-white text-lg`}></i>
-                                    </div>
-                                    <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
-                                    <p className="text-xs text-white/70">
-                                        {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
-                                    </p>
-                                </div>
-                                {/* Selected indicator */}
-                                {isSelected && (
-                                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                                        <i className="fa-solid fa-check text-[#9d4edd] text-xs"></i>
-                                    </div>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Active filter display */}
-                {(searchQuery || selectedCategory) && (
-                    <div className="mt-6 flex flex-wrap items-center gap-3">
-                        <span className="text-xs text-zinc-500 uppercase tracking-widest">Active Filters:</span>
-                        {searchQuery && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
-                                <i className="fa-solid fa-search text-[10px]"></i>
-                                "{searchQuery}"
-                                <button onClick={() => setSearchQuery('')} className="hover:text-white transition-colors">
-                                    <i className="fa-solid fa-times text-[10px]"></i>
-                                </button>
-                            </span>
-                        )}
+            {/* Category Cards - Only show for Articles tab */}
+            {activeTab === 'articles' && (
+                <section className="max-w-7xl mx-auto px-6 mb-10">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-bold text-white uppercase tracking-wider">
+                            <i className="fa-solid fa-layer-group mr-2 text-[#9d4edd]"></i>
+                            Browse by Category
+                        </h2>
                         {selectedCategory && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
-                                <i className="fa-solid fa-folder text-[10px]"></i>
-                                {categories.find(c => c.slug === selectedCategory)?.name}
-                                <button onClick={() => setSelectedCategory(null)} className="hover:text-white transition-colors">
-                                    <i className="fa-solid fa-times text-[10px]"></i>
-                                </button>
-                            </span>
+                            <button
+                                onClick={() => setSelectedCategory(null)}
+                                className="text-xs font-bold text-zinc-400 hover:text-[#c77dff] uppercase tracking-widest transition-colors flex items-center gap-2"
+                            >
+                                <i className="fa-solid fa-times"></i>
+                                Clear Filter
+                            </button>
                         )}
                     </div>
-                )}
-            </section>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {categories.map((category, index) => {
+                            const articleCount = getArticleCountByCategory(category.slug);
+                            const isSelected = selectedCategory === category.slug;
+                            // Define gradient colors for each card
+                            const gradients = [
+                                'from-[#FF6B6B] to-[#FF8E53]',
+                                'from-[#4158D0] to-[#C850C0]',
+                                'from-[#0093E9] to-[#80D0C7]',
+                                'from-[#8EC5FC] to-[#E0C3FC]',
+                                'from-[#FA8BFF] to-[#2BD2FF]',
+                            ];
+                            const gradient = gradients[index % gradients.length];
+
+                            return (
+                                <button
+                                    key={category.id}
+                                    onClick={() => setSelectedCategory(isSelected ? null : category.slug)}
+                                    className={`group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 ${
+                                        isSelected
+                                            ? 'ring-2 ring-[#9d4edd] scale-[1.02]'
+                                            : 'hover:scale-[1.02]'
+                                    }`}
+                                >
+                                    {/* Background gradient */}
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
+                                    {/* Dark overlay for readability */}
+                                    <div className="absolute inset-0 bg-black/30"></div>
+                                    {/* Content */}
+                                    <div className="relative z-10">
+                                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                                            <i className={`${category.icon || 'fa-solid fa-folder'} text-white text-lg`}></i>
+                                        </div>
+                                        <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
+                                        <p className="text-xs text-white/70">
+                                            {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
+                                        </p>
+                                    </div>
+                                    {/* Selected indicator */}
+                                    {isSelected && (
+                                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                                            <i className="fa-solid fa-check text-[#9d4edd] text-xs"></i>
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Active filter display */}
+                    {(searchQuery || selectedCategory) && (
+                        <div className="mt-6 flex flex-wrap items-center gap-3">
+                            <span className="text-xs text-zinc-500 uppercase tracking-widest">Active Filters:</span>
+                            {searchQuery && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
+                                    <i className="fa-solid fa-search text-[10px]"></i>
+                                    "{searchQuery}"
+                                    <button onClick={() => setSearchQuery('')} className="hover:text-white transition-colors">
+                                        <i className="fa-solid fa-times text-[10px]"></i>
+                                    </button>
+                                </span>
+                            )}
+                            {selectedCategory && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
+                                    <i className="fa-solid fa-folder text-[10px]"></i>
+                                    {categories.find(c => c.slug === selectedCategory)?.name}
+                                    <button onClick={() => setSelectedCategory(null)} className="hover:text-white transition-colors">
+                                        <i className="fa-solid fa-times text-[10px]"></i>
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </section>
+            )}
 
             {/* Content Section */}
             <section className="max-w-7xl mx-auto px-6 pb-12">
@@ -3155,7 +3157,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
 
                             return (
                                 <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                                         {filteredArticles.length === 0 ? (
                                             <div className="col-span-full text-center py-16">
                                                 <i className="fa-solid fa-newspaper text-5xl text-zinc-700 mb-4"></i>
