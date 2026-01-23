@@ -322,6 +322,7 @@ interface PeptideEntry {
 
 interface SavedProtocol {
   id: string;
+  odlocalKey?: string; // For migration from localStorage
   peptideName: string;
   vialMg: number;
   bacWaterMl: number;
@@ -329,6 +330,7 @@ interface SavedProtocol {
   concentration: number;
   unitsToDraw: number;
   savedAt: Date;
+  userId?: string; // For Firestore
 }
 
 const PEPTIDE_DB: PeptideEntry[] = [
@@ -3868,7 +3870,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
 // --- Calculator View Component ---
 
-const CalculatorView = ({ onBack }: { onBack: () => void }) => {
+const CalculatorView = ({ onBack, user }: { onBack: () => void; user: User | null }) => {
   // State
   const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -3882,20 +3884,78 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
   // Tab State
   const [activeTab, setActiveTab] = useState<'calculator' | 'profile'>('calculator');
 
-  // Saved Protocols State (persisted to localStorage)
-  const [savedProtocols, setSavedProtocols] = useState<SavedProtocol[]>(() => {
-    try {
-      const stored = localStorage.getItem('jpc_saved_protocols');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Saved Protocols State (persisted to Firestore)
+  const [savedProtocols, setSavedProtocols] = useState<SavedProtocol[]>([]);
+  const [protocolsLoading, setProtocolsLoading] = useState(true);
 
-  // Persist saved protocols to localStorage
+  // Fetch saved protocols from Firestore when user changes
   useEffect(() => {
-    localStorage.setItem('jpc_saved_protocols', JSON.stringify(savedProtocols));
-  }, [savedProtocols]);
+    const fetchProtocols = async () => {
+      if (!user?.uid) {
+        // No logged in user - try localStorage as fallback for guest
+        try {
+          const stored = localStorage.getItem('jpc_saved_protocols');
+          setSavedProtocols(stored ? JSON.parse(stored) : []);
+        } catch {
+          setSavedProtocols([]);
+        }
+        setProtocolsLoading(false);
+        return;
+      }
+
+      try {
+        setProtocolsLoading(true);
+        const q = query(
+          collection(db, 'jpc_protocols'),
+          where('userId', '==', user.uid),
+          orderBy('savedAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+        const protocols = snapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+          savedAt: doc.data().savedAt?.toDate() || new Date()
+        })) as SavedProtocol[];
+        setSavedProtocols(protocols);
+
+        // Migrate any localStorage protocols to Firestore
+        const localStored = localStorage.getItem('jpc_saved_protocols');
+        if (localStored) {
+          const localProtocols = JSON.parse(localStored) as SavedProtocol[];
+          if (localProtocols.length > 0) {
+            for (const protocol of localProtocols) {
+              // Check if already exists in Firestore
+              const exists = protocols.some(p => p.peptideName === protocol.peptideName &&
+                p.vialMg === protocol.vialMg && p.desiredDoseMcg === protocol.desiredDoseMcg);
+              if (!exists) {
+                await addDoc(collection(db, 'jpc_protocols'), {
+                  ...protocol,
+                  userId: user.uid,
+                  savedAt: Timestamp.fromDate(new Date(protocol.savedAt))
+                });
+              }
+            }
+            // Clear localStorage after migration
+            localStorage.removeItem('jpc_saved_protocols');
+            // Refetch
+            const newSnapshot = await getDocs(q);
+            const newProtocols = newSnapshot.docs.map(doc => ({
+              ...doc.data(),
+              id: doc.id,
+              savedAt: doc.data().savedAt?.toDate() || new Date()
+            })) as SavedProtocol[];
+            setSavedProtocols(newProtocols);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching protocols:', error);
+      } finally {
+        setProtocolsLoading(false);
+      }
+    };
+
+    fetchProtocols();
+  }, [user?.uid]);
 
   // Derived State (Calculations)
   const [result, setResult] = useState<CalculationResult>({
@@ -3940,11 +4000,10 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
       setSelectedPeptide(peptide);
   };
 
-  const handleSaveProtocol = () => {
+  const handleSaveProtocol = async () => {
     if (!selectedPeptide || result.unitsToDraw <= 0) return;
 
-    const newProtocol: SavedProtocol = {
-      id: `protocol_${Date.now()}`,
+    const protocolData = {
       peptideName: selectedPeptide.name,
       vialMg: parseFloat(vialMg),
       bacWaterMl: parseFloat(bacWaterMl),
@@ -3954,11 +4013,50 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
       savedAt: new Date()
     };
 
-    setSavedProtocols(prev => [newProtocol, ...prev]);
+    if (user?.uid) {
+      // Save to Firestore
+      try {
+        const docRef = await addDoc(collection(db, 'jpc_protocols'), {
+          ...protocolData,
+          userId: user.uid,
+          savedAt: serverTimestamp()
+        });
+        setSavedProtocols(prev => [{
+          ...protocolData,
+          id: docRef.id,
+          userId: user.uid
+        }, ...prev]);
+      } catch (error) {
+        console.error('Error saving protocol:', error);
+        alert('Failed to save protocol. Please try again.');
+      }
+    } else {
+      // Fallback to localStorage for guests
+      const newProtocol: SavedProtocol = {
+        ...protocolData,
+        id: `protocol_${Date.now()}`
+      };
+      setSavedProtocols(prev => [newProtocol, ...prev]);
+      localStorage.setItem('jpc_saved_protocols', JSON.stringify([newProtocol, ...savedProtocols]));
+    }
   };
 
-  const handleDeleteProtocol = (id: string) => {
-    setSavedProtocols(prev => prev.filter(p => p.id !== id));
+  const handleDeleteProtocol = async (id: string) => {
+    if (user?.uid) {
+      // Delete from Firestore
+      try {
+        await deleteDoc(doc(db, 'jpc_protocols', id));
+        setSavedProtocols(prev => prev.filter(p => p.id !== id));
+      } catch (error) {
+        console.error('Error deleting protocol:', error);
+        alert('Failed to delete protocol. Please try again.');
+      }
+    } else {
+      // Fallback to localStorage for guests
+      const updated = savedProtocols.filter(p => p.id !== id);
+      setSavedProtocols(updated);
+      localStorage.setItem('jpc_saved_protocols', JSON.stringify(updated));
+    }
   };
 
   return (
@@ -8649,7 +8747,7 @@ const App = () => {
             )}
             
             {view === 'calculator' && (
-                <CalculatorView onBack={() => setView('landing')} />
+                <CalculatorView onBack={() => setView('landing')} user={user} />
             )}
 
             {view === 'academy' && (

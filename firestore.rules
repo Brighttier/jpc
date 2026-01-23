@@ -39,6 +39,14 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
+    // JPC Protocols - users can read/write their own saved protocols
+    match /jpc_protocols/{protocolId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
     // JPC Subscriptions - users can read/write their own, admins can read all
     match /jpc_subscriptions/{subscriptionId} {
       // Users can read their own subscriptions
