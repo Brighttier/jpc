@@ -3173,30 +3173,32 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                                                 <div
                                                     key={article.id}
                                                     onClick={() => handleArticleClick(article)}
-                                                    className="group bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden cursor-pointer hover:border-[#9d4edd]/50 transition-all hover:scale-[1.02]"
+                                                    className="group bg-[#0f0f0f] border border-zinc-800/50 rounded-xl p-5 cursor-pointer hover:border-[#9d4edd]/30 hover:bg-[#111] transition-all"
                                                 >
-                                                    {article.thumbnailUrl ? (
-                                                        <img src={article.thumbnailUrl} alt="" className="w-full h-40 object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-40 bg-gradient-to-br from-[#9d4edd]/30 to-[#7b2cbf]/30 flex items-center justify-center">
-                                                            <i className="fa-solid fa-newspaper text-3xl text-white/30"></i>
-                                                        </div>
+                                                    {/* Title */}
+                                                    <h4 className="text-sm font-semibold mb-3 line-clamp-2 text-white group-hover:text-[#c77dff] transition-colors leading-snug">
+                                                        {article.title}
+                                                    </h4>
+                                                    {/* Excerpt */}
+                                                    {article.excerpt && (
+                                                        <p className="text-xs text-zinc-500 mb-4 line-clamp-2 leading-relaxed">
+                                                            {article.excerpt}
+                                                        </p>
                                                     )}
-                                                    <div className="p-5">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            {article.category && (
-                                                                <span className="text-[10px] uppercase font-bold text-[#c77dff] bg-[#9d4edd]/10 px-2 py-0.5 rounded">
-                                                                    {categories.find(c => c.slug === article.category)?.name || article.category}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <h4 className="text-sm font-bold mb-2 line-clamp-2 text-white group-hover:text-[#c77dff] transition-colors">
-                                                            {article.title}
-                                                        </h4>
-                                                        <div className="flex items-center gap-3 text-xs text-zinc-500">
-                                                            <span><i className="fa-solid fa-user mr-1"></i>{article.author}</span>
-                                                            <span><i className="fa-solid fa-clock mr-1"></i>{article.readTime}</span>
-                                                        </div>
+                                                    {/* Meta info */}
+                                                    <div className="flex items-center gap-4 text-[11px] text-zinc-600">
+                                                        <span className="flex items-center gap-1">
+                                                            <i className="fa-solid fa-user text-[9px]"></i>
+                                                            {article.author || 'Jon & Travis'}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <i className="fa-solid fa-clock text-[9px]"></i>
+                                                            {article.readTime || '3 min'}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <i className="fa-solid fa-eye text-[9px]"></i>
+                                                            {article.views || 0}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             ))
