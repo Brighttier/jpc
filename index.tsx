@@ -4520,11 +4520,19 @@ const VideoCard = ({
                     </>
                 ) : (
                     <>
-                        {/* Gradient background as thumbnail */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#FF5252]/20 via-zinc-800/60 to-black"></div>
+                        {/* Thumbnail image or gradient fallback */}
+                        {image ? (
+                            <img
+                                src={image}
+                                alt={title}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#FF5252]/20 via-zinc-800/60 to-black"></div>
+                        )}
 
                         {/* Darker overlay on hover */}
-                        <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-all duration-300"></div>
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300"></div>
 
                         {/* Play Button */}
                         <div className="relative z-10 w-14 h-14 rounded-full bg-[#FF5252] border-2 border-[#FF5252] flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#ff3333] transition-all duration-300 shadow-xl shadow-[#FF5252]/40">
