@@ -2180,10 +2180,12 @@ const SubscriptionModal = ({
 const SubscriptionStatusBar = ({
     expiresAt,
     status,
+    userEmail,
     onManage
 }: {
     expiresAt?: Date;
     status?: string;
+    userEmail?: string;
     onManage: () => void;
 }) => {
     const formatDate = (date: Date) => {
@@ -2194,31 +2196,39 @@ const SubscriptionStatusBar = ({
         });
     };
 
+    // Extract username from email (part before @)
+    const username = userEmail ? userEmail.split('@')[0] : 'Member';
+
     return (
         <div className="bg-gradient-to-r from-[#9d4edd]/10 to-[#7b2cbf]/10 border border-[#9d4edd]/30 rounded-xl p-4 mb-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#9d4edd]/20 flex items-center justify-center">
-                        <i className="fa-solid fa-crown text-[#c77dff]"></i>
+                    <div className="w-12 h-12 rounded-full bg-[#9d4edd]/20 flex items-center justify-center">
+                        <i className="fa-solid fa-user text-[#c77dff] text-lg"></i>
                     </div>
                     <div>
-                        <p className="text-white font-medium flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            Academy Member
+                        <p className="text-white font-semibold text-lg">
+                            Hello, {username}
                         </p>
-                        {expiresAt && (
-                            <p className="text-zinc-400 text-sm">
-                                Renews on {formatDate(expiresAt)}
-                            </p>
-                        )}
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#9d4edd]/20 border border-[#9d4edd]/30 rounded-full text-[#c77dff] text-xs font-medium mt-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            Academy Member
+                        </span>
                     </div>
                 </div>
-                <button
-                    onClick={onManage}
-                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm font-medium transition-colors"
-                >
-                    Manage Subscription
-                </button>
+                <div className="text-right">
+                    <button
+                        onClick={onManage}
+                        className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm font-medium transition-colors"
+                    >
+                        Manage Subscription
+                    </button>
+                    {expiresAt && (
+                        <p className="text-zinc-500 text-xs mt-1.5">
+                            Next renewal: {formatDate(expiresAt)}
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -3031,6 +3041,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 <SubscriptionStatusBar
                     expiresAt={user?.subscriptionExpiresAt}
                     status={user?.subscriptionStatus}
+                    userEmail={user?.email}
                     onManage={() => alert('Subscription management coming soon!')}
                 />
             </div>
