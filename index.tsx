@@ -1163,7 +1163,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${isAiOpen ? 'bg-[#FF5252]/10 border-[#FF5252]/30' : 'bg-transparent border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/30'}`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full overflow-hidden ring-2 transition-all ${isAiOpen ? 'ring-[#FF5252]' : 'ring-zinc-700'}`}>
+                        <div className={`w-12 h-12 rounded-full overflow-hidden ring-2 transition-all ${isAiOpen ? 'ring-[#FF5252]' : 'ring-zinc-700'}`}>
                             <img
                                 src="/Images/Main.jpg"
                                 alt="Jon"
@@ -1205,7 +1205,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                         {aiResponse ? (
                             <div className="prose prose-invert prose-sm max-w-none">
                                 <div className="flex gap-3 items-start">
-                                    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#FF5252]/30 flex-shrink-0 mt-1">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-[#FF5252]/30 flex-shrink-0 mt-1">
                                         <img
                                             src="/Images/Main.jpg"
                                             alt="Jon"
