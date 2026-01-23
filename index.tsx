@@ -2659,6 +2659,50 @@ const ExploreAcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate, onEn
             {/* Header */}
             <section className="py-16 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
+                    {/* Cellular Advantage Logo */}
+                    <div className="mb-8 flex justify-center">
+                        <div className="relative w-48 h-32">
+                            {/* Animated glow */}
+                            <div
+                                className="absolute inset-[-8px] rounded-2xl opacity-50"
+                                style={{
+                                    background: 'linear-gradient(135deg, #9d4edd, #c77dff, #e879f9)',
+                                    filter: 'blur(20px)',
+                                    animation: 'pulse-glow 3s ease-in-out infinite'
+                                }}
+                            />
+                            {/* Border with gradient */}
+                            <div
+                                className="absolute inset-[-3px] rounded-2xl p-[2px]"
+                                style={{
+                                    background: 'linear-gradient(135deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
+                                    backgroundSize: '200% 200%',
+                                    animation: 'gradient-shift 4s ease infinite'
+                                }}
+                            >
+                                <div className="w-full h-full rounded-2xl bg-black" />
+                            </div>
+                            {/* Solid black background */}
+                            <div className="absolute inset-0 rounded-2xl bg-black" />
+                            {/* Logo image */}
+                            <img
+                                src="/Images/cellular-advantage-logo.png"
+                                alt="Cellular Advantage Academy"
+                                className="absolute inset-0 w-full h-full object-contain rounded-2xl p-4 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
+                            />
+                        </div>
+                    </div>
+                    <style>{`
+                        @keyframes pulse-glow {
+                            0%, 100% { opacity: 0.4; transform: scale(1); }
+                            50% { opacity: 0.6; transform: scale(1.02); }
+                        }
+                        @keyframes gradient-shift {
+                            0% { background-position: 0% 50%; }
+                            50% { background-position: 100% 50%; }
+                            100% { background-position: 0% 50%; }
+                        }
+                    `}</style>
                     <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
                         Members-Only Access
                     </div>
@@ -2943,40 +2987,46 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 <div className="max-w-3xl mx-auto relative z-10">
                     {/* Cellular Advantage Logo */}
                     <div className="mb-8 flex justify-center">
-                        <div className="relative w-40 h-40">
-                            {/* Animated glow ring */}
+                        <div className="relative w-48 h-32">
+                            {/* Animated glow */}
                             <div
-                                className="absolute inset-[-8px] rounded-full opacity-60"
+                                className="absolute inset-[-8px] rounded-2xl opacity-50"
                                 style={{
-                                    background: 'conic-gradient(from 0deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
+                                    background: 'linear-gradient(135deg, #9d4edd, #c77dff, #e879f9)',
                                     filter: 'blur(20px)',
-                                    animation: 'spin 8s linear infinite'
+                                    animation: 'pulse-glow 3s ease-in-out infinite'
                                 }}
                             />
-                            {/* Border ring with gradient */}
+                            {/* Border with gradient */}
                             <div
-                                className="absolute inset-[-4px] rounded-full p-[3px]"
+                                className="absolute inset-[-3px] rounded-2xl p-[2px]"
                                 style={{
-                                    background: 'conic-gradient(from 0deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
-                                    animation: 'spin 4s linear infinite'
+                                    background: 'linear-gradient(135deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
+                                    backgroundSize: '200% 200%',
+                                    animation: 'gradient-shift 4s ease infinite'
                                 }}
                             >
-                                <div className="w-full h-full rounded-full bg-black" />
+                                <div className="w-full h-full rounded-2xl bg-black" />
                             </div>
-                            {/* Solid black background circle */}
-                            <div className="absolute inset-0 rounded-full bg-black" />
+                            {/* Solid black background */}
+                            <div className="absolute inset-0 rounded-2xl bg-black" />
                             {/* Logo image */}
                             <img
                                 src="/Images/cellular-advantage-logo.png"
                                 alt="Cellular Advantage Academy"
-                                className="absolute inset-0 w-full h-full object-contain rounded-full p-3 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
+                                className="absolute inset-0 w-full h-full object-contain rounded-2xl p-4 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
                             />
                         </div>
                     </div>
                     <style>{`
-                        @keyframes spin {
-                            from { transform: rotate(0deg); }
-                            to { transform: rotate(360deg); }
+                        @keyframes pulse-glow {
+                            0%, 100% { opacity: 0.4; transform: scale(1); }
+                            50% { opacity: 0.6; transform: scale(1.02); }
+                        }
+                        @keyframes gradient-shift {
+                            0% { background-position: 0% 50%; }
+                            50% { background-position: 100% 50%; }
+                            100% { background-position: 0% 50%; }
                         }
                     `}</style>
                     <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
