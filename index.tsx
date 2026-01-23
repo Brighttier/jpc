@@ -4442,14 +4442,53 @@ const TermsOfServiceView = ({ onBack }: { onBack: () => void }) => (
     </div>
 );
 
-const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title: string, desc: string, image?: string, duration?: string, embedUrl?: string, onClick?: () => void }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
+const VideoCard = ({
+    title,
+    desc,
+    image,
+    duration,
+    embedUrl,
+    onClick,
+    videoId,
+    isPlaying: controlledIsPlaying,
+    onPlay,
+    onStop
+}: {
+    title: string;
+    desc: string;
+    image?: string;
+    duration?: string;
+    embedUrl?: string;
+    onClick?: () => void;
+    videoId?: string;
+    isPlaying?: boolean;
+    onPlay?: (id: string) => void;
+    onStop?: (id: string) => void;
+}) => {
+    // Use local state as fallback for backwards compatibility
+    const [localIsPlaying, setLocalIsPlaying] = useState(false);
+
+    // Use controlled state if provided, otherwise fall back to local state
+    const isPlaying = controlledIsPlaying !== undefined ? controlledIsPlaying : localIsPlaying;
 
     const handleClick = () => {
         if (embedUrl) {
-            setIsPlaying(true);
+            if (onPlay && videoId) {
+                onPlay(videoId);  // Notify parent (controlled mode)
+            } else {
+                setLocalIsPlaying(true);  // Local mode fallback
+            }
         } else if (onClick) {
             onClick();
+        }
+    };
+
+    const handleClose = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onStop && videoId) {
+            onStop(videoId);
+        } else {
+            setLocalIsPlaying(false);
         }
     };
 
@@ -4461,15 +4500,24 @@ const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title:
             <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden">
                 {/* When playing: load iframe */}
                 {isPlaying && embedUrl ? (
-                    <iframe
-                        src={embedUrl}
-                        className="absolute inset-0 w-full h-full"
-                        frameBorder="0"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    />
+                    <>
+                        <iframe
+                            src={embedUrl}
+                            className="absolute inset-0 w-full h-full"
+                            frameBorder="0"
+                            allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                        />
+                        {/* Close button overlay */}
+                        <button
+                            onClick={handleClose}
+                            className="absolute top-3 right-3 w-8 h-8 bg-black/70 hover:bg-black rounded-full flex items-center justify-center text-white z-10 transition-colors"
+                        >
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                    </>
                 ) : (
                     <>
                         {/* Gradient background as thumbnail */}
@@ -4498,7 +4546,21 @@ const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title:
 };
 
 const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
-    
+    // Track which video is currently playing (only one at a time)
+    const [currentlyPlayingVideoId, setCurrentlyPlayingVideoId] = useState<string | null>(null);
+
+    // Handler to play a video (stops all others)
+    const handleVideoPlay = (videoId: string) => {
+        setCurrentlyPlayingVideoId(videoId);
+    };
+
+    // Handler to stop the current video
+    const handleVideoStop = (videoId: string) => {
+        if (currentlyPlayingVideoId === videoId) {
+            setCurrentlyPlayingVideoId(null);
+        }
+    };
+
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
 
@@ -4663,19 +4725,27 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         {mainPageVideos.length > 0 ? mainPageVideos.map((video) => (
                             <VideoCard
                                 key={video.id}
+                                videoId={video.id}
                                 title={video.title}
                                 desc={video.description}
                                 image={video.thumbnailUrl}
                                 duration={video.duration}
                                 embedUrl={video.embedUrl}
+                                isPlaying={currentlyPlayingVideoId === video.id}
+                                onPlay={handleVideoPlay}
+                                onStop={handleVideoStop}
                             />
                         )) : DAILY_UPDATES.map((video, idx) => (
                             <VideoCard
                                 key={idx}
+                                videoId={`fallback-${idx}`}
                                 title={video.title}
                                 desc={video.desc}
                                 image={video.image}
                                 duration={video.duration}
+                                isPlaying={currentlyPlayingVideoId === `fallback-${idx}`}
+                                onPlay={handleVideoPlay}
+                                onStop={handleVideoStop}
                                 onClick={onStartAcademy}
                             />
                         ))}
