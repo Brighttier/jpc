@@ -2909,15 +2909,48 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
             {/* Header */}
             <section className="py-12 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
+                    {/* Cellular Advantage Logo */}
+                    <div className="mb-6 flex justify-center">
+                        <svg width="80" height="80" viewBox="0 0 100 100" className="drop-shadow-[0_0_20px_rgba(157,78,221,0.5)]">
+                            <defs>
+                                <linearGradient id="dnaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#9d4edd" />
+                                    <stop offset="50%" stopColor="#c77dff" />
+                                    <stop offset="100%" stopColor="#e879f9" />
+                                </linearGradient>
+                            </defs>
+                            {/* DNA Double Helix */}
+                            <path
+                                d="M30 15 Q50 25 70 15 Q50 35 30 25 Q50 45 70 35 Q50 55 30 45 Q50 65 70 55 Q50 75 30 65 Q50 85 70 75"
+                                stroke="url(#dnaGradient)"
+                                strokeWidth="4"
+                                fill="none"
+                                strokeLinecap="round"
+                            />
+                            <path
+                                d="M70 15 Q50 25 30 15 Q50 35 70 25 Q50 45 30 35 Q50 55 70 45 Q50 65 30 55 Q50 75 70 65 Q50 85 30 75"
+                                stroke="url(#dnaGradient)"
+                                strokeWidth="4"
+                                fill="none"
+                                strokeLinecap="round"
+                            />
+                            {/* Connecting rungs */}
+                            <line x1="35" y1="20" x2="65" y2="20" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6" />
+                            <line x1="35" y1="35" x2="65" y2="35" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6" />
+                            <line x1="35" y1="50" x2="65" y2="50" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6" />
+                            <line x1="35" y1="65" x2="65" y2="65" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6" />
+                            <line x1="35" y1="80" x2="65" y2="80" stroke="url(#dnaGradient)" strokeWidth="2" opacity="0.6" />
+                        </svg>
+                    </div>
                     <div className="inline-block px-4 py-2 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/20 text-[#c77dff] text-xs font-bold uppercase tracking-widest mb-4">
                         <i className="fa-solid fa-crown mr-2"></i>
-                        Welcome Back, Member
+                        Members-Only Access
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-4">
-                        Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9d4edd] to-[#c77dff]">Content Library</span>
+                        Cellular Advantage <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9d4edd] to-[#c77dff]">Academy</span>
                     </h1>
-                    <p className="text-zinc-400 text-lg leading-relaxed">
-                        Explore exclusive videos and articles from Jon & Travis.
+                    <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl mx-auto">
+                        The world's premier peptide education platform. Master the science of cellular optimization with expert-led courses, cutting-edge research, and practical protocols.
                     </p>
                 </div>
             </section>
