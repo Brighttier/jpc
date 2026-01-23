@@ -2768,6 +2768,8 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
     const [activeTab, setActiveTab] = useState<'videos' | 'articles'>('videos');
     const [selectedVideo, setSelectedVideo] = useState<VideoContent | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<ArticleContent | null>(null);
+    const [videoPage, setVideoPage] = useState(1);
+    const VIDEOS_PER_PAGE = 8;
 
     // Fetch Academy content from Firestore
     useEffect(() => {
@@ -2914,27 +2916,77 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                     </div>
                 ) : (
                     <>
-                        {/* Videos Grid */}
-                        {activeTab === 'videos' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {academyVideos.length === 0 ? (
-                                    <div className="col-span-full text-center py-16">
-                                        <i className="fa-solid fa-video text-5xl text-zinc-700 mb-4"></i>
-                                        <h3 className="text-xl font-bold text-white mb-2">No Videos Yet</h3>
-                                        <p className="text-zinc-500">Academy videos will appear here once added.</p>
+                        {/* Videos Grid with Pagination */}
+                        {activeTab === 'videos' && (() => {
+                            const totalPages = Math.ceil(academyVideos.length / VIDEOS_PER_PAGE);
+                            const startIndex = (videoPage - 1) * VIDEOS_PER_PAGE;
+                            const paginatedVideos = academyVideos.slice(startIndex, startIndex + VIDEOS_PER_PAGE);
+
+                            return (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                        {academyVideos.length === 0 ? (
+                                            <div className="col-span-full text-center py-16">
+                                                <i className="fa-solid fa-video text-5xl text-zinc-700 mb-4"></i>
+                                                <h3 className="text-xl font-bold text-white mb-2">No Videos Yet</h3>
+                                                <p className="text-zinc-500">Academy videos will appear here once added.</p>
+                                            </div>
+                                        ) : (
+                                            paginatedVideos.map(video => (
+                                                <AcademyVideoCardNew
+                                                    key={video.id}
+                                                    video={video}
+                                                    locked={false}
+                                                    onPlay={handleVideoPlay}
+                                                />
+                                            ))
+                                        )}
                                     </div>
-                                ) : (
-                                    academyVideos.map(video => (
-                                        <AcademyVideoCardNew
-                                            key={video.id}
-                                            video={video}
-                                            locked={false}
-                                            onPlay={handleVideoPlay}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        )}
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-2 mt-10">
+                                            <button
+                                                onClick={() => setVideoPage(p => Math.max(1, p - 1))}
+                                                disabled={videoPage === 1}
+                                                className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                            >
+                                                <i className="fa-solid fa-chevron-left text-sm"></i>
+                                            </button>
+
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => setVideoPage(page)}
+                                                    className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                                                        videoPage === page
+                                                            ? 'bg-[#9d4edd] text-white'
+                                                            : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ))}
+
+                                            <button
+                                                onClick={() => setVideoPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={videoPage === totalPages}
+                                                className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                            >
+                                                <i className="fa-solid fa-chevron-right text-sm"></i>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Page Info */}
+                                    {academyVideos.length > 0 && (
+                                        <p className="text-center text-zinc-600 text-xs mt-4 uppercase tracking-widest">
+                                            Showing {startIndex + 1}-{Math.min(startIndex + VIDEOS_PER_PAGE, academyVideos.length)} of {academyVideos.length} videos
+                                        </p>
+                                    )}
+                                </>
+                            );
+                        })()}
 
                         {/* Articles Grid */}
                         {activeTab === 'articles' && (
