@@ -1165,7 +1165,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                     <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full overflow-hidden ring-2 transition-all ${isAiOpen ? 'ring-[#FF5252]' : 'ring-zinc-700'}`}>
                             <img
-                                src="https://yt3.googleusercontent.com/ytc/AIdro_nCLfh5kGG46B6d_MjBP0TPM_bORkhhJOON1RmFFsjsVPY=s176-c-k-c0x00ffffff-no-rj"
+                                src="/Images/Main.jpg"
                                 alt="Jon"
                                 className="w-full h-full object-cover"
                             />
@@ -1207,7 +1207,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                                 <div className="flex gap-3 items-start">
                                     <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-[#FF5252]/30 flex-shrink-0 mt-1">
                                         <img
-                                            src="https://yt3.googleusercontent.com/ytc/AIdro_nCLfh5kGG46B6d_MjBP0TPM_bORkhhJOON1RmFFsjsVPY=s176-c-k-c0x00ffffff-no-rj"
+                                            src="/Images/Main.jpg"
                                             alt="Jon"
                                             className="w-full h-full object-cover"
                                         />
