@@ -2911,17 +2911,17 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 <div className="max-w-3xl mx-auto relative z-10">
                     {/* Cellular Advantage Logo */}
                     <div className="mb-8 flex justify-center">
-                        <div className="relative">
+                        <div className="relative w-40 h-40">
                             {/* Animated glow ring */}
                             <div
-                                className="absolute inset-0 rounded-full opacity-60"
+                                className="absolute inset-[-8px] rounded-full opacity-60"
                                 style={{
                                     background: 'conic-gradient(from 0deg, #9d4edd, #c77dff, #e879f9, #c77dff, #9d4edd)',
                                     filter: 'blur(20px)',
                                     animation: 'spin 8s linear infinite'
                                 }}
                             />
-                            {/* Border ring */}
+                            {/* Border ring with gradient */}
                             <div
                                 className="absolute inset-[-4px] rounded-full p-[3px]"
                                 style={{
@@ -2929,13 +2929,15 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                                     animation: 'spin 4s linear infinite'
                                 }}
                             >
-                                <div className="w-full h-full rounded-full bg-[#0a0a0a]" />
+                                <div className="w-full h-full rounded-full bg-black" />
                             </div>
+                            {/* Solid black background circle */}
+                            <div className="absolute inset-0 rounded-full bg-black" />
                             {/* Logo image */}
                             <img
                                 src="/Images/cellular-advantage-logo.png"
                                 alt="Cellular Advantage Academy"
-                                className="relative w-36 h-36 object-contain rounded-full p-2 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
+                                className="absolute inset-0 w-full h-full object-contain rounded-full p-3 drop-shadow-[0_0_30px_rgba(157,78,221,0.6)]"
                             />
                         </div>
                     </div>
