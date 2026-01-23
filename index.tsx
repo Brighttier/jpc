@@ -1627,6 +1627,8 @@ const ShopView = ({ onBack }: { onBack: () => void }) => {
                     </div>
                 </div>
             </section>
+
+            <Footer />
         </div>
     );
 };
@@ -2317,6 +2319,8 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                     )}
                 </div>
             </section>
+
+            <Footer />
         </div>
     );
 };
@@ -2509,6 +2513,8 @@ const ExploreAcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate, onEn
 
             {/* Coaching Placeholder */}
             <CoachingPlaceholder />
+
+            <Footer />
 
             {/* Subscription Modal */}
             {user && (
@@ -2818,6 +2824,8 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                     </div>
                 </div>
             )}
+
+            <Footer />
         </div>
     );
 };
@@ -2869,6 +2877,27 @@ const Badge = ({ icon, text }: { icon: any, text: string }) => (
         </div>
         <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest group-hover:text-white transition-colors">{text}</span>
     </div>
+);
+
+// Reusable Footer Component
+const Footer = ({ user, onStartAdmin }: { user?: User | null, onStartAdmin?: () => void }) => (
+    <footer className="py-12 border-t border-zinc-900 bg-black text-center relative z-10">
+        <div className="flex items-center justify-center gap-2 mb-8 opacity-50">
+            <span className="font-serif text-xl italic text-white">Jon Andersen</span>
+        </div>
+        <div className="flex justify-center gap-8 mb-8 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+            <a href="#" className="hover:text-[#FF5252] transition-colors">Privacy</a>
+            <a href="#" className="hover:text-[#FF5252] transition-colors">Terms</a>
+            <a href="#" className="hover:text-[#FF5252] transition-colors">Support</a>
+            <a href="#" className="hover:text-[#FF5252] transition-colors">Instagram</a>
+            {user?.isAdmin && onStartAdmin && (
+                <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors">
+                    Admin
+                </button>
+            )}
+        </div>
+        <p className="text-zinc-700 text-[10px]">© 2024 JA Protocols. All rights reserved.</p>
+    </footer>
 );
 
 const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title: string, desc: string, image?: string, duration?: string, embedUrl?: string, onClick?: () => void }) => {
@@ -2941,7 +2970,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                     <Logo />
                     <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
                         <a href="#" className={navItemClass}>HOME</a>
-                        <a href="#" className={navItemClass}>ABOUT</a>
+                        <button onClick={onStartAcademy} className={navItemClass}>ACADEMY</button>
                         {user && (
                             <>
                                 <button onClick={onStartShop} className={navItemClass}>SHOP</button>
@@ -3111,24 +3140,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="py-12 border-t border-zinc-900 bg-black text-center relative z-10">
-                <div className="flex items-center justify-center gap-2 mb-8 opacity-50">
-                     <span className="font-serif text-xl italic text-white">Jon Andersen</span>
-                </div>
-                <div className="flex justify-center gap-8 mb-8 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    <a href="#" className="hover:text-[#FF5252] transition-colors">Privacy</a>
-                    <a href="#" className="hover:text-[#FF5252] transition-colors">Terms</a>
-                    <a href="#" className="hover:text-[#FF5252] transition-colors">Support</a>
-                    <a href="#" className="hover:text-[#FF5252] transition-colors">Instagram</a>
-                    {user?.isAdmin && (
-                        <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors">
-                            Admin
-                        </button>
-                    )}
-                </div>
-                <p className="text-zinc-700 text-[10px]">© 2024 JA Protocols. All rights reserved.</p>
-            </footer>
+            <Footer user={user} onStartAdmin={onStartAdmin} />
         </div>
     );
 };
@@ -3394,6 +3406,7 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
             </div>
         </div>
 
+        <Footer />
       </div>
     </div>
   );
