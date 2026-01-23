@@ -38,5 +38,23 @@ service cloud.firestore {
       allow create: if true;
       allow read: if request.auth != null;
     }
+
+    // JPC Subscriptions - users can read/write their own, admins can read all
+    match /jpc_subscriptions/{subscriptionId} {
+      // Users can read their own subscriptions
+      allow read: if request.auth != null &&
+        (resource.data.userId == request.auth.uid ||
+         get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true);
+      // Authenticated users can create subscriptions for themselves
+      allow create: if request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      // Users can update their own subscriptions (e.g., cancel)
+      allow update: if request.auth != null &&
+        (resource.data.userId == request.auth.uid ||
+         get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true);
+      // Only admins can delete subscriptions
+      allow delete: if request.auth != null &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
   }
 }
