@@ -1421,15 +1421,59 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
 
     const handleFinish = async () => {
         setLoading(true);
-        // Simulate API call to create account + send email
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const newUser: User = {
-            email: formData.email,
-            hasAssessment: true,
-            isAcademyMember: false // Free protocol users are not academy members by default
-        };
-        onComplete(newUser);
+
+        try {
+            let newUser: User;
+
+            // If password is provided (6+ chars), create a real Firebase account
+            if (formData.password && formData.password.length >= 6) {
+                const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+
+                // Create user document in Firestore
+                await setDoc(doc(db, 'jpc_users', userCredential.user.uid), {
+                    uid: userCredential.user.uid,
+                    email: formData.email,
+                    hasAssessment: true,
+                    isAdmin: false,
+                    isAcademyMember: false,
+                    createdAt: serverTimestamp()
+                });
+
+                newUser = {
+                    email: formData.email,
+                    hasAssessment: true,
+                    isAcademyMember: false,
+                    isAdmin: false,
+                    uid: userCredential.user.uid
+                };
+            } else {
+                // No password - proceed without persistent account (guest mode)
+                // Just simulate a delay for UX
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                newUser = {
+                    email: formData.email,
+                    hasAssessment: true,
+                    isAcademyMember: false
+                };
+            }
+
+            onComplete(newUser);
+        } catch (error: any) {
+            console.error('Assessment finish error:', error);
+            // If email already exists, still proceed with local user
+            if (error.code === 'auth/email-already-in-use') {
+                const newUser: User = {
+                    email: formData.email,
+                    hasAssessment: true,
+                    isAcademyMember: false
+                };
+                onComplete(newUser);
+            } else {
+                setLoading(false);
+                alert(error.message || 'An error occurred. Please try again.');
+            }
+        }
     };
 
     return (
