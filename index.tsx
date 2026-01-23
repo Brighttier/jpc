@@ -3405,9 +3405,9 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
                  </div>
             </div>
         </div>
-
-        <Footer />
       </div>
+
+      <Footer />
     </div>
   );
 };
