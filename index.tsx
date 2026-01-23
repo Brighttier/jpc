@@ -2191,17 +2191,31 @@ const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) =
 
                 <div className="relative z-10 grid md:grid-cols-2 gap-8 md:gap-12">
                     {/* Shop Section */}
-                    <div className="text-center md:text-left">
-                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
+                    <div className="flex flex-col h-full">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4 w-fit">
                             Verified Sources
                         </div>
                         <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready to Stock Up?</h3>
-                        <p className="text-zinc-400 mb-6">
-                            Shop premium research compounds from our verified partner sources.
+                        <p className="text-zinc-400 mb-4">
+                            Shop premium research compounds from our verified partner sources. All products are third-party tested for purity.
                         </p>
+                        <ul className="text-zinc-400 mb-6 space-y-2 flex-grow">
+                            <li className="flex items-center gap-2">
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
+                                Lab-tested compounds
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
+                                Fast, discreet shipping
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
+                                Secure checkout
+                            </li>
+                        </ul>
                         <button
                             onClick={onNavigateToShop}
-                            className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-[#FF5252]/30 inline-flex items-center gap-2"
+                            className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-[#FF5252]/30 inline-flex items-center justify-center gap-2 w-full md:w-auto"
                         >
                             Browse Shop
                             <i className="fa-solid fa-arrow-right"></i>
@@ -2212,31 +2226,30 @@ const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) =
                     <div className="hidden md:block absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-[#FF5252]/30 to-transparent"></div>
 
                     {/* Coaching Section */}
-                    <div className="text-center md:text-left">
-                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
+                    <div className="flex flex-col h-full">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4 w-fit">
                             Personalized Coaching
                         </div>
                         <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Train With Experts</h3>
-                        <ul className="text-zinc-400 mb-6 space-y-2 text-left inline-block">
+                        <p className="text-zinc-400 mb-4">
+                            Get one-on-one guidance from Jon & Travis with protocols tailored to your specific goals.
+                        </p>
+                        <ul className="text-zinc-400 mb-6 space-y-2 flex-grow">
                             <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
                                 Custom programs
                             </li>
                             <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
                                 Ongoing support
                             </li>
                             <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
+                                <i className="fa-solid fa-check text-[#FF5252] text-xs"></i>
                                 Progress tracking
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252]"></span>
-                                Direct mentorship
                             </li>
                         </ul>
                         <button
-                            className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-[#FF5252]/30 inline-flex items-center gap-2"
+                            className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-[#FF5252]/30 inline-flex items-center justify-center gap-2 w-full md:w-auto"
                             onClick={() => alert('Coaching sign-up coming soon!')}
                         >
                             <i className="fa-solid fa-user-graduate"></i>
