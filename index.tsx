@@ -831,6 +831,12 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                 isAdmin = userData.isAdmin || false;
             }
 
+            // Hardcoded admin emails (fallback)
+            const adminEmails = ['khare85@gmail.com', 'brighttiercloud@gmail.com'];
+            if (adminEmails.includes(email.toLowerCase())) {
+                isAdmin = true;
+            }
+
             const loggedInUser: User = {
                 uid: userCredential.user.uid,
                 email: userCredential.user.email || email,
@@ -2765,11 +2771,13 @@ const AddCategoryModal = ({
 const ImportProductModal = ({
     isOpen,
     onClose,
-    onSave
+    onSave,
+    editingProduct
 }: {
     isOpen: boolean;
     onClose: () => void;
     onSave: (product: Partial<AffiliateProduct>) => void;
+    editingProduct?: AffiliateProduct | null;
 }) => {
     const [sourceUrl, setSourceUrl] = useState('');
     const [name, setName] = useState('');
@@ -2781,18 +2789,120 @@ const ImportProductModal = ({
     const [badge, setBadge] = useState('');
     const [features, setFeatures] = useState<string[]>(['']);
     const [isFetching, setIsFetching] = useState(false);
+    const [stockStatus, setStockStatus] = useState<'active' | 'inactive'>('active');
+
+    // Populate form when editing
+    useEffect(() => {
+        if (editingProduct) {
+            setSourceUrl(editingProduct.sourceUrl || '');
+            setName(editingProduct.name || '');
+            setDosage(editingProduct.dosage || '');
+            setPrice(editingProduct.price || '');
+            setDescription(editingProduct.description || '');
+            setImageUrl(editingProduct.imageUrl || '');
+            setAffiliateId(editingProduct.affiliateId || 'japrotocols');
+            setBadge(editingProduct.badge || '');
+            setFeatures(editingProduct.features?.length ? editingProduct.features : ['']);
+            setStockStatus(editingProduct.status || 'active');
+        } else {
+            // Reset form for new product
+            setSourceUrl('');
+            setName('');
+            setDosage('');
+            setPrice('');
+            setDescription('');
+            setImageUrl('');
+            setAffiliateId('japrotocols');
+            setBadge('');
+            setFeatures(['']);
+            setStockStatus('active');
+        }
+        setFetchError(null);
+    }, [editingProduct, isOpen]);
+
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const handleFetchProduct = async () => {
         if (!sourceUrl) return;
         setIsFetching(true);
-        // In a real app, this would call a backend API to scrape the product page
-        // For now, we'll just set some placeholder data
-        setTimeout(() => {
-            setName('Product from URL');
-            setPrice('$99.00');
-            setDescription('Product description fetched from URL');
+        setFetchError(null);
+
+        try {
+            // Extract product name from URL path
+            const url = new URL(sourceUrl);
+            const pathParts = url.pathname.split('/').filter(p => p);
+
+            // Try to get product slug from URL (usually last path segment)
+            let productSlug = pathParts[pathParts.length - 1] || '';
+
+            // Remove common URL suffixes
+            productSlug = productSlug.replace(/\.html?$/i, '');
+
+            // Convert slug to readable name
+            const productName = productSlug
+                .replace(/[-_]/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase())
+                .trim();
+
+            if (productName) {
+                setName(productName);
+            }
+
+            // Check if it's a maxperformance4you URL and set affiliate ID
+            if (url.hostname.includes('maxperformance4you')) {
+                setAffiliateId('japrotocols');
+            }
+
+            // Try to fetch via a CORS proxy (allorigins.win is a free proxy)
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(sourceUrl)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+
+                if (data.contents) {
+                    const html = data.contents;
+
+                    // Extract price - look for common price patterns
+                    const priceMatch = html.match(/\$[\d,]+\.?\d*/);
+                    if (priceMatch) {
+                        setPrice(priceMatch[0]);
+                    }
+
+                    // Extract description from meta tags
+                    const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i) ||
+                                      html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+                    if (descMatch && descMatch[1]) {
+                        setDescription(descMatch[1].substring(0, 300));
+                    }
+
+                    // Extract product image
+                    const imgMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+                                     html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+                    if (imgMatch && imgMatch[1]) {
+                        setImageUrl(imgMatch[1]);
+                    }
+
+                    // Extract title if we didn't get a good name from URL
+                    if (!productName || productName.length < 3) {
+                        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i) ||
+                                          html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+                        if (titleMatch && titleMatch[1]) {
+                            setName(titleMatch[1].split('|')[0].split('-')[0].trim());
+                        }
+                    }
+                }
+            } catch (proxyError) {
+                // Proxy failed, but we still have the URL-derived name
+                console.log('Proxy fetch failed, using URL-derived data');
+                setFetchError('Could not fetch full details. Please fill in manually.');
+            }
+
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setFetchError('Invalid URL. Please check and try again.');
+        } finally {
             setIsFetching(false);
-        }, 1000);
+        }
     };
 
     const handleAddFeature = () => {
@@ -2825,8 +2935,8 @@ const ImportProductModal = ({
             affiliateId,
             badge: badge || null,
             features: features.filter(f => f.trim()),
-            clicks: 0,
-            status: 'active'
+            clicks: editingProduct?.clicks || 0,
+            status: stockStatus
         });
         onClose();
     };
@@ -2839,8 +2949,8 @@ const ImportProductModal = ({
             <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="sticky top-0 bg-[#0a0a0a] border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <i className="fa-solid fa-download text-[#FF5252]"></i>
-                        Import Product
+                        <i className={`fa-solid ${editingProduct ? 'fa-pen' : 'fa-download'} text-[#FF5252]`}></i>
+                        {editingProduct ? 'Edit Product' : 'Import Product'}
                     </h2>
                     <button onClick={onClose} className="text-zinc-500 hover:text-white">
                         <i className="fa-solid fa-times"></i>
@@ -2868,6 +2978,12 @@ const ImportProductModal = ({
                                 Fetch
                             </button>
                         </div>
+                        {fetchError && (
+                            <p className="text-amber-400 text-sm flex items-center gap-2">
+                                <i className="fa-solid fa-exclamation-triangle"></i>
+                                {fetchError}
+                            </p>
+                        )}
                     </div>
 
                     {/* Name & Dosage */}
@@ -2920,6 +3036,29 @@ const ImportProductModal = ({
                                 <option value="Premium">Premium</option>
                                 <option value="New">New</option>
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Stock Status Toggle */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Stock Status</label>
+                        <div className="flex items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setStockStatus(stockStatus === 'active' ? 'inactive' : 'active')}
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                                    stockStatus === 'active' ? 'bg-green-600' : 'bg-zinc-700'
+                                }`}
+                            >
+                                <span
+                                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                                        stockStatus === 'active' ? 'translate-x-7' : 'translate-x-1'
+                                    }`}
+                                />
+                            </button>
+                            <span className={`text-sm font-medium ${stockStatus === 'active' ? 'text-green-400' : 'text-red-400'}`}>
+                                {stockStatus === 'active' ? 'In Stock' : 'Out of Stock'}
+                            </span>
                         </div>
                     </div>
 
@@ -3000,8 +3139,8 @@ const ImportProductModal = ({
                         disabled={!name || !price}
                         className="px-6 py-3 rounded-xl bg-[#FF5252] text-white hover:bg-[#ff3333] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        <i className="fa-solid fa-plus"></i>
-                        Add Product
+                        <i className={`fa-solid ${editingProduct ? 'fa-check' : 'fa-plus'}`}></i>
+                        {editingProduct ? 'Save Changes' : 'Add Product'}
                     </button>
                 </div>
             </div>
@@ -3362,10 +3501,158 @@ const AdminDashboard = ({
     const [editingVideo, setEditingVideo] = useState<VideoContent | null>(null);
     const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
     const [editingArticle, setEditingArticle] = useState<ArticleContent | null>(null);
+    const [editingProduct, setEditingProduct] = useState<AffiliateProduct | null>(null);
     const [isArticleEditorOpen, setIsArticleEditorOpen] = useState(false);
 
     // Filter states
     const [videoFilter, setVideoFilter] = useState<'all' | 'main-page' | 'academy' | 'published'>('all');
+
+    // Seed default products if none exist
+    const seedDefaultProducts = async () => {
+        const affiliateId = "japrotocols";
+        const defaultProducts = [
+            {
+                name: "Gold 3 (Retatrutide)",
+                dosage: "10mg / 20mg / 30mg",
+                price: "$249.00 - $509.00",
+                imageUrl: "https://www.maxperformance4you.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-17-at-3.28.51-AM.jpeg",
+                sourceUrl: "https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/",
+                affiliateUrl: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
+                features: ["Fat Loss", "Metabolic Boost"],
+                badge: "Premium",
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "BPC-157 (3-Pack)",
+                dosage: "5mg per vial",
+                price: "$129.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC157-1.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/bpc157-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/bpc157-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Systemic healing peptide for gut health and injury repair.",
+                features: ["Gut Health", "Injury Repair"],
+                badge: "Best Seller",
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "BPC-157 + TB-500 (3-Pack)",
+                dosage: "5mg Blend per vial",
+                price: "$179.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC-157-1-600x600.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Ultimate recovery stack combining BPC-157 and TB-500 for joints and tissues.",
+                features: ["Rapid Healing", "Joint Support"],
+                badge: "Top Pick",
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "AOD-9604 (3-Pack)",
+                dosage: "5mg per vial",
+                price: "$229.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/AOD.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Fat loss fragment of HGH with no blood sugar impact.",
+                features: ["Targeted Fat Loss", "Non-Hormonal"],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "CJC-1295 + Ipamorelin Blend",
+                dosage: "5mg + 5mg (10mg total)",
+                price: "$279.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-30-at-2.37.54-AM.jpeg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Potent GH secretagogue stack for muscle growth, improved sleep, and recovery.",
+                features: ["Muscle Growth", "Deep Sleep"],
+                badge: "Popular",
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "CJC-1295 No DAC (3-Pack)",
+                dosage: "5mg per vial",
+                price: "$269.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/CJC.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Growth hormone releasing hormone for natural GH stimulation.",
+                features: ["GH Release", "Recovery"],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "GHK-Cu (3-Pack)",
+                dosage: "100mg per vial",
+                price: "$179.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/GHK-Cu-1.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Copper peptide for skin elasticity, wound healing, and tissue repair.",
+                features: ["Skin Health", "Tissue Repair"],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "5-Amino-1MQ (3-Pack)",
+                dosage: "5mg per unit",
+                price: "$179.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/5-AMINO-1MQ-1.jpg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "NNMT inhibitor to increase NAD+ levels and promote fat metabolism.",
+                features: ["Fat Loss", "Muscle Retention"],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            },
+            {
+                name: "ARA-290 (3-Pack)",
+                dosage: "10mg per vial",
+                price: "$139.00",
+                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-13-at-1.21.29-AM.jpeg",
+                sourceUrl: "https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/",
+                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/?ref=${affiliateId}`,
+                affiliateId,
+                description: "Innate repair receptor agonist for tissue protection and neuroprotection.",
+                features: ["Neuroprotection", "Tissue Repair"],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            }
+        ];
+
+        const seededProducts: AffiliateProduct[] = [];
+        for (const product of defaultProducts) {
+            try {
+                const docRef = await addDoc(collection(db, 'jpc_products'), {
+                    ...product,
+                    createdAt: serverTimestamp()
+                });
+                seededProducts.push({ id: docRef.id, ...product, createdAt: Timestamp.now() } as AffiliateProduct);
+            } catch (err) {
+                console.error('Error seeding product:', err);
+            }
+        }
+        return seededProducts;
+    };
 
     // Load data from Firestore
     useEffect(() => {
@@ -3383,9 +3670,15 @@ const AdminDashboard = ({
                 const categoriesSnap = await getDocs(query(collection(db, 'jpc_categories'), orderBy('displayOrder')));
                 setCategories(categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ContentCategory)));
 
-                // Load products
+                // Load products - seed defaults if empty
                 const productsSnap = await getDocs(collection(db, 'jpc_products'));
-                setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AffiliateProduct)));
+                if (productsSnap.empty) {
+                    console.log('No products found, seeding defaults...');
+                    const seededProducts = await seedDefaultProducts();
+                    setProducts(seededProducts);
+                } else {
+                    setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AffiliateProduct)));
+                }
 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -3498,13 +3791,31 @@ const AdminDashboard = ({
     // Product CRUD
     const handleSaveProduct = async (productData: Partial<AffiliateProduct>) => {
         try {
-            const docRef = await addDoc(collection(db, 'jpc_products'), {
-                ...productData,
-                createdAt: serverTimestamp()
-            });
-            setProducts([...products, { id: docRef.id, ...productData } as AffiliateProduct]);
+            if (editingProduct) {
+                // Update existing product
+                await updateDoc(doc(db, 'jpc_products', editingProduct.id), productData);
+                setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...productData } as AffiliateProduct : p));
+                setEditingProduct(null);
+            } else {
+                // Create new product
+                const docRef = await addDoc(collection(db, 'jpc_products'), {
+                    ...productData,
+                    createdAt: serverTimestamp()
+                });
+                setProducts([...products, { id: docRef.id, ...productData } as AffiliateProduct]);
+            }
         } catch (error) {
             console.error('Error saving product:', error);
+        }
+    };
+
+    const handleToggleProductStock = async (product: AffiliateProduct) => {
+        const newStatus = product.status === 'active' ? 'inactive' : 'active';
+        try {
+            await updateDoc(doc(db, 'jpc_products', product.id), { status: newStatus });
+            setProducts(products.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
+        } catch (error) {
+            console.error('Error toggling product status:', error);
         }
     };
 
@@ -4179,21 +4490,39 @@ const AdminDashboard = ({
                                                             {product.clicks || 0}
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <StatusBadge status={product.status} />
+                                                            <button
+                                                                onClick={() => handleToggleProductStock(product)}
+                                                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                                                    product.status === 'active'
+                                                                        ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                                                                        : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                                                                }`}
+                                                            >
+                                                                {product.status === 'active' ? 'In Stock' : 'Out of Stock'}
+                                                            </button>
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => { setEditingProduct(product); setIsProductModalOpen(true); }}
+                                                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                    title="Edit product"
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
                                                                 <a
                                                                     href={product.affiliateUrl}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                    title="View product"
                                                                 >
                                                                     <i className="fa-solid fa-external-link-alt"></i>
                                                                 </a>
                                                                 <button
                                                                     onClick={() => handleDeleteProduct(product.id)}
                                                                     className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                    title="Delete product"
                                                                 >
                                                                     <i className="fa-solid fa-trash"></i>
                                                                 </button>
@@ -4230,8 +4559,9 @@ const AdminDashboard = ({
             />
             <ImportProductModal
                 isOpen={isProductModalOpen}
-                onClose={() => setIsProductModalOpen(false)}
+                onClose={() => { setIsProductModalOpen(false); setEditingProduct(null); }}
                 onSave={handleSaveProduct}
+                editingProduct={editingProduct}
             />
         </div>
     );
@@ -4262,6 +4592,12 @@ const App = () => {
                     if (userSnap.exists()) {
                         const userData = userSnap.data() as AppUser;
                         isAdmin = userData.isAdmin || false;
+                    }
+
+                    // Hardcoded admin emails (fallback)
+                    const adminEmails = ['khare85@gmail.com', 'brighttiercloud@gmail.com'];
+                    if (firebaseUser.email && adminEmails.includes(firebaseUser.email.toLowerCase())) {
+                        isAdmin = true;
                     }
 
                     setUser({
