@@ -1,6 +1,133 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
+
+// Firebase imports
+import { initializeApp } from 'firebase/app';
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDocs,
+    getDoc,
+    addDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    orderBy,
+    where,
+    onSnapshot,
+    serverTimestamp,
+    Timestamp
+} from 'firebase/firestore';
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    User as FirebaseUser
+} from 'firebase/auth';
+
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCUsD1VnibIFE5WtiJGOlXMTsz583fjef0",
+    authDomain: "guardian-intelligence-platform.firebaseapp.com",
+    databaseURL: "https://guardian-intelligence-platform-default-rtdb.firebaseio.com",
+    projectId: "guardian-intelligence-platform",
+    storageBucket: "guardian-intelligence-platform.firebasestorage.app",
+    messagingSenderId: "976444878119",
+    appId: "1:976444878119:web:ed397f20cd1c4603e94d02"
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
+
+// --- Admin Data Models ---
+
+interface VideoContent {
+    id: string;
+    title: string;
+    description: string;
+    embedUrl: string;
+    thumbnailUrl: string;
+    provider: 'youtube' | 'rumble';
+    category: string;
+    instructor: string;
+    duration: string;
+    views: number;
+    status: 'draft' | 'published' | 'archived';
+    isFeatured: boolean;
+    isMainPage: boolean;
+    publishedAt: Timestamp | null;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+interface ArticleContent {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    thumbnailUrl: string;
+    category: string;
+    author: string;
+    readTime: string;
+    views: number;
+    status: 'draft' | 'published' | 'archived';
+    publishedAt: Timestamp | null;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+interface ContentCategory {
+    id: string;
+    name: string;
+    slug: string;
+    description: string;
+    icon: string;
+    colorFrom: string;
+    colorTo: string;
+    displayOrder: number;
+    status: 'active' | 'inactive';
+}
+
+interface AffiliateProduct {
+    id: string;
+    name: string;
+    dosage: string;
+    price: string;
+    description: string;
+    imageUrl: string;
+    sourceUrl: string;
+    affiliateUrl: string;
+    affiliateId: string;
+    features: string[];
+    badge: string | null;
+    clicks: number;
+    status: 'active' | 'inactive';
+    createdAt: Timestamp;
+}
+
+interface AnalyticsEvent {
+    id: string;
+    type: 'product_click' | 'video_view' | 'article_view';
+    targetId: string;
+    timestamp: Timestamp;
+    referrer: string;
+    userAgent: string;
+}
+
+interface AppUser {
+    uid: string;
+    email: string;
+    isAdmin: boolean;
+    createdAt: Timestamp;
+}
 
 // --- Constants & Data ---
 
@@ -173,6 +300,8 @@ interface User {
     email: string;
     hasAssessment: boolean;
     isAcademyMember: boolean;
+    isAdmin: boolean;
+    uid?: string;
 }
 
 // --- Icons ---
@@ -276,17 +405,17 @@ const StepHeader = ({ step, title }: { step: string, title: string }) => (
 );
 
 const InputField = ({ value, onChange, unit, placeholder, step = "1", type = "number" }: any) => (
-  <div className="relative group">
+  <div className="flex items-center gap-3">
     <input
       type={type}
       step={step}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-100 px-5 py-4 rounded-xl focus:outline-none focus:border-[#FF5252] focus:bg-zinc-900 focus:ring-1 focus:ring-[#FF5252]/20 transition-all placeholder-zinc-700 font-mono text-lg shadow-sm"
+      className="flex-1 bg-zinc-900/50 border border-zinc-800 text-zinc-100 px-5 py-4 rounded-xl focus:outline-none focus:border-[#FF5252] focus:bg-zinc-900 focus:ring-1 focus:ring-[#FF5252]/20 transition-all placeholder-zinc-700 font-mono text-lg shadow-sm"
     />
     {unit && (
-      <span className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 font-medium text-xs pointer-events-none uppercase tracking-wide bg-zinc-900/80 px-2 py-1 rounded">
+      <span className="text-zinc-400 font-bold text-xs uppercase tracking-wide bg-zinc-800 px-3 py-2 rounded-lg shrink-0 min-w-[50px] text-center">
         {unit}
       </span>
     )}
@@ -666,26 +795,70 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate API Call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Mock User Logic
-        // Academy Users enter here directly
-        const mockUser: User = {
-            email: email,
-            hasAssessment: false, // Standard login doesn't grant protocol access automatically
-            isAcademyMember: true // Simulating purchase/sub flow
-        };
+        setError(null);
 
-        onLogin(mockUser);
-        setIsLoading(false);
-        onClose();
+        try {
+            let userCredential;
+            if (isSignUp) {
+                // Create new user
+                userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // Create user document in Firestore with UID as doc ID
+                await setDoc(doc(db, 'jpc_users', userCredential.user.uid), {
+                    uid: userCredential.user.uid,
+                    email: email,
+                    isAdmin: false,
+                    createdAt: serverTimestamp()
+                });
+            } else {
+                // Sign in existing user
+                userCredential = await signInWithEmailAndPassword(auth, email, password);
+            }
+
+            // Fetch user data from Firestore to check admin status
+            const userDocRef = doc(db, 'jpc_users', userCredential.user.uid);
+            const userSnap = await getDoc(userDocRef);
+            let isAdmin = false;
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data() as AppUser;
+                isAdmin = userData.isAdmin || false;
+            }
+
+            const loggedInUser: User = {
+                uid: userCredential.user.uid,
+                email: userCredential.user.email || email,
+                hasAssessment: false,
+                isAcademyMember: true,
+                isAdmin: isAdmin
+            };
+
+            onLogin(loggedInUser);
+            onClose();
+        } catch (err: any) {
+            console.error('Auth error:', err);
+            if (err.code === 'auth/user-not-found') {
+                setError('No account found with this email');
+            } else if (err.code === 'auth/wrong-password') {
+                setError('Incorrect password');
+            } else if (err.code === 'auth/invalid-credential') {
+                setError('Invalid email or password');
+            } else if (err.code === 'auth/email-already-in-use') {
+                setError('Email already registered. Please sign in.');
+            } else if (err.code === 'auth/weak-password') {
+                setError('Password must be at least 6 characters');
+            } else {
+                setError(err.message || 'An error occurred');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -737,12 +910,19 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                         />
                     </div>
 
-                    <button 
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm">
+                            <i className="fa-solid fa-exclamation-circle mr-2"></i>
+                            {error}
+                        </div>
+                    )}
+
+                    <button
                         type="submit"
                         disabled={isLoading}
                         className="w-full bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-red-900/20 disabled:opacity-50"
                     >
-                        {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : (isSignUp ? 'Continue to Payment' : 'Sign In')}
+                        {isLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : (isSignUp ? 'Create Account' : 'Sign In')}
                     </button>
                 </form>
             </div>
@@ -1040,128 +1220,115 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
 
 const ShopView = ({ onBack }: { onBack: () => void }) => {
     const affiliateId = "japrotocols"; // Affiliate ID for tracking
-    const products = [
+
+    // Premium products from maxperformance4you.com
+    const premiumProducts = [
         {
-            id: 'ret-glp-3',
-            name: "RET-GLP-3 (Retatrutide)",
-            dosage: "10mg / 15mg",
-            price: "$150.00+",
-            image: "https://images.unsplash.com/photo-1624720114708-0763412388dd?q=80&w=2070&auto=format&fit=crop", 
+            id: 'gold3',
+            name: "Gold 3 (Retatrutide)",
+            dosage: "10mg / 20mg / 30mg",
+            price: "$249.00 - $509.00",
+            image: "https://www.maxperformance4you.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-17-at-3.28.51-AM.jpeg",
             url: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/?ref=${affiliateId}`,
             desc: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
-            features: ["Fat Loss", "Metabolic Boost"]
-        },
-        {
-            id: 'tz',
-            name: "Tirzepatide (TZ)",
-            dosage: "10mg / 30mg",
-            price: "$130.00+",
-            image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=2030&auto=format&fit=crop",
-            url: `https://www.maxperformance4you.com/product/tz-tirzepatide/?ref=${affiliateId}`,
-            desc: "Dual agonist (GLP-1, GIP) for significant weight management.",
-            features: ["Weight Loss", "Insulin Control"]
-        },
-        {
-            id: 'sema',
-            name: "Semaglutide",
-            dosage: "5mg",
-            price: "$99.00+",
-            image: "https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop",
-            url: `https://www.maxperformance4you.com/product/semaglutide-5mg/?ref=${affiliateId}`,
-            desc: "Gold standard GLP-1 agonist for appetite suppression.",
-            features: ["Appetite Control", "Steady Results"]
-        },
-        {
-             id: 'teso',
-             name: "Tesofensine",
-             dosage: "500mcg Caps",
-             price: "$180.00+",
-             image: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=2070&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/tesofensine-500mcg-capsules/?ref=${affiliateId}`,
-             desc: "Dopamine uptake inhibitor for mood and metabolism.",
-             features: ["Neuroprotection", "Fat Burning"]
-        },
-        {
-             id: 'aod',
-             name: "AOD-9604",
-             dosage: "5mg",
-             price: "$65.00",
-             image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=2140&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/aod-9604-5mg/?ref=${affiliateId}`,
-             desc: "Fat loss fragment of HGH, no blood sugar impact.",
-             features: ["Targeted Fat Loss", "Non-Hormonal"]
-        },
-        {
-             id: 'blend',
-             name: "BPC-157 + TB-500",
-             dosage: "10mg Blend",
-             price: "$110.00",
-             image: "https://images.unsplash.com/photo-1579165466741-7f35a4755657?q=80&w=2079&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/bpc-157-tb-500-blend/?ref=${affiliateId}`,
-             desc: "Ultimate recovery stack for joints and tissues.",
-             features: ["Rapid Healing", "Joint Support"]
-        },
-        {
-             id: 'bpc',
-             name: "BPC-157",
-             dosage: "5mg",
-             price: "$60.00",
-             image: "https://images.unsplash.com/photo-1606210123518-e3c6317df854?q=80&w=2070&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/bpc-157-5mg/?ref=${affiliateId}`,
-             desc: "Systemic healing peptide for gut and injuries.",
-             features: ["Gut Health", "Injury Repair"]
-        },
-         {
-             id: 'tb500',
-             name: "TB-500",
-             dosage: "5mg",
-             price: "$65.00",
-             image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=2069&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/tb-500-5mg/?ref=${affiliateId}`,
-             desc: "Promotes flexibility and inflammation reduction.",
-             features: ["Flexibility", "Anti-Inflammatory"]
-        },
-        {
-             id: 'ghk',
-             name: "GHK-Cu",
-             dosage: "50mg",
-             price: "$70.00",
-             image: "https://images.unsplash.com/photo-1615486511484-92e572499760?q=80&w=2070&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/ghk-cu-50mg/?ref=${affiliateId}`,
-             desc: "Copper peptide for skin elasticity and healing.",
-             features: ["Skin Health", "Tissue Repair"]
-        },
-         {
-             id: 'cjc',
-             name: "CJC-1295 + Ipamorelin",
-             dosage: "10mg Blend",
-             price: "$95.00",
-             image: "https://images.unsplash.com/photo-1581093588402-4114d5e7b998?q=80&w=2070&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/cjc-1295-ipamorelin-blend/?ref=${affiliateId}`,
-             desc: "Potent GH secretagogue stack for muscle and sleep.",
-             features: ["Muscle Growth", "Deep Sleep"]
-        },
-        {
-             id: 'nad',
-             name: "NAD+",
-             dosage: "500mg",
-             price: "$85.00",
-             image: "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=2140&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/nad-500mg/?ref=${affiliateId}`,
-             desc: "Cellular energy and anti-aging coenzyme.",
-             features: ["Energy", "Anti-Aging"]
-        },
-        {
-             id: '5amino',
-             name: "5-Amino-1MQ",
-             dosage: "Capsules",
-             price: "$190.00",
-             image: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=2070&auto=format&fit=crop",
-             url: `https://www.maxperformance4you.com/product/5-amino-1mq/?ref=${affiliateId}`,
-             desc: "NNMT inhibitor to increase NAD+ levels and burn fat.",
-             features: ["Fat Loss", "Muscle Retention"]
+            features: ["Fat Loss", "Metabolic Boost"],
+            badge: "Premium"
         }
     ];
+
+    // Wholesale products from maxperformance4youwholesale.com
+    const wholesaleProducts = [
+        {
+            id: 'bpc-3pack',
+            name: "BPC-157 (3-Pack)",
+            dosage: "5mg per vial",
+            price: "$129.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC157-1.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/bpc157-3pack/?ref=${affiliateId}`,
+            desc: "Systemic healing peptide for gut health and injury repair. CAS: 137525-51-0",
+            features: ["Gut Health", "Injury Repair"],
+            badge: "Best Seller"
+        },
+        {
+            id: 'bpc-tb-blend',
+            name: "BPC-157 + TB-500 (3-Pack)",
+            dosage: "5mg Blend per vial",
+            price: "$179.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC-157-1-600x600.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/?ref=${affiliateId}`,
+            desc: "Ultimate recovery stack combining BPC-157 and TB-500 for joints and tissues.",
+            features: ["Rapid Healing", "Joint Support"],
+            badge: "Top Pick"
+        },
+        {
+            id: 'aod-3pack',
+            name: "AOD-9604 (3-Pack)",
+            dosage: "5mg per vial",
+            price: "$229.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/AOD.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/?ref=${affiliateId}`,
+            desc: "Fat loss fragment of HGH with no blood sugar impact. CAS: 221231-10-3",
+            features: ["Targeted Fat Loss", "Non-Hormonal"],
+            badge: null
+        },
+        {
+            id: 'cjc-ipa-blend',
+            name: "CJC-1295 + Ipamorelin Blend",
+            dosage: "5mg + 5mg (10mg total)",
+            price: "$279.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-30-at-2.37.54-AM.jpeg",
+            url: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/?ref=${affiliateId}`,
+            desc: "Potent GH secretagogue stack for muscle growth, improved sleep, and recovery.",
+            features: ["Muscle Growth", "Deep Sleep"],
+            badge: "Popular"
+        },
+        {
+            id: 'cjc-3pack',
+            name: "CJC-1295 No DAC (3-Pack)",
+            dosage: "5mg per vial",
+            price: "$269.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/CJC.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/?ref=${affiliateId}`,
+            desc: "Growth hormone releasing hormone for natural GH stimulation.",
+            features: ["GH Release", "Recovery"],
+            badge: null
+        },
+        {
+            id: 'ghk-3pack',
+            name: "GHK-Cu (3-Pack)",
+            dosage: "100mg per vial",
+            price: "$179.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/GHK-Cu-1.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/?ref=${affiliateId}`,
+            desc: "Copper peptide for skin elasticity, wound healing, and tissue repair. CAS: 89030-95-5",
+            features: ["Skin Health", "Tissue Repair"],
+            badge: null
+        },
+        {
+            id: '5amino-3pack',
+            name: "5-Amino-1MQ (3-Pack)",
+            dosage: "5mg per unit",
+            price: "$179.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/5-AMINO-1MQ-1.jpg",
+            url: `https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/?ref=${affiliateId}`,
+            desc: "NNMT inhibitor to increase NAD+ levels and promote fat metabolism. CAS: 42464-96-0",
+            features: ["Fat Loss", "Muscle Retention"],
+            badge: null
+        },
+        {
+            id: 'ara290-3pack',
+            name: "ARA-290 (3-Pack)",
+            dosage: "10mg per vial",
+            price: "$139.00",
+            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-13-at-1.21.29-AM.jpeg",
+            url: `https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/?ref=${affiliateId}`,
+            desc: "Innate repair receptor agonist for tissue protection and neuroprotection.",
+            features: ["Neuroprotection", "Tissue Repair"],
+            badge: null
+        }
+    ];
+
+    const products = [...premiumProducts, ...wholesaleProducts];
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter">
@@ -1191,17 +1358,20 @@ const ShopView = ({ onBack }: { onBack: () => void }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {products.map((product) => (
                          <div key={product.id} className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl overflow-hidden group hover:border-[#FF5252]/50 transition-all duration-300 flex flex-col">
-                             <div className="h-64 overflow-hidden relative">
-                                 <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100" />
-                                 <div className="absolute top-4 right-4 bg-[#FF5252] text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                                     Top Pick
-                                 </div>
+                             <div className="h-64 overflow-hidden relative bg-zinc-900">
+                                 <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
+                                 {product.badge && (
+                                     <div className={`absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${product.badge === 'Premium' ? 'bg-amber-500 text-black' : 'bg-[#FF5252] text-white'}`}>
+                                         {product.badge}
+                                     </div>
+                                 )}
                              </div>
                              <div className="p-8 flex-1 flex flex-col">
-                                 <h3 className="text-2xl font-bold text-white mb-2">{product.name}</h3>
+                                 <h3 className="text-xl font-bold text-white mb-1">{product.name}</h3>
+                                 <p className="text-zinc-500 text-xs mb-3">{product.dosage}</p>
                                  <p className="text-[#FF5252] font-mono text-lg mb-4">{product.price}</p>
                                  <p className="text-zinc-400 text-sm leading-relaxed mb-6">{product.desc}</p>
-                                 
+
                                  <ul className="space-y-2 mb-8 flex-1">
                                      {product.features.map((feat, i) => (
                                          <li key={i} className="flex items-center gap-2 text-xs text-zinc-300 font-bold uppercase tracking-wide">
@@ -1211,9 +1381,9 @@ const ShopView = ({ onBack }: { onBack: () => void }) => {
                                      ))}
                                  </ul>
 
-                                 <a 
-                                     href={product.url} 
-                                     target="_blank" 
+                                 <a
+                                     href={product.url}
+                                     target="_blank"
                                      rel="noreferrer"
                                      className="w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2"
                                  >
@@ -1590,7 +1760,7 @@ const VideoCard = ({ title, desc, image, duration, onClick }: { title: string, d
     </div>
 );
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStartShop, user }: { onStartCalculator: () => void, onStartAcademy: () => void, onLoginRequest: () => void, onStartShop: () => void, user: User | null }) => {
+const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStartShop, onStartAdmin, user }: { onStartCalculator: () => void, onStartAcademy: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, user: User | null }) => {
     
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
@@ -1768,6 +1938,11 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Terms</a>
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Support</a>
                     <a href="#" className="hover:text-[#FF5252] transition-colors">Instagram</a>
+                    {user?.isAdmin && (
+                        <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors">
+                            Admin
+                        </button>
+                    )}
                 </div>
                 <p className="text-zinc-700 text-[10px]">© 2024 JA Protocols. All rights reserved.</p>
             </footer>
@@ -1851,10 +2026,10 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
            <div className="w-6"></div> {/* Spacer for center alignment */}
       </div>
 
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12">
-        
+      <div className="w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12">
+
         {/* Left Column: Peptide List */}
-        <div className="lg:col-span-4 flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:sticky lg:top-24">
+        <div className="lg:col-span-3 flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:sticky lg:top-24">
             
             <div className="flex flex-col gap-4">
                 <h1 className="text-4xl font-black tracking-tight text-white leading-none">
@@ -1927,7 +2102,7 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
         </div>
 
         {/* Right Column: Calculator Dashboard */}
-        <div className="lg:col-span-8 animate-fadeIn">
+        <div className="lg:col-span-9 animate-fadeIn">
             <div className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl p-1 shadow-2xl relative overflow-hidden min-h-[800px] flex flex-col">
                  
                  {/* Dashboard Content Container */}
@@ -1969,14 +2144,14 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
                                             selectedPeptide={selectedPeptide} 
                                             onSelect={handleSelectPeptide} 
                                         />
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <InputField 
-                                                value={vialMg} 
-                                                onChange={setVialMg} 
-                                                unit="mg" 
-                                                placeholder="5" 
+                                        <div className="space-y-2">
+                                            <InputField
+                                                value={vialMg}
+                                                onChange={setVialMg}
+                                                unit="mg"
+                                                placeholder="5"
                                             />
-                                             <div className="flex items-center text-xs text-zinc-500 leading-tight">
+                                             <div className="text-xs text-zinc-500 leading-tight">
                                                 Amount of powder in vial
                                              </div>
                                         </div>
@@ -1986,14 +2161,14 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
                                 {/* Step 3 */}
                                 <div className="bg-zinc-900/30 p-5 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 transition-colors">
                                     <StepHeader step="03" title="Water Volume" />
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <InputField 
-                                            value={bacWaterMl} 
-                                            onChange={setBacWaterMl} 
-                                            unit="ml" 
-                                            placeholder="2" 
+                                    <div className="space-y-2">
+                                        <InputField
+                                            value={bacWaterMl}
+                                            onChange={setBacWaterMl}
+                                            unit="ml"
+                                            placeholder="2"
                                         />
-                                        <div className="flex items-center text-xs text-zinc-500 leading-tight">
+                                        <div className="text-xs text-zinc-500 leading-tight">
                                             Amount of water added to vial
                                         </div>
                                     </div>
@@ -2041,12 +2216,2073 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
+// ============================================
+// ADMIN COMPONENTS
+// ============================================
+
+// Admin Sidebar Navigation Item
+const AdminNavItem = ({ icon, label, active, onClick, badge }: {
+    icon: string;
+    label: string;
+    active: boolean;
+    onClick: () => void;
+    badge?: number;
+}) => (
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+            active
+                ? 'bg-[#FF5252] text-white shadow-lg shadow-red-900/20'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+        }`}
+    >
+        <i className={`fa-solid ${icon} w-5`}></i>
+        <span className="flex-1 text-left">{label}</span>
+        {badge !== undefined && badge > 0 && (
+            <span className="bg-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded-full">{badge}</span>
+        )}
+    </button>
+);
+
+// Admin Stat Card
+const AdminStatCard = ({ title, value, subValue, icon, trend, colorClass = 'bg-[#FF5252]' }: {
+    title: string;
+    value: string | number;
+    subValue?: string;
+    icon: string;
+    trend?: { value: number; label: string };
+    colorClass?: string;
+}) => (
+    <div className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors">
+        <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 ${colorClass} rounded-xl flex items-center justify-center text-white`}>
+                <i className={`fa-solid ${icon} text-lg`}></i>
+            </div>
+            {trend && (
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${trend.value >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {trend.value >= 0 ? '+' : ''}{trend.value}% {trend.label}
+                </span>
+            )}
+        </div>
+        <h3 className="text-3xl font-bold text-white mb-1">{value}</h3>
+        <p className="text-zinc-500 text-sm">{title}</p>
+        {subValue && <p className="text-zinc-600 text-xs mt-1">{subValue}</p>}
+    </div>
+);
+
+// Status Badge Component
+const StatusBadge = ({ status }: { status: string }) => {
+    const styles: Record<string, string> = {
+        published: 'bg-green-500/10 text-green-400 border-green-500/20',
+        draft: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+        archived: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
+        active: 'bg-green-500/10 text-green-400 border-green-500/20',
+        inactive: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+    };
+    return (
+        <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase border ${styles[status] || styles.draft}`}>
+            {status}
+        </span>
+    );
+};
+
+// Provider Badge
+const ProviderBadge = ({ provider }: { provider: 'youtube' | 'rumble' }) => (
+    <span className={`px-2 py-1 rounded text-xs font-bold ${
+        provider === 'youtube' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'
+    }`}>
+        <i className={`fa-brands fa-${provider === 'youtube' ? 'youtube' : 'r-project'} mr-1`}></i>
+        {provider}
+    </span>
+);
+
+// Video URL parser helper
+const parseVideoUrl = (url: string): { provider: 'youtube' | 'rumble'; videoId: string; thumbnailUrl: string } | null => {
+    // YouTube patterns
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) {
+        return {
+            provider: 'youtube',
+            videoId: ytMatch[1],
+            thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/maxresdefault.jpg`
+        };
+    }
+    // Rumble patterns
+    const rumbleMatch = url.match(/rumble\.com\/(?:embed\/)?([a-zA-Z0-9]+)/);
+    if (rumbleMatch) {
+        return {
+            provider: 'rumble',
+            videoId: rumbleMatch[1],
+            thumbnailUrl: '' // Rumble doesn't have easy thumbnail access
+        };
+    }
+    return null;
+};
+
+// Slug generator
+const generateSlug = (text: string): string => {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+};
+
+// Read time calculator
+const calculateReadTime = (content: string): string => {
+    const wordsPerMinute = 200;
+    const text = content.replace(/<[^>]*>/g, '');
+    const words = text.split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes}m`;
+};
+
+// Add Video Modal
+const AddVideoModal = ({
+    isOpen,
+    onClose,
+    onSave,
+    categories,
+    editingVideo
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (video: Partial<VideoContent>) => void;
+    categories: ContentCategory[];
+    editingVideo?: VideoContent | null;
+}) => {
+    const [embedUrl, setEmbedUrl] = useState('');
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [thumbnailUrl, setThumbnailUrl] = useState('');
+    const [category, setCategory] = useState('');
+    const [instructor, setInstructor] = useState('Jon Andersen');
+    const [provider, setProvider] = useState<'youtube' | 'rumble'>('youtube');
+    const [isPublished, setIsPublished] = useState(false);
+    const [isFeatured, setIsFeatured] = useState(false);
+    const [isMainPage, setIsMainPage] = useState(false);
+
+    useEffect(() => {
+        if (editingVideo) {
+            setEmbedUrl(editingVideo.embedUrl);
+            setTitle(editingVideo.title);
+            setDescription(editingVideo.description);
+            setThumbnailUrl(editingVideo.thumbnailUrl);
+            setCategory(editingVideo.category);
+            setInstructor(editingVideo.instructor);
+            setProvider(editingVideo.provider);
+            setIsPublished(editingVideo.status === 'published');
+            setIsFeatured(editingVideo.isFeatured);
+            setIsMainPage(editingVideo.isMainPage);
+        } else {
+            setEmbedUrl('');
+            setTitle('');
+            setDescription('');
+            setThumbnailUrl('');
+            setCategory('');
+            setInstructor('Jon Andersen');
+            setProvider('youtube');
+            setIsPublished(false);
+            setIsFeatured(false);
+            setIsMainPage(false);
+        }
+    }, [editingVideo, isOpen]);
+
+    const handleUrlChange = (url: string) => {
+        setEmbedUrl(url);
+        const parsed = parseVideoUrl(url);
+        if (parsed) {
+            setProvider(parsed.provider);
+            if (parsed.thumbnailUrl) {
+                setThumbnailUrl(parsed.thumbnailUrl);
+            }
+        }
+    };
+
+    const handleSave = () => {
+        onSave({
+            embedUrl,
+            title,
+            description,
+            thumbnailUrl,
+            category,
+            instructor,
+            provider,
+            status: isPublished ? 'published' : 'draft',
+            isFeatured,
+            isMainPage
+        });
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-[#0a0a0a] border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <i className="fa-solid fa-link text-[#FF5252]"></i>
+                        {editingVideo ? 'Edit Video' : 'Add Video (Embed URL)'}
+                    </h2>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white">
+                        <i className="fa-solid fa-times"></i>
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    <p className="text-zinc-400 text-sm">Add a new video by providing a YouTube or Rumble embed URL.</p>
+
+                    {/* Embed URL */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                            Embed URL (YouTube or Rumble) *
+                        </label>
+                        <input
+                            type="url"
+                            value={embedUrl}
+                            onChange={(e) => handleUrlChange(e.target.value)}
+                            placeholder="https://youtube.com/watch?v=... or https://rumble.com/..."
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                        />
+                        <ProviderBadge provider={provider} />
+                    </div>
+
+                    {/* Title */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Title *</label>
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Enter video title"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                        />
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Enter video description"
+                            rows={3}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors resize-none"
+                        />
+                    </div>
+
+                    {/* Thumbnail URL */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                            Thumbnail URL (auto-fetched for YouTube)
+                        </label>
+                        <input
+                            type="url"
+                            value={thumbnailUrl}
+                            onChange={(e) => setThumbnailUrl(e.target.value)}
+                            placeholder="https://img.youtube.com/vi/.../maxresdefault.jpg"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                        />
+                        {thumbnailUrl && (
+                            <img src={thumbnailUrl} alt="Thumbnail preview" className="w-32 h-20 object-cover rounded-lg mt-2" />
+                        )}
+                    </div>
+
+                    {/* Category & Instructor Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            >
+                                <option value="">None</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Instructor</label>
+                            <input
+                                type="text"
+                                value={instructor}
+                                onChange={(e) => setInstructor(e.target.value)}
+                                placeholder="e.g., Jon Andersen"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Toggles */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-800">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full transition-colors ${isPublished ? 'bg-[#FF5252]' : 'bg-zinc-700'}`}
+                                onClick={() => setIsPublished(!isPublished)}>
+                                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform mt-0.5 ${isPublished ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`}></div>
+                            </div>
+                            <span className="text-sm text-zinc-300 group-hover:text-white">Published (Master Toggle)</span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full transition-colors ${isFeatured ? 'bg-[#FF5252]' : 'bg-zinc-700'}`}
+                                onClick={() => setIsFeatured(!isFeatured)}>
+                                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform mt-0.5 ${isFeatured ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`}></div>
+                            </div>
+                            <span className="text-sm text-zinc-300 group-hover:text-white">Featured (Main Page Hero)</span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full transition-colors ${isMainPage ? 'bg-[#FF5252]' : 'bg-zinc-700'}`}
+                                onClick={() => setIsMainPage(!isMainPage)}>
+                                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform mt-0.5 ${isMainPage ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`}></div>
+                            </div>
+                            <span className="text-sm text-zinc-300 group-hover:text-white">Main Page Rotation</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-zinc-800 px-6 py-4 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-6 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={!embedUrl || !title}
+                        className="px-6 py-3 rounded-xl bg-[#FF5252] text-white hover:bg-[#ff3333] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <i className="fa-solid fa-plus"></i>
+                        {editingVideo ? 'Update Video' : 'Add Video'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Add Category Modal
+const AddCategoryModal = ({
+    isOpen,
+    onClose,
+    onSave,
+    editingCategory
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (category: Partial<ContentCategory>) => void;
+    editingCategory?: ContentCategory | null;
+}) => {
+    const [name, setName] = useState('');
+    const [slug, setSlug] = useState('');
+    const [description, setDescription] = useState('');
+    const [icon, setIcon] = useState('fa-beaker');
+    const [displayOrder, setDisplayOrder] = useState(0);
+    const [colorFrom, setColorFrom] = useState('violet');
+    const [colorTo, setColorTo] = useState('purple');
+    const [isActive, setIsActive] = useState(true);
+
+    const icons = ['fa-beaker', 'fa-flask', 'fa-shield', 'fa-zap', 'fa-book', 'fa-dna', 'fa-heart', 'fa-brain'];
+    const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'pink'];
+
+    useEffect(() => {
+        if (editingCategory) {
+            setName(editingCategory.name);
+            setSlug(editingCategory.slug);
+            setDescription(editingCategory.description);
+            setIcon(editingCategory.icon);
+            setDisplayOrder(editingCategory.displayOrder);
+            setColorFrom(editingCategory.colorFrom);
+            setColorTo(editingCategory.colorTo);
+            setIsActive(editingCategory.status === 'active');
+        } else {
+            setName('');
+            setSlug('');
+            setDescription('');
+            setIcon('fa-beaker');
+            setDisplayOrder(0);
+            setColorFrom('violet');
+            setColorTo('purple');
+            setIsActive(true);
+        }
+    }, [editingCategory, isOpen]);
+
+    const handleNameChange = (value: string) => {
+        setName(value);
+        if (!editingCategory) {
+            setSlug(generateSlug(value));
+        }
+    };
+
+    const handleSave = () => {
+        onSave({
+            name,
+            slug,
+            description,
+            icon,
+            displayOrder,
+            colorFrom,
+            colorTo,
+            status: isActive ? 'active' : 'inactive'
+        });
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-[#0a0a0a] border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-white">
+                        {editingCategory ? 'Edit Category' : 'Create New Category'}
+                    </h2>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white">
+                        <i className="fa-solid fa-times"></i>
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    {/* Name */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Name *</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => handleNameChange(e.target.value)}
+                            placeholder="e.g., Peptide Fundamentals"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                        />
+                    </div>
+
+                    {/* Slug */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">URL Slug</label>
+                        <input
+                            type="text"
+                            value={slug}
+                            onChange={(e) => setSlug(e.target.value)}
+                            placeholder="peptide-fundamentals"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-400 focus:outline-none focus:border-[#FF5252] transition-colors font-mono"
+                        />
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Brief description of this category"
+                            rows={3}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors resize-none"
+                        />
+                    </div>
+
+                    {/* Icon & Order Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Icon</label>
+                            <select
+                                value={icon}
+                                onChange={(e) => setIcon(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            >
+                                {icons.map(i => (
+                                    <option key={i} value={i}>{i.replace('fa-', '')}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Display Order</label>
+                            <input
+                                type="number"
+                                value={displayOrder}
+                                onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Colors Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Color From</label>
+                            <select
+                                value={colorFrom}
+                                onChange={(e) => setColorFrom(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            >
+                                {colors.map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Color To</label>
+                            <select
+                                value={colorTo}
+                                onChange={(e) => setColorTo(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            >
+                                {colors.map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Active Toggle */}
+                    <label className="flex items-center gap-3 cursor-pointer group pt-4 border-t border-zinc-800">
+                        <div className={`w-12 h-6 rounded-full transition-colors ${isActive ? 'bg-[#FF5252]' : 'bg-zinc-700'}`}
+                            onClick={() => setIsActive(!isActive)}>
+                            <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform mt-0.5 ${isActive ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`}></div>
+                        </div>
+                        <span className="text-sm text-zinc-300 group-hover:text-white">Active</span>
+                    </label>
+                </div>
+
+                <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-zinc-800 px-6 py-4 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-6 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={!name}
+                        className="px-6 py-3 rounded-xl bg-[#FF5252] text-white hover:bg-[#ff3333] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {editingCategory ? 'Update Category' : 'Create Category'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Import Product Modal
+const ImportProductModal = ({
+    isOpen,
+    onClose,
+    onSave
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (product: Partial<AffiliateProduct>) => void;
+}) => {
+    const [sourceUrl, setSourceUrl] = useState('');
+    const [name, setName] = useState('');
+    const [dosage, setDosage] = useState('');
+    const [price, setPrice] = useState('');
+    const [description, setDescription] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
+    const [affiliateId, setAffiliateId] = useState('japrotocols');
+    const [badge, setBadge] = useState('');
+    const [features, setFeatures] = useState<string[]>(['']);
+    const [isFetching, setIsFetching] = useState(false);
+
+    const handleFetchProduct = async () => {
+        if (!sourceUrl) return;
+        setIsFetching(true);
+        // In a real app, this would call a backend API to scrape the product page
+        // For now, we'll just set some placeholder data
+        setTimeout(() => {
+            setName('Product from URL');
+            setPrice('$99.00');
+            setDescription('Product description fetched from URL');
+            setIsFetching(false);
+        }, 1000);
+    };
+
+    const handleAddFeature = () => {
+        setFeatures([...features, '']);
+    };
+
+    const handleFeatureChange = (index: number, value: string) => {
+        const newFeatures = [...features];
+        newFeatures[index] = value;
+        setFeatures(newFeatures);
+    };
+
+    const handleRemoveFeature = (index: number) => {
+        setFeatures(features.filter((_, i) => i !== index));
+    };
+
+    const handleSave = () => {
+        const affiliateUrl = sourceUrl.includes('?')
+            ? `${sourceUrl}&ref=${affiliateId}`
+            : `${sourceUrl}?ref=${affiliateId}`;
+
+        onSave({
+            name,
+            dosage,
+            price,
+            description,
+            imageUrl,
+            sourceUrl,
+            affiliateUrl,
+            affiliateId,
+            badge: badge || null,
+            features: features.filter(f => f.trim()),
+            clicks: 0,
+            status: 'active'
+        });
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-[#0a0a0a] border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                        <i className="fa-solid fa-download text-[#FF5252]"></i>
+                        Import Product
+                    </h2>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white">
+                        <i className="fa-solid fa-times"></i>
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    {/* Source URL with Fetch */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Source URL</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="url"
+                                value={sourceUrl}
+                                onChange={(e) => setSourceUrl(e.target.value)}
+                                placeholder="https://www.maxperformance4youwholesale.com/product/..."
+                                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                            <button
+                                onClick={handleFetchProduct}
+                                disabled={isFetching || !sourceUrl}
+                                className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isFetching ? <i className="fa-solid fa-spinner animate-spin"></i> : <i className="fa-solid fa-download"></i>}
+                                Fetch
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Name & Dosage */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Product Name *</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="BPC-157 (3-Pack)"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Dosage</label>
+                            <input
+                                type="text"
+                                value={dosage}
+                                onChange={(e) => setDosage(e.target.value)}
+                                placeholder="5mg per vial"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Price & Badge */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Price *</label>
+                            <input
+                                type="text"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                placeholder="$129.00"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Badge</label>
+                            <select
+                                value={badge}
+                                onChange={(e) => setBadge(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                            >
+                                <option value="">None</option>
+                                <option value="Best Seller">Best Seller</option>
+                                <option value="Top Pick">Top Pick</option>
+                                <option value="Popular">Popular</option>
+                                <option value="Premium">Premium</option>
+                                <option value="New">New</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Product description..."
+                            rows={3}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors resize-none"
+                        />
+                    </div>
+
+                    {/* Image URL */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Image URL</label>
+                        <input
+                            type="url"
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            placeholder="https://..."
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                        />
+                        {imageUrl && (
+                            <img src={imageUrl} alt="Product preview" className="w-24 h-24 object-contain rounded-lg mt-2 bg-zinc-800" />
+                        )}
+                    </div>
+
+                    {/* Affiliate ID */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Affiliate ID</label>
+                        <input
+                            type="text"
+                            value={affiliateId}
+                            onChange={(e) => setAffiliateId(e.target.value)}
+                            placeholder="japrotocols"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors font-mono"
+                        />
+                    </div>
+
+                    {/* Features */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Features</label>
+                        {features.map((feature, index) => (
+                            <div key={index} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={feature}
+                                    onChange={(e) => handleFeatureChange(index, e.target.value)}
+                                    placeholder="e.g., Gut Health"
+                                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-[#FF5252] transition-colors text-sm"
+                                />
+                                <button
+                                    onClick={() => handleRemoveFeature(index)}
+                                    className="px-3 text-zinc-500 hover:text-red-400"
+                                >
+                                    <i className="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            onClick={handleAddFeature}
+                            className="text-sm text-[#FF5252] hover:text-[#ff3333] font-medium"
+                        >
+                            + Add Feature
+                        </button>
+                    </div>
+                </div>
+
+                <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-zinc-800 px-6 py-4 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-6 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={!name || !price}
+                        className="px-6 py-3 rounded-xl bg-[#FF5252] text-white hover:bg-[#ff3333] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <i className="fa-solid fa-plus"></i>
+                        Add Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Rich Text Editor Component
+const RichTextEditor = ({
+    content,
+    onChange,
+    placeholder = 'Start writing your article content...'
+}: {
+    content: string;
+    onChange: (content: string) => void;
+    placeholder?: string;
+}) => {
+    const editorRef = useRef<HTMLDivElement>(null);
+
+    const execCommand = (command: string, value?: string) => {
+        document.execCommand(command, false, value);
+        if (editorRef.current) {
+            onChange(editorRef.current.innerHTML);
+        }
+    };
+
+    const handleInput = () => {
+        if (editorRef.current) {
+            onChange(editorRef.current.innerHTML);
+        }
+    };
+
+    const insertCallout = () => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const callout = document.createElement('div');
+            callout.className = 'bg-blue-500/10 border-l-4 border-blue-500 p-4 my-4 rounded-r-lg';
+            callout.innerHTML = '<p>Callout text here...</p>';
+            range.insertNode(callout);
+            handleInput();
+        }
+    };
+
+    const ToolbarButton = ({ icon, onClick, active = false, title }: { icon: string; onClick: () => void; active?: boolean; title: string }) => (
+        <button
+            onClick={onClick}
+            title={title}
+            className={`p-2 rounded hover:bg-zinc-700 transition-colors ${active ? 'bg-zinc-700 text-white' : 'text-zinc-400'}`}
+        >
+            <i className={`fa-solid ${icon}`}></i>
+        </button>
+    );
+
+    return (
+        <div className="border border-zinc-800 rounded-xl overflow-hidden">
+            {/* Toolbar */}
+            <div className="bg-zinc-900 border-b border-zinc-800 p-2 flex flex-wrap gap-1">
+                <ToolbarButton icon="fa-undo" onClick={() => execCommand('undo')} title="Undo" />
+                <ToolbarButton icon="fa-redo" onClick={() => execCommand('redo')} title="Redo" />
+                <div className="w-px bg-zinc-700 mx-1"></div>
+
+                <select
+                    onChange={(e) => execCommand('formatBlock', e.target.value)}
+                    className="bg-zinc-800 text-zinc-300 text-sm rounded px-2 py-1 border-none outline-none"
+                >
+                    <option value="p">Paragraph</option>
+                    <option value="h2">Heading 2</option>
+                    <option value="h3">Heading 3</option>
+                    <option value="h4">Heading 4</option>
+                </select>
+                <div className="w-px bg-zinc-700 mx-1"></div>
+
+                <ToolbarButton icon="fa-bold" onClick={() => execCommand('bold')} title="Bold" />
+                <ToolbarButton icon="fa-italic" onClick={() => execCommand('italic')} title="Italic" />
+                <ToolbarButton icon="fa-underline" onClick={() => execCommand('underline')} title="Underline" />
+                <ToolbarButton icon="fa-strikethrough" onClick={() => execCommand('strikethrough')} title="Strikethrough" />
+                <ToolbarButton icon="fa-highlighter" onClick={() => execCommand('backColor', '#fef08a')} title="Highlight" />
+                <ToolbarButton icon="fa-code" onClick={() => execCommand('formatBlock', 'pre')} title="Code" />
+                <div className="w-px bg-zinc-700 mx-1"></div>
+
+                <ToolbarButton icon="fa-align-left" onClick={() => execCommand('justifyLeft')} title="Align Left" />
+                <ToolbarButton icon="fa-align-center" onClick={() => execCommand('justifyCenter')} title="Align Center" />
+                <ToolbarButton icon="fa-align-right" onClick={() => execCommand('justifyRight')} title="Align Right" />
+                <ToolbarButton icon="fa-align-justify" onClick={() => execCommand('justifyFull')} title="Justify" />
+                <div className="w-px bg-zinc-700 mx-1"></div>
+
+                <ToolbarButton icon="fa-list-ul" onClick={() => execCommand('insertUnorderedList')} title="Bullet List" />
+                <ToolbarButton icon="fa-list-ol" onClick={() => execCommand('insertOrderedList')} title="Numbered List" />
+                <ToolbarButton icon="fa-quote-left" onClick={() => execCommand('formatBlock', 'blockquote')} title="Quote" />
+                <div className="w-px bg-zinc-700 mx-1"></div>
+
+                <ToolbarButton icon="fa-circle-info" onClick={insertCallout} title="Callout" />
+                <ToolbarButton icon="fa-table" onClick={() => {}} title="Table" />
+                <ToolbarButton icon="fa-link" onClick={() => {
+                    const url = prompt('Enter URL:');
+                    if (url) execCommand('createLink', url);
+                }} title="Link" />
+                <ToolbarButton icon="fa-image" onClick={() => {
+                    const url = prompt('Enter image URL:');
+                    if (url) execCommand('insertImage', url);
+                }} title="Image" />
+            </div>
+
+            {/* Editor Area */}
+            <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                className="min-h-[400px] p-6 bg-zinc-950 text-zinc-200 focus:outline-none prose prose-invert prose-sm max-w-none
+                    [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-6 [&>h2]:mb-3
+                    [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-white [&>h3]:mt-4 [&>h3]:mb-2
+                    [&>p]:mb-4 [&>p]:leading-relaxed
+                    [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:mb-4
+                    [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:mb-4
+                    [&>blockquote]:border-l-4 [&>blockquote]:border-[#FF5252] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-zinc-400
+                    [&>pre]:bg-zinc-900 [&>pre]:p-4 [&>pre]:rounded-lg [&>pre]:font-mono [&>pre]:text-sm"
+                dangerouslySetInnerHTML={{ __html: content || `<p>${placeholder}</p>` }}
+            />
+        </div>
+    );
+};
+
+// Article Editor View (Full Page)
+const ArticleEditor = ({
+    article,
+    categories,
+    onSave,
+    onBack
+}: {
+    article?: ArticleContent | null;
+    categories: ContentCategory[];
+    onSave: (article: Partial<ArticleContent>) => void;
+    onBack: () => void;
+}) => {
+    const [title, setTitle] = useState(article?.title || '');
+    const [slug, setSlug] = useState(article?.slug || '');
+    const [excerpt, setExcerpt] = useState(article?.excerpt || '');
+    const [content, setContent] = useState(article?.content || '');
+    const [thumbnailUrl, setThumbnailUrl] = useState(article?.thumbnailUrl || '');
+    const [category, setCategory] = useState(article?.category || '');
+    const [author, setAuthor] = useState(article?.author || 'Jon Andersen');
+    const [status, setStatus] = useState<'draft' | 'published'>(article?.status === 'published' ? 'published' : 'draft');
+
+    const handleTitleChange = (value: string) => {
+        setTitle(value);
+        if (!article) {
+            setSlug(generateSlug(value));
+        }
+    };
+
+    const handleSave = (saveStatus: 'draft' | 'published') => {
+        onSave({
+            title,
+            slug,
+            excerpt: excerpt || content.replace(/<[^>]*>/g, '').substring(0, 200) + '...',
+            content,
+            thumbnailUrl,
+            category,
+            author,
+            readTime: calculateReadTime(content),
+            status: saveStatus
+        });
+    };
+
+    const handleAutoFormat = () => {
+        // Auto-format content for consistency
+        let formatted = content;
+        // Ensure headings are h2
+        formatted = formatted.replace(/<h1>/g, '<h2>').replace(/<\/h1>/g, '</h2>');
+        // Remove empty paragraphs
+        formatted = formatted.replace(/<p><br><\/p>/g, '').replace(/<p>\s*<\/p>/g, '');
+        setContent(formatted);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white">
+            {/* Header */}
+            <div className="sticky top-0 z-40 bg-[#050505]/95 backdrop-blur-xl border-b border-zinc-800">
+                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+                    >
+                        <i className="fa-solid fa-arrow-left"></i>
+                        <span>Back to Articles</span>
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleAutoFormat}
+                            className="px-4 py-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors text-sm font-medium"
+                        >
+                            <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                            Auto Format
+                        </button>
+                        <button
+                            onClick={() => handleSave('draft')}
+                            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                            Save Draft
+                        </button>
+                        <button
+                            onClick={() => handleSave('published')}
+                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg transition-colors text-sm font-medium"
+                        >
+                            Publish
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Editor Content */}
+            <div className="max-w-6xl mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Editor */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Import Section */}
+                        <div className="bg-zinc-900/30 border border-dashed border-zinc-700 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-white">Import from RTF/Document</p>
+                                    <p className="text-xs text-zinc-500">Upload RTF, TXT, or MD files to auto-format content</p>
+                                </div>
+                                <label className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-medium cursor-pointer">
+                                    <i className="fa-solid fa-upload mr-2"></i>
+                                    Import
+                                    <input type="file" className="hidden" accept=".rtf,.txt,.md" />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Title */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Title *</label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => handleTitleChange(e.target.value)}
+                                placeholder="Enter article title"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-4 text-white text-xl font-bold focus:outline-none focus:border-[#FF5252] transition-colors"
+                            />
+                        </div>
+
+                        {/* Content Editor */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Content *</label>
+                            <RichTextEditor content={content} onChange={setContent} />
+                        </div>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Thumbnail */}
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Thumbnail</label>
+                            {thumbnailUrl ? (
+                                <div className="relative group">
+                                    <img src={thumbnailUrl} alt="Thumbnail" className="w-full aspect-video object-cover rounded-lg" />
+                                    <button
+                                        onClick={() => setThumbnailUrl('')}
+                                        className="absolute top-2 right-2 w-8 h-8 bg-black/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <i className="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="block w-full aspect-video bg-zinc-800 border-2 border-dashed border-zinc-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-zinc-600 transition-colors">
+                                    <i className="fa-solid fa-image text-2xl text-zinc-600 mb-2"></i>
+                                    <span className="text-xs text-zinc-500">Click to upload</span>
+                                    <input type="file" className="hidden" accept="image/*" />
+                                </label>
+                            )}
+                            <input
+                                type="url"
+                                value={thumbnailUrl}
+                                onChange={(e) => setThumbnailUrl(e.target.value)}
+                                placeholder="Or paste image URL"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF5252]"
+                            />
+                        </div>
+
+                        {/* URL Slug */}
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">URL Slug</label>
+                            <input
+                                type="text"
+                                value={slug}
+                                onChange={(e) => setSlug(e.target.value)}
+                                placeholder="article-url-slug"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-400 font-mono focus:outline-none focus:border-[#FF5252]"
+                            />
+                        </div>
+
+                        {/* Excerpt */}
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Excerpt</label>
+                            <textarea
+                                value={excerpt}
+                                onChange={(e) => setExcerpt(e.target.value)}
+                                placeholder="Brief summary (auto-generated from content if empty)"
+                                rows={3}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF5252] resize-none"
+                            />
+                        </div>
+
+                        {/* Category */}
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF5252]"
+                            >
+                                <option value="">Select category</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Author */}
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 space-y-3">
+                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Author</label>
+                            <input
+                                type="text"
+                                value={author}
+                                onChange={(e) => setAuthor(e.target.value)}
+                                placeholder="Author name"
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF5252]"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Main Admin Dashboard Component
+const AdminDashboard = ({
+    user,
+    onBack
+}: {
+    user: User;
+    onBack: () => void;
+}) => {
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'videos' | 'articles' | 'categories' | 'shop'>('dashboard');
+    const [videos, setVideos] = useState<VideoContent[]>([]);
+    const [articles, setArticles] = useState<ArticleContent[]>([]);
+    const [categories, setCategories] = useState<ContentCategory[]>([]);
+    const [products, setProducts] = useState<AffiliateProduct[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modal states
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [editingVideo, setEditingVideo] = useState<VideoContent | null>(null);
+    const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
+    const [editingArticle, setEditingArticle] = useState<ArticleContent | null>(null);
+    const [isArticleEditorOpen, setIsArticleEditorOpen] = useState(false);
+
+    // Filter states
+    const [videoFilter, setVideoFilter] = useState<'all' | 'main-page' | 'academy' | 'published'>('all');
+
+    // Load data from Firestore
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                // Load videos
+                const videosSnap = await getDocs(collection(db, 'jpc_videos'));
+                setVideos(videosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as VideoContent)));
+
+                // Load articles
+                const articlesSnap = await getDocs(collection(db, 'jpc_articles'));
+                setArticles(articlesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ArticleContent)));
+
+                // Load categories
+                const categoriesSnap = await getDocs(query(collection(db, 'jpc_categories'), orderBy('displayOrder')));
+                setCategories(categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ContentCategory)));
+
+                // Load products
+                const productsSnap = await getDocs(collection(db, 'jpc_products'));
+                setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AffiliateProduct)));
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    // Video CRUD
+    const handleSaveVideo = async (videoData: Partial<VideoContent>) => {
+        try {
+            if (editingVideo) {
+                await updateDoc(doc(db, 'jpc_videos', editingVideo.id), {
+                    ...videoData,
+                    updatedAt: serverTimestamp()
+                });
+                setVideos(videos.map(v => v.id === editingVideo.id ? { ...v, ...videoData } as VideoContent : v));
+            } else {
+                const docRef = await addDoc(collection(db, 'jpc_videos'), {
+                    ...videoData,
+                    views: 0,
+                    duration: '',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    publishedAt: videoData.status === 'published' ? serverTimestamp() : null
+                });
+                setVideos([...videos, { id: docRef.id, ...videoData, views: 0, duration: '' } as VideoContent]);
+            }
+            setEditingVideo(null);
+        } catch (error) {
+            console.error('Error saving video:', error);
+        }
+    };
+
+    const handleDeleteVideo = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this video?')) return;
+        try {
+            await deleteDoc(doc(db, 'jpc_videos', id));
+            setVideos(videos.filter(v => v.id !== id));
+        } catch (error) {
+            console.error('Error deleting video:', error);
+        }
+    };
+
+    // Article CRUD
+    const handleSaveArticle = async (articleData: Partial<ArticleContent>) => {
+        try {
+            if (editingArticle) {
+                await updateDoc(doc(db, 'jpc_articles', editingArticle.id), {
+                    ...articleData,
+                    updatedAt: serverTimestamp()
+                });
+                setArticles(articles.map(a => a.id === editingArticle.id ? { ...a, ...articleData } as ArticleContent : a));
+            } else {
+                const docRef = await addDoc(collection(db, 'jpc_articles'), {
+                    ...articleData,
+                    views: 0,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    publishedAt: articleData.status === 'published' ? serverTimestamp() : null
+                });
+                setArticles([...articles, { id: docRef.id, ...articleData, views: 0 } as ArticleContent]);
+            }
+            setEditingArticle(null);
+            setIsArticleEditorOpen(false);
+        } catch (error) {
+            console.error('Error saving article:', error);
+        }
+    };
+
+    const handleDeleteArticle = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this article?')) return;
+        try {
+            await deleteDoc(doc(db, 'jpc_articles', id));
+            setArticles(articles.filter(a => a.id !== id));
+        } catch (error) {
+            console.error('Error deleting article:', error);
+        }
+    };
+
+    // Category CRUD
+    const handleSaveCategory = async (categoryData: Partial<ContentCategory>) => {
+        try {
+            if (editingCategory) {
+                await updateDoc(doc(db, 'jpc_categories', editingCategory.id), categoryData);
+                setCategories(categories.map(c => c.id === editingCategory.id ? { ...c, ...categoryData } as ContentCategory : c));
+            } else {
+                const docRef = await addDoc(collection(db, 'jpc_categories'), categoryData);
+                setCategories([...categories, { id: docRef.id, ...categoryData } as ContentCategory]);
+            }
+            setEditingCategory(null);
+        } catch (error) {
+            console.error('Error saving category:', error);
+        }
+    };
+
+    const handleDeleteCategory = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this category?')) return;
+        try {
+            await deleteDoc(doc(db, 'jpc_categories', id));
+            setCategories(categories.filter(c => c.id !== id));
+        } catch (error) {
+            console.error('Error deleting category:', error);
+        }
+    };
+
+    // Product CRUD
+    const handleSaveProduct = async (productData: Partial<AffiliateProduct>) => {
+        try {
+            const docRef = await addDoc(collection(db, 'jpc_products'), {
+                ...productData,
+                createdAt: serverTimestamp()
+            });
+            setProducts([...products, { id: docRef.id, ...productData } as AffiliateProduct]);
+        } catch (error) {
+            console.error('Error saving product:', error);
+        }
+    };
+
+    const handleDeleteProduct = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        try {
+            await deleteDoc(doc(db, 'jpc_products', id));
+            setProducts(products.filter(p => p.id !== id));
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    // Filter videos
+    const filteredVideos = videos.filter(v => {
+        if (videoFilter === 'main-page') return v.isMainPage;
+        if (videoFilter === 'academy') return !v.isMainPage;
+        if (videoFilter === 'published') return v.status === 'published';
+        return true;
+    });
+
+    // Stats
+    const stats = {
+        totalVideos: videos.length,
+        publishedVideos: videos.filter(v => v.status === 'published').length,
+        totalArticles: articles.length,
+        publishedArticles: articles.filter(a => a.status === 'published').length,
+        activeCategories: categories.filter(c => c.status === 'active').length,
+        totalViews: videos.reduce((sum, v) => sum + (v.views || 0), 0) + articles.reduce((sum, a) => sum + (a.views || 0), 0),
+        totalClicks: products.reduce((sum, p) => sum + (p.clicks || 0), 0),
+        totalProducts: products.length
+    };
+
+    // Show article editor if editing
+    if (isArticleEditorOpen) {
+        return (
+            <ArticleEditor
+                article={editingArticle}
+                categories={categories}
+                onSave={handleSaveArticle}
+                onBack={() => {
+                    setIsArticleEditorOpen(false);
+                    setEditingArticle(null);
+                }}
+            />
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white flex">
+            {/* Sidebar */}
+            <div className="w-64 bg-[#0a0a0a] border-r border-zinc-800 flex flex-col fixed h-full">
+                <div className="p-6 border-b border-zinc-800">
+                    <Logo />
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-2 pl-10">Admin Panel</p>
+                </div>
+
+                <nav className="flex-1 p-4 space-y-1">
+                    <AdminNavItem
+                        icon="fa-chart-line"
+                        label="Dashboard"
+                        active={activeTab === 'dashboard'}
+                        onClick={() => setActiveTab('dashboard')}
+                    />
+                    <AdminNavItem
+                        icon="fa-video"
+                        label="Videos"
+                        active={activeTab === 'videos'}
+                        onClick={() => setActiveTab('videos')}
+                        badge={videos.length}
+                    />
+                    <AdminNavItem
+                        icon="fa-file-alt"
+                        label="Articles"
+                        active={activeTab === 'articles'}
+                        onClick={() => setActiveTab('articles')}
+                        badge={articles.length}
+                    />
+                    <AdminNavItem
+                        icon="fa-folder"
+                        label="Categories"
+                        active={activeTab === 'categories'}
+                        onClick={() => setActiveTab('categories')}
+                        badge={categories.length}
+                    />
+                    <AdminNavItem
+                        icon="fa-shopping-cart"
+                        label="Shop"
+                        active={activeTab === 'shop'}
+                        onClick={() => setActiveTab('shop')}
+                        badge={products.length}
+                    />
+                </nav>
+
+                <div className="p-4 border-t border-zinc-800">
+                    <button
+                        onClick={onBack}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-white hover:bg-zinc-800/50 transition-colors"
+                    >
+                        <i className="fa-solid fa-sign-out-alt"></i>
+                        Exit Admin
+                    </button>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 ml-64">
+                {/* Header */}
+                <div className="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur-xl border-b border-zinc-800 px-8 py-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold">
+                                {activeTab === 'dashboard' && 'Dashboard'}
+                                {activeTab === 'videos' && 'Video Management'}
+                                {activeTab === 'articles' && 'Article Management'}
+                                {activeTab === 'categories' && 'Category Management'}
+                                {activeTab === 'shop' && 'Product Management'}
+                            </h1>
+                            <p className="text-sm text-zinc-500 mt-1">
+                                {activeTab === 'dashboard' && 'Overview of your content and analytics'}
+                                {activeTab === 'videos' && 'Add and manage videos via YouTube/Rumble embeds'}
+                                {activeTab === 'articles' && 'Create and manage learning articles'}
+                                {activeTab === 'categories' && 'Organize content with categories'}
+                                {activeTab === 'shop' && 'Manage affiliate products and track performance'}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-zinc-400">{user.email}</span>
+                            <div className="w-10 h-10 bg-[#FF5252] rounded-full flex items-center justify-center text-white font-bold">
+                                {user.email?.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8">
+                    {loading ? (
+                        <div className="flex items-center justify-center h-64">
+                            <div className="text-center">
+                                <i className="fa-solid fa-spinner animate-spin text-3xl text-[#FF5252] mb-4"></i>
+                                <p className="text-zinc-500">Loading data...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Dashboard Tab */}
+                            {activeTab === 'dashboard' && (
+                                <div className="space-y-8">
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <AdminStatCard
+                                            title="Total Videos"
+                                            value={stats.totalVideos}
+                                            subValue={`${stats.publishedVideos} published`}
+                                            icon="fa-video"
+                                        />
+                                        <AdminStatCard
+                                            title="Total Articles"
+                                            value={stats.totalArticles}
+                                            subValue={`${stats.publishedArticles} published`}
+                                            icon="fa-file-alt"
+                                            colorClass="bg-blue-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Categories"
+                                            value={stats.activeCategories}
+                                            subValue="active"
+                                            icon="fa-folder"
+                                            colorClass="bg-purple-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Total Views"
+                                            value={stats.totalViews.toLocaleString()}
+                                            icon="fa-eye"
+                                            colorClass="bg-green-500"
+                                        />
+                                    </div>
+
+                                    {/* Shop Stats */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <AdminStatCard
+                                            title="Shop Products"
+                                            value={stats.totalProducts}
+                                            icon="fa-shopping-cart"
+                                            colorClass="bg-orange-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Total Clicks"
+                                            value={stats.totalClicks}
+                                            icon="fa-mouse-pointer"
+                                            colorClass="bg-cyan-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Click Rate"
+                                            value={stats.totalProducts > 0 ? `${Math.round(stats.totalClicks / stats.totalProducts)}` : '0'}
+                                            subValue="clicks per product"
+                                            icon="fa-chart-bar"
+                                            colorClass="bg-pink-500"
+                                        />
+                                    </div>
+
+                                    {/* Quick Actions */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <button
+                                            onClick={() => { setActiveTab('videos'); setIsVideoModalOpen(true); }}
+                                            className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-[#FF5252] transition-colors text-left group"
+                                        >
+                                            <div className="w-12 h-12 bg-[#FF5252]/10 rounded-xl flex items-center justify-center text-[#FF5252] mb-4 group-hover:bg-[#FF5252] group-hover:text-white transition-colors">
+                                                <i className="fa-solid fa-plus text-lg"></i>
+                                            </div>
+                                            <h3 className="font-bold text-white mb-1">Add Video</h3>
+                                            <p className="text-sm text-zinc-500">Add a new YouTube or Rumble video</p>
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveTab('articles'); setIsArticleEditorOpen(true); }}
+                                            className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-[#FF5252] transition-colors text-left group"
+                                        >
+                                            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-4 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                                <i className="fa-solid fa-pen text-lg"></i>
+                                            </div>
+                                            <h3 className="font-bold text-white mb-1">Write Article</h3>
+                                            <p className="text-sm text-zinc-500">Create a new learning article</p>
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveTab('shop'); setIsProductModalOpen(true); }}
+                                            className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-[#FF5252] transition-colors text-left group"
+                                        >
+                                            <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-400 mb-4 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                                                <i className="fa-solid fa-download text-lg"></i>
+                                            </div>
+                                            <h3 className="font-bold text-white mb-1">Import Product</h3>
+                                            <p className="text-sm text-zinc-500">Add affiliate product from URL</p>
+                                        </button>
+                                    </div>
+
+                                    {/* Recent Content */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Recent Videos */}
+                                        <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                                                <h3 className="font-bold flex items-center gap-2">
+                                                    <i className="fa-solid fa-video text-[#FF5252]"></i>
+                                                    Recent Videos
+                                                </h3>
+                                                <button
+                                                    onClick={() => setActiveTab('videos')}
+                                                    className="text-xs text-[#FF5252] hover:underline"
+                                                >
+                                                    View All
+                                                </button>
+                                            </div>
+                                            <div className="divide-y divide-zinc-800">
+                                                {videos.slice(0, 5).map(video => (
+                                                    <div key={video.id} className="px-6 py-3 flex items-center gap-4 hover:bg-zinc-900/50">
+                                                        {video.thumbnailUrl ? (
+                                                            <img src={video.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                        ) : (
+                                                            <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
+                                                                <i className="fa-solid fa-video text-zinc-600"></i>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-white truncate">{video.title}</p>
+                                                            <p className="text-xs text-zinc-500">{video.views || 0} views</p>
+                                                        </div>
+                                                        <StatusBadge status={video.status} />
+                                                    </div>
+                                                ))}
+                                                {videos.length === 0 && (
+                                                    <p className="px-6 py-8 text-center text-zinc-500 text-sm">No videos yet</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Recent Articles */}
+                                        <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                                                <h3 className="font-bold flex items-center gap-2">
+                                                    <i className="fa-solid fa-file-alt text-blue-400"></i>
+                                                    Recent Articles
+                                                </h3>
+                                                <button
+                                                    onClick={() => setActiveTab('articles')}
+                                                    className="text-xs text-[#FF5252] hover:underline"
+                                                >
+                                                    View All
+                                                </button>
+                                            </div>
+                                            <div className="divide-y divide-zinc-800">
+                                                {articles.slice(0, 5).map(article => (
+                                                    <div key={article.id} className="px-6 py-3 flex items-center gap-4 hover:bg-zinc-900/50">
+                                                        {article.thumbnailUrl ? (
+                                                            <img src={article.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                        ) : (
+                                                            <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
+                                                                <i className="fa-solid fa-file-alt text-zinc-600"></i>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-white truncate">{article.title}</p>
+                                                            <p className="text-xs text-zinc-500">{article.readTime || '~2m'} read</p>
+                                                        </div>
+                                                        <StatusBadge status={article.status} />
+                                                    </div>
+                                                ))}
+                                                {articles.length === 0 && (
+                                                    <p className="px-6 py-8 text-center text-zinc-500 text-sm">No articles yet</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Videos Tab */}
+                            {activeTab === 'videos' && (
+                                <div className="space-y-6">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setVideoFilter('all')}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${videoFilter === 'all' ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                                            >
+                                                All ({videos.length})
+                                            </button>
+                                            <button
+                                                onClick={() => setVideoFilter('main-page')}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${videoFilter === 'main-page' ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                                            >
+                                                Main Page
+                                            </button>
+                                            <button
+                                                onClick={() => setVideoFilter('academy')}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${videoFilter === 'academy' ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                                            >
+                                                Academy
+                                            </button>
+                                            <button
+                                                onClick={() => setVideoFilter('published')}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${videoFilter === 'published' ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                                            >
+                                                Published
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() => { setEditingVideo(null); setIsVideoModalOpen(true); }}
+                                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
+                                        >
+                                            <i className="fa-solid fa-plus"></i>
+                                            Add Video
+                                        </button>
+                                    </div>
+
+                                    {/* Videos Table */}
+                                    <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-zinc-800">
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Video</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Provider</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Views</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Status</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-zinc-400 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-800">
+                                                {filteredVideos.map(video => (
+                                                    <tr key={video.id} className="hover:bg-zinc-900/50">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-4">
+                                                                {video.thumbnailUrl ? (
+                                                                    <img src={video.thumbnailUrl} alt="" className="w-20 h-12 object-cover rounded" />
+                                                                ) : (
+                                                                    <div className="w-20 h-12 bg-zinc-800 rounded flex items-center justify-center">
+                                                                        <i className="fa-solid fa-video text-zinc-600"></i>
+                                                                    </div>
+                                                                )}
+                                                                <div>
+                                                                    <p className="font-medium text-white">{video.title}</p>
+                                                                    <p className="text-xs text-zinc-500">{video.instructor}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <ProviderBadge provider={video.provider} />
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {video.category || '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {video.views || 0}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <StatusBadge status={video.status} />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => { setEditingVideo(video); setIsVideoModalOpen(true); }}
+                                                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteVideo(video.id)}
+                                                                    className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {filteredVideos.length === 0 && (
+                                            <p className="px-6 py-12 text-center text-zinc-500">No videos found</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Articles Tab */}
+                            {activeTab === 'articles' && (
+                                <div className="space-y-6">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-zinc-400">{articles.length} articles</span>
+                                        </div>
+                                        <button
+                                            onClick={() => { setEditingArticle(null); setIsArticleEditorOpen(true); }}
+                                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
+                                        >
+                                            <i className="fa-solid fa-plus"></i>
+                                            Create Article
+                                        </button>
+                                    </div>
+
+                                    {/* Articles Table */}
+                                    <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-zinc-800">
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Article</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Author</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Read</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Views</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Status</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-zinc-400 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-800">
+                                                {articles.map(article => (
+                                                    <tr key={article.id} className="hover:bg-zinc-900/50">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-4">
+                                                                {article.thumbnailUrl ? (
+                                                                    <img src={article.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                                ) : (
+                                                                    <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
+                                                                        <i className="fa-solid fa-file-alt text-zinc-600"></i>
+                                                                    </div>
+                                                                )}
+                                                                <div>
+                                                                    <p className="font-medium text-white">{article.title}</p>
+                                                                    <p className="text-xs text-zinc-500 font-mono">/{article.slug}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {article.category || '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {article.author}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {article.readTime || '~2m'}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {article.views || 0}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <StatusBadge status={article.status} />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => { setEditingArticle(article); setIsArticleEditorOpen(true); }}
+                                                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteArticle(article.id)}
+                                                                    className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {articles.length === 0 && (
+                                            <p className="px-6 py-12 text-center text-zinc-500">No articles yet. Create your first article!</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Categories Tab */}
+                            {activeTab === 'categories' && (
+                                <div className="space-y-6">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm text-zinc-400">Organize content with categories</p>
+                                        <button
+                                            onClick={() => { setEditingCategory(null); setIsCategoryModalOpen(true); }}
+                                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
+                                        >
+                                            <i className="fa-solid fa-plus"></i>
+                                            Add Category
+                                        </button>
+                                    </div>
+
+                                    {/* Categories Table */}
+                                    <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-zinc-800">
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">#</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Category</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Slug</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Icon</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Status</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-zinc-400 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-800">
+                                                {categories.map((category, index) => (
+                                                    <tr key={category.id} className="hover:bg-zinc-900/50">
+                                                        <td className="px-6 py-4 text-zinc-500">{index + 1}</td>
+                                                        <td className="px-6 py-4">
+                                                            <div>
+                                                                <p className="font-medium text-white">{category.name}</p>
+                                                                <p className="text-xs text-zinc-500">{category.description}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400 font-mono">
+                                                            {category.slug}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <i className={`fa-solid ${category.icon} text-[#FF5252]`}></i>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <StatusBadge status={category.status} />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => { setEditingCategory(category); setIsCategoryModalOpen(true); }}
+                                                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteCategory(category.id)}
+                                                                    className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {categories.length === 0 && (
+                                            <p className="px-6 py-12 text-center text-zinc-500">No categories yet. Create your first category!</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Shop Tab */}
+                            {activeTab === 'shop' && (
+                                <div className="space-y-6">
+                                    {/* Stats */}
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <AdminStatCard
+                                            title="Total Products"
+                                            value={products.length}
+                                            icon="fa-box"
+                                            colorClass="bg-orange-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Total Clicks"
+                                            value={products.reduce((sum, p) => sum + (p.clicks || 0), 0)}
+                                            icon="fa-mouse-pointer"
+                                            colorClass="bg-blue-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Active Products"
+                                            value={products.filter(p => p.status === 'active').length}
+                                            icon="fa-check-circle"
+                                            colorClass="bg-green-500"
+                                        />
+                                        <AdminStatCard
+                                            title="Avg Clicks"
+                                            value={products.length > 0 ? Math.round(products.reduce((sum, p) => sum + (p.clicks || 0), 0) / products.length) : 0}
+                                            icon="fa-chart-line"
+                                            colorClass="bg-purple-500"
+                                        />
+                                    </div>
+
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm text-zinc-400">Manage affiliate products and track performance</p>
+                                        <button
+                                            onClick={() => setIsProductModalOpen(true)}
+                                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
+                                        >
+                                            <i className="fa-solid fa-download"></i>
+                                            Import Product
+                                        </button>
+                                    </div>
+
+                                    {/* Products Table */}
+                                    <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-zinc-800">
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Product</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Price</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Clicks</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-zinc-400 uppercase tracking-wider">Status</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-zinc-400 uppercase tracking-wider">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-800">
+                                                {products.map(product => (
+                                                    <tr key={product.id} className="hover:bg-zinc-900/50">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-4">
+                                                                {product.imageUrl ? (
+                                                                    <img src={product.imageUrl} alt="" className="w-16 h-16 object-contain rounded bg-zinc-800" />
+                                                                ) : (
+                                                                    <div className="w-16 h-16 bg-zinc-800 rounded flex items-center justify-center">
+                                                                        <i className="fa-solid fa-box text-zinc-600"></i>
+                                                                    </div>
+                                                                )}
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="font-medium text-white">{product.name}</p>
+                                                                        {product.badge && (
+                                                                            <span className="px-2 py-0.5 bg-[#FF5252]/10 text-[#FF5252] text-xs rounded-full">{product.badge}</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-xs text-zinc-500">{product.dosage}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm font-medium text-[#FF5252]">
+                                                            {product.price}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-zinc-400">
+                                                            {product.clicks || 0}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <StatusBadge status={product.status} />
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <a
+                                                                    href={product.affiliateUrl}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-external-link-alt"></i>
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => handleDeleteProduct(product.id)}
+                                                                    className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {products.length === 0 && (
+                                            <p className="px-6 py-12 text-center text-zinc-500">No products yet. Import your first affiliate product!</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Modals */}
+            <AddVideoModal
+                isOpen={isVideoModalOpen}
+                onClose={() => { setIsVideoModalOpen(false); setEditingVideo(null); }}
+                onSave={handleSaveVideo}
+                categories={categories}
+                editingVideo={editingVideo}
+            />
+            <AddCategoryModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => { setIsCategoryModalOpen(false); setEditingCategory(null); }}
+                onSave={handleSaveCategory}
+                editingCategory={editingCategory}
+            />
+            <ImportProductModal
+                isOpen={isProductModalOpen}
+                onClose={() => setIsProductModalOpen(false)}
+                onSave={handleSaveProduct}
+            />
+        </div>
+    );
+};
+
+// ============================================
+// END ADMIN COMPONENTS
+// ============================================
+
 
 const App = () => {
     // App Flow State
-    const [view, setView] = useState<'landing' | 'calculator' | 'academy' | 'assessment' | 'shop'>('landing');
+    const [view, setView] = useState<'landing' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin'>('landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+
+    // Listen for auth state changes (persist login across refreshes)
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                // User is signed in, fetch their data from Firestore
+                try {
+                    const userDocRef = doc(db, 'jpc_users', firebaseUser.uid);
+                    const userSnap = await getDoc(userDocRef);
+                    let isAdmin = false;
+
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data() as AppUser;
+                        isAdmin = userData.isAdmin || false;
+                    }
+
+                    setUser({
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email || '',
+                        hasAssessment: false,
+                        isAcademyMember: true,
+                        isAdmin: isAdmin
+                    });
+                } catch (err) {
+                    console.error('Error fetching user data:', err);
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
+            setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     // Flow Logic
     const handleStartCalculator = () => {
@@ -2069,6 +4305,12 @@ const App = () => {
         setView('shop');
     };
 
+    const handleStartAdmin = () => {
+        if (user?.isAdmin) {
+            setView('admin');
+        }
+    };
+
     const handleAssessmentComplete = (newUser: User) => {
         setUser(newUser);
         setView('calculator');
@@ -2077,10 +4319,11 @@ const App = () => {
     return (
         <>
             {view === 'landing' && (
-                <LandingPage 
-                    onStartCalculator={handleStartCalculator} 
+                <LandingPage
+                    onStartCalculator={handleStartCalculator}
                     onStartAcademy={handleStartAcademy}
                     onStartShop={handleStartShop}
+                    onStartAdmin={handleStartAdmin}
                     onLoginRequest={() => setIsLoginModalOpen(true)}
                     user={user}
                 />
@@ -2103,9 +4346,16 @@ const App = () => {
             )}
 
             {view === 'assessment' && (
-                <AssessmentWizard 
-                    onComplete={handleAssessmentComplete} 
+                <AssessmentWizard
+                    onComplete={handleAssessmentComplete}
                     onCancel={() => setView('landing')}
+                />
+            )}
+
+            {view === 'admin' && user && (
+                <AdminDashboard
+                    user={user}
+                    onBack={() => setView('landing')}
                 />
             )}
 
