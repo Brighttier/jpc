@@ -7998,32 +7998,6 @@ const AdminDashboard = ({
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={markAllArticlesAsAcademy}
-                                                className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-lg font-medium flex items-center gap-2"
-                                                title="Mark all articles as Academy content (visible to subscribers)"
-                                            >
-                                                <i className="fa-solid fa-graduation-cap"></i>
-                                                Mark All as Academy
-                                            </button>
-                                            <button
-                                                onClick={bulkImportFromSupabase}
-                                                disabled={isImporting}
-                                                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium flex items-center gap-2"
-                                                title="Import article content from old Supabase database"
-                                            >
-                                                {isImporting ? (
-                                                    <>
-                                                        <i className="fa-solid fa-spinner fa-spin"></i>
-                                                        Importing... ({importProgress.success + importProgress.failed}/{importProgress.total})
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <i className="fa-solid fa-cloud-download"></i>
-                                                        Import from Supabase
-                                                    </>
-                                                )}
-                                            </button>
-                                            <button
                                                 onClick={() => { setEditingArticle(null); setNewArticleType('academy'); setIsArticleEditorOpen(true); }}
                                                 className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
                                             >
@@ -8036,24 +8010,6 @@ const AdminDashboard = ({
                                             >
                                                 <i className="fa-solid fa-wand-magic-sparkles"></i>
                                                 Create Blog (AI)
-                                            </button>
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm('This will seed 5 sample blog posts. Existing posts with same slugs will be skipped. Continue?')) return;
-                                                    try {
-                                                        const seeded = await seedBlogPosts();
-                                                        const articlesSnap = await getDocs(collection(db, 'jpc_articles'));
-                                                        setArticles(articlesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ArticleContent)));
-                                                        alert(`Successfully seeded ${seeded.length} blog posts!`);
-                                                    } catch (error) {
-                                                        console.error('Error seeding blog posts:', error);
-                                                        alert('Error seeding blog posts. Check console for details.');
-                                                    }
-                                                }}
-                                                className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg font-medium flex items-center gap-2"
-                                            >
-                                                <i className="fa-solid fa-newspaper"></i>
-                                                Seed Blog Posts
                                             </button>
                                         </div>
                                     </div>
@@ -8069,33 +8025,6 @@ const AdminDashboard = ({
                                             : articles;
                                         return (
                                     <>
-                                    {/* Import Progress Bar */}
-                                    {isImporting && (
-                                        <div className="bg-gradient-to-r from-purple-900/30 to-violet-900/30 border border-purple-600/40 rounded-xl p-4 mb-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm text-purple-300 font-medium">
-                                                    <i className="fa-solid fa-cloud-download mr-2"></i>
-                                                    Importing articles from Supabase...
-                                                </span>
-                                                <span className="text-sm text-zinc-400">
-                                                    {importProgress.success + importProgress.failed} / {importProgress.total}
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-zinc-800 rounded-full h-2 mb-2">
-                                                <div
-                                                    className="bg-gradient-to-r from-purple-500 to-violet-500 h-2 rounded-full transition-all"
-                                                    style={{ width: `${((importProgress.success + importProgress.failed) / importProgress.total) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                            <p className="text-xs text-zinc-500 truncate">
-                                                Current: {importProgress.current}
-                                            </p>
-                                            <p className="text-xs text-zinc-500 mt-1">
-                                                <span className="text-green-400">{importProgress.success} imported</span>
-                                                {importProgress.failed > 0 && <span className="text-red-400 ml-2">{importProgress.failed} failed</span>}
-                                            </p>
-                                        </div>
-                                    )}
                                     <div className="bg-[#0a0a0a] border border-zinc-800 rounded-xl overflow-hidden">
                                         <table className="w-full">
                                             <thead>
