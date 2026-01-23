@@ -2,6 +2,11 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "functions": {
+    "source": "functions",
+    "codebase": "jpc-functions",
+    "runtime": "nodejs18"
+  },
   "hosting": {
     "target": "japrotocols",
     "public": "dist",

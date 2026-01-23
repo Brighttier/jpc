@@ -38,6 +38,9 @@ import {
     onAuthStateChanged,
     User as FirebaseUser
 } from 'firebase/auth';
+import { getAnalytics, logEvent } from 'firebase/analytics';
+import { increment } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -54,6 +57,8 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 const auth = getAuth(firebaseApp);
+const analytics = getAnalytics(firebaseApp);
+const functions = getFunctions(firebaseApp);
 
 // --- Admin Data Models ---
 
@@ -1924,6 +1929,31 @@ const ShopView = ({
 
     const products = [...premiumProducts, ...wholesaleProducts];
 
+    // Track product click with Firebase Analytics
+    const handleProductClick = async (product: typeof products[0]) => {
+        // Log to Firebase Analytics - select_item event
+        logEvent(analytics, 'select_item', {
+            item_list_id: 'shop_products',
+            item_list_name: 'JPC Shop',
+            items: [{
+                item_id: product.id,
+                item_name: product.name,
+                price: parseFloat(product.price.replace(/[$,]/g, '').split('-')[0].trim()),
+                item_category: 'peptides'
+            }]
+        });
+
+        // Log custom outbound click event
+        logEvent(analytics, 'outbound_click', {
+            product_id: product.id,
+            product_name: product.name,
+            destination_url: product.url
+        });
+
+        // Open affiliate link
+        window.open(product.url, '_blank');
+    };
+
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
@@ -1977,14 +2007,12 @@ const ShopView = ({
                                      ))}
                                  </ul>
 
-                                 <a
-                                     href={product.url}
-                                     target="_blank"
-                                     rel="noreferrer"
-                                     className="w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2"
+                                 <button
+                                     onClick={() => handleProductClick(product)}
+                                     className="cursor-pointer w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2"
                                  >
                                      View Product <i className="fa-solid fa-external-link-alt"></i>
-                                 </a>
+                                 </button>
                              </div>
                          </div>
                     ))}
@@ -5922,73 +5950,47 @@ const ImportProductModal = ({
                 setAffiliateId('japrotocols');
             }
 
-            // Fetch HTML via CORS proxy
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(sourceUrl)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
+            // Use Cloud Function to fetch and extract product data
+            const fetchProductFn = httpsCallable(functions, 'fetchProduct');
+            const result = await fetchProductFn({ url: sourceUrl });
+            const productData = result.data as {
+                name: string;
+                price: string;
+                description: string;
+                imageUrl: string;
+                dosage?: string;
+                features?: string[];
+                confidence: 'high' | 'medium' | 'low';
+                source: string;
+                requiresManual?: boolean;
+            };
 
-            if (!data.contents) {
-                throw new Error('Could not fetch page content');
+            // Populate form fields
+            if (productData.name) setName(productData.name);
+            if (productData.price) setPrice(productData.price);
+            if (productData.description) setDescription(productData.description);
+            if (productData.dosage) setDosage(productData.dosage);
+            if (productData.imageUrl) {
+                // Make sure URL is absolute
+                let imgUrl = productData.imageUrl;
+                if (imgUrl && !imgUrl.startsWith('http')) {
+                    imgUrl = new URL(imgUrl, sourceUrl).href;
+                }
+                setImageUrl(imgUrl);
+            }
+            if (productData.features && Array.isArray(productData.features) && productData.features.length > 0) {
+                setFeatures(productData.features.filter((f: string) => f && f.trim()));
             }
 
-            const html = data.contents;
-
-            // Use Gemini AI to extract product details from HTML
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-            const extractionPrompt = `Extract product information from this HTML page. Return ONLY valid JSON (no markdown, no code blocks) with these fields:
-{
-  "name": "product name",
-  "price": "price with $ symbol",
-  "description": "product description (max 200 chars)",
-  "imageUrl": "full absolute URL to main product image",
-  "dosage": "dosage/strength if applicable",
-  "features": ["feature 1", "feature 2", "feature 3"]
-}
-
-If a field cannot be found, use empty string or empty array. For imageUrl, look for product images in img tags, og:image meta, or product gallery. Make sure the URL is absolute (starts with http).
-
-HTML content:
-${html.substring(0, 15000)}`;
-
-            const model = ai.models.generateContent({
-                model: 'gemini-2.0-flash',
-                contents: extractionPrompt,
-            });
-
-            const result = await model;
-            let responseText = result.text || '';
-
-            // Clean up response - remove markdown code blocks if present
-            responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-            try {
-                const productData = JSON.parse(responseText);
-
-                if (productData.name) setName(productData.name);
-                if (productData.price) setPrice(productData.price);
-                if (productData.description) setDescription(productData.description);
-                if (productData.dosage) setDosage(productData.dosage);
-                if (productData.imageUrl) {
-                    // Make sure URL is absolute
-                    let imgUrl = productData.imageUrl;
-                    if (imgUrl && !imgUrl.startsWith('http')) {
-                        imgUrl = new URL(imgUrl, sourceUrl).href;
-                    }
-                    setImageUrl(imgUrl);
-                }
-                if (productData.features && Array.isArray(productData.features) && productData.features.length > 0) {
-                    setFeatures(productData.features.filter((f: string) => f && f.trim()));
-                }
-
-            } catch (parseError) {
-                console.error('Failed to parse AI response:', responseText);
-                setFetchError('AI extraction failed. Please fill in manually.');
+            // Show warning if low confidence or requires manual entry
+            if (productData.requiresManual || productData.confidence === 'low') {
+                setFetchError(`Extraction confidence: ${productData.confidence}. Please verify and complete any missing fields.`);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Fetch error:', error);
-            setFetchError('Could not fetch product details. Please fill in manually.');
+            const errorMessage = error.message || 'Could not fetch product details.';
+            setFetchError(`${errorMessage} Please fill in manually.`);
         } finally {
             setIsFetching(false);
         }
