@@ -4284,6 +4284,13 @@ const App = () => {
         return () => unsubscribe();
     }, []);
 
+    // Check for /admin URL path on load
+    useEffect(() => {
+        if (window.location.pathname === '/admin' && user?.isAdmin) {
+            setView('admin');
+        }
+    }, [user]);
+
     // Flow Logic
     const handleStartCalculator = () => {
         if (user) {
