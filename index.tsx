@@ -662,7 +662,7 @@ const GlobalHeader = ({
                     {user && (
                         <>
                             <button onClick={onShop} className={`${navItemClass('shop')} hidden md:block`}>SHOP</button>
-                            <button onClick={onCalculator} className={`${navItemClass('calculator')} hidden md:block`}>PEPTIDES</button>
+                            <button onClick={onCalculator} className={`${navItemClass('calculator')} hidden md:block`}>AI CALCULATOR</button>
                             <button onClick={onBlog} className={`${navItemClass('blog')} hidden md:block`}>BLOG</button>
                         </>
                     )}
