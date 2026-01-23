@@ -2564,12 +2564,12 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
             {/* Header */}
             <section className="py-20 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
-                    <div className="inline-block px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-4">
+                    <div className="inline-block px-4 py-2 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
                         Latest Updates
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-6">
                         JA Protocols <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-400">Blog</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">Blog</span>
                     </h1>
                     <p className="text-zinc-400 text-lg leading-relaxed">
                         Stay updated with the latest insights, tips, and research on peptides and performance optimization.
@@ -2582,7 +2582,7 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                 <div className="max-w-6xl mx-auto">
                     {loading ? (
                         <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF5252]"></div>
                         </div>
                     ) : blogArticles.length === 0 ? (
                         <div className="text-center py-20">
@@ -2591,28 +2591,37 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                             <p className="text-zinc-500">Check back soon for new articles!</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {blogArticles.map(article => (
                                 <article
                                     key={article.id}
                                     onClick={() => setSelectedArticle(article)}
-                                    className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden hover:border-blue-500/50 transition-all cursor-pointer group"
+                                    className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#FF5252]/50 hover:shadow-[0_0_30px_-10px_rgba(255,82,82,0.3)] transition-all cursor-pointer group"
                                 >
                                     {article.thumbnailUrl ? (
-                                        <img src={article.thumbnailUrl} alt="" className="w-full h-48 object-cover" />
+                                        <div className="relative h-48 overflow-hidden">
+                                            <img src={article.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                        </div>
                                     ) : (
-                                        <div className="w-full h-48 bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center">
+                                        <div className="w-full h-48 bg-gradient-to-br from-[#FF5252] to-[#ff8f8f] flex items-center justify-center">
                                             <i className="fa-solid fa-newspaper text-4xl text-white/50"></i>
                                         </div>
                                     )}
                                     <div className="p-6">
-                                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors line-clamp-2">
+                                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#FF5252] transition-colors line-clamp-2">
                                             {article.title}
                                         </h3>
                                         <p className="text-zinc-500 text-sm mb-4 line-clamp-2">{article.excerpt || 'Click to read more...'}</p>
                                         <div className="flex items-center justify-between text-xs text-zinc-600">
-                                            <span>{article.author}</span>
-                                            <span>{article.readTime}</span>
+                                            <span className="flex items-center gap-2">
+                                                <i className="fa-solid fa-user text-[#FF5252]"></i>
+                                                {article.author}
+                                            </span>
+                                            <span className="flex items-center gap-2">
+                                                <i className="fa-solid fa-clock text-[#FF5252]"></i>
+                                                {article.readTime}
+                                            </span>
                                         </div>
                                     </div>
                                 </article>
@@ -6474,6 +6483,16 @@ const AdminDashboard = ({
                 colorTo: "#A855F7",
                 displayOrder: 6,
                 status: 'active' as const
+            },
+            {
+                name: "Blog",
+                slug: "blog",
+                description: "JA Protocols Blog - News, updates, and insights",
+                icon: "newspaper",
+                colorFrom: "#3B82F6",
+                colorTo: "#06B6D4",
+                displayOrder: 7,
+                status: 'active' as const
             }
         ];
 
@@ -6692,6 +6711,207 @@ const AdminDashboard = ({
             }
         }
         return seededArticles;
+    };
+
+    // Seed Blog Posts
+    const seedBlogPosts = async () => {
+        const blogPosts = [
+            {
+                title: "Welcome to JA Protocols: Your Journey to Optimal Performance Begins",
+                slug: "welcome-to-ja-protocols",
+                excerpt: "Discover how Jon Andersen's proven peptide protocols can help you achieve your performance and health goals.",
+                content: `<h2>Welcome to the JA Protocols Community</h2>
+<p>Whether you're an elite athlete, a fitness enthusiast, or someone seeking to optimize their health and longevity, you've come to the right place. JA Protocols is your comprehensive resource for evidence-based peptide protocols developed by Jon Andersen and Travis.</p>
+
+<h2>Who We Are</h2>
+<p>Jon Andersen is an IFBB Pro, IFSA Pro, elite coach, and entrepreneur with over 15 years of experience in performance optimization. His protocols have helped thousands of people achieve their fitness and health goals through strategic peptide use.</p>
+
+<h2>What You'll Find Here</h2>
+<p>Our platform offers:</p>
+<ul>
+<li><p><strong>Research-Backed Protocols:</strong> Every protocol is grounded in scientific research and real-world application.</p></li>
+<li><p><strong>Personalized Dosing Calculator:</strong> Get customized recommendations based on your body composition and goals.</p></li>
+<li><p><strong>Academy Content:</strong> In-depth video courses and articles from Jon and Travis.</p></li>
+<li><p><strong>Community Support:</strong> Connect with others on the same journey.</p></li>
+</ul>
+
+<h2>Getting Started</h2>
+<p>New to peptides? Start with our free assessment to receive a personalized protocol recommendation. Already experienced? Explore our Academy for advanced protocols and cutting-edge research.</p>
+
+<p>Welcome aboard. Let's optimize together.</p>`,
+                thumbnailUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800",
+                author: "Jon Andersen",
+                readTime: "4 min",
+                views: 156
+            },
+            {
+                title: "The Science Behind BPC-157: Why It's Called the 'Wolverine' Peptide",
+                slug: "science-behind-bpc-157-wolverine-peptide",
+                excerpt: "Learn why BPC-157 has gained a reputation as one of the most powerful healing peptides available today.",
+                content: `<h2>Introduction to BPC-157</h2>
+<p>BPC-157, short for Body Protection Compound-157, is a synthetic peptide derived from a protective protein found in human gastric juice. It has gained significant attention in the research community for its remarkable regenerative properties.</p>
+
+<h2>Why "Wolverine" Peptide?</h2>
+<p>The nickname comes from BPC-157's impressive ability to accelerate healing across multiple tissue types - similar to the fictional superhero's regenerative abilities. Research has shown benefits for:</p>
+<ul>
+<li><p><strong>Tendon and Ligament Repair:</strong> Studies show accelerated healing of damaged connective tissue.</p></li>
+<li><p><strong>Muscle Recovery:</strong> Enhanced recovery from muscle tears and strains.</p></li>
+<li><p><strong>Gut Health:</strong> Protective effects on the gastrointestinal lining.</p></li>
+<li><p><strong>Neuroprotection:</strong> Potential benefits for brain health and cognitive function.</p></li>
+</ul>
+
+<h2>Research Highlights</h2>
+<p>Multiple studies have demonstrated BPC-157's ability to promote angiogenesis (new blood vessel formation), reduce inflammation, and modulate growth factors involved in tissue repair. Its gastric stability makes it unique among peptides.</p>
+
+<h2>Considerations</h2>
+<p>While research is promising, BPC-157 is still being studied and is not FDA-approved for human use. Always consult with a healthcare professional before beginning any peptide protocol.</p>
+
+<p>For detailed dosing protocols, check out our Academy section.</p>`,
+                thumbnailUrl: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=800",
+                author: "JA Protocols Team",
+                readTime: "5 min",
+                views: 324
+            },
+            {
+                title: "GLP-1 Peptides Explained: Semaglutide, Tirzepatide, and Retatrutide",
+                slug: "glp1-peptides-explained-semaglutide-tirzepatide-retatrutide",
+                excerpt: "A comprehensive comparison of the most popular weight management peptides and how they work.",
+                content: `<h2>The GLP-1 Revolution</h2>
+<p>GLP-1 (Glucagon-like peptide-1) receptor agonists have transformed the landscape of metabolic health. These peptides mimic natural hormones that regulate appetite, blood sugar, and metabolism.</p>
+
+<h2>Semaglutide: The Pioneer</h2>
+<p>Semaglutide was the first to gain widespread attention for weight management. It works by:</p>
+<ul>
+<li><p>Slowing gastric emptying</p></li>
+<li><p>Reducing appetite signals in the brain</p></li>
+<li><p>Improving insulin sensitivity</p></li>
+</ul>
+<p>Clinical trials showed average weight loss of 15-17% over 68 weeks.</p>
+
+<h2>Tirzepatide: The Dual Agonist</h2>
+<p>Tirzepatide takes it further by targeting both GLP-1 and GIP receptors. This dual mechanism has shown even more impressive results, with some studies reporting up to 22% weight loss.</p>
+
+<h2>Retatrutide: The Triple Threat</h2>
+<p>The newest addition, Retatrutide, targets three receptors: GLP-1, GIP, and glucagon. Early research suggests it may be the most effective yet, with potential for up to 24% weight loss.</p>
+
+<h2>Which Is Right for You?</h2>
+<p>The choice depends on your individual goals, health status, and how your body responds. Our personalized calculator can help you understand dosing, but always work with a healthcare provider for GLP-1 protocols.</p>
+
+<p>Explore our detailed protocols in the Academy for more information.</p>`,
+                thumbnailUrl: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=800",
+                author: "Jon Andersen",
+                readTime: "6 min",
+                views: 512
+            },
+            {
+                title: "5 Common Mistakes When Starting Peptide Protocols",
+                slug: "5-common-mistakes-peptide-protocols",
+                excerpt: "Avoid these pitfalls that many beginners make when starting their peptide journey.",
+                content: `<h2>Learning from Others' Mistakes</h2>
+<p>Starting peptides can be overwhelming. After coaching thousands of clients, we've identified the most common mistakes that can derail your progress.</p>
+
+<h2>Mistake #1: Not Getting Baseline Labs</h2>
+<p>You can't optimize what you don't measure. Before starting any protocol, get comprehensive bloodwork including hormones, metabolic markers, and inflammatory markers. This allows you to track progress and catch any issues early.</p>
+
+<h2>Mistake #2: Starting Too Many Peptides at Once</h2>
+<p>Enthusiasm is great, but stacking multiple new peptides makes it impossible to know what's working and what might be causing side effects. Start with one, assess response, then add others systematically.</p>
+
+<h2>Mistake #3: Inconsistent Administration</h2>
+<p>Peptides work best with consistent timing. Missing doses or irregular scheduling undermines the biological mechanisms you're trying to optimize. Set reminders and build the routine.</p>
+
+<h2>Mistake #4: Ignoring Diet and Training</h2>
+<p>Peptides enhance what you're already doing - they're not magic. If your nutrition is poor and training is inconsistent, even the best protocol won't deliver optimal results.</p>
+
+<h2>Mistake #5: Buying from Unreliable Sources</h2>
+<p>Quality matters enormously with peptides. Contaminated or underdosed products are common in the gray market. Only use trusted, third-party tested sources.</p>
+
+<p>Ready to start your journey the right way? Take our free assessment for personalized guidance.</p>`,
+                thumbnailUrl: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800",
+                author: "Travis",
+                readTime: "4 min",
+                views: 287
+            },
+            {
+                title: "Understanding Peptide Storage and Reconstitution",
+                slug: "understanding-peptide-storage-reconstitution",
+                excerpt: "Proper handling is crucial for peptide effectiveness. Learn the fundamentals of storage and preparation.",
+                content: `<h2>Why Proper Handling Matters</h2>
+<p>Peptides are delicate molecules. Improper storage or reconstitution can degrade them, reducing effectiveness or potentially creating harmful compounds. Follow these guidelines to protect your investment.</p>
+
+<h2>Storage Before Reconstitution</h2>
+<p>Lyophilized (freeze-dried) peptides should be stored:</p>
+<ul>
+<li><p><strong>Refrigerated (2-8°C):</strong> For short-term storage (weeks to months)</p></li>
+<li><p><strong>Frozen (-20°C or lower):</strong> For long-term storage (months to years)</p></li>
+<li><p><strong>Protected from light:</strong> UV exposure degrades peptides</p></li>
+<li><p><strong>Kept dry:</strong> Moisture is the enemy of stability</p></li>
+</ul>
+
+<h2>Reconstitution Basics</h2>
+<p>When you're ready to use:</p>
+<ol>
+<li><p>Use bacteriostatic water (BAC water) - the preservative extends shelf life</p></li>
+<li><p>Add water slowly down the side of the vial</p></li>
+<li><p>Never shake - gently roll or swirl to mix</p></li>
+<li><p>Let it sit until fully dissolved (may take several minutes)</p></li>
+</ol>
+
+<h2>After Reconstitution</h2>
+<p>Once mixed with BAC water:</p>
+<ul>
+<li><p>Store in refrigerator (not freezer)</p></li>
+<li><p>Use within 30 days for optimal potency</p></li>
+<li><p>Always use clean needles to draw from vial</p></li>
+</ul>
+
+<h2>Signs of Degradation</h2>
+<p>Don't use peptides that show:</p>
+<ul>
+<li><p>Cloudiness or particles</p></li>
+<li><p>Unusual color</p></li>
+<li><p>Clumping that won't dissolve</p></li>
+</ul>
+
+<p>For specific reconstitution calculators and protocols, visit our Academy.</p>`,
+                thumbnailUrl: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800",
+                author: "JA Protocols Team",
+                readTime: "5 min",
+                views: 198
+            }
+        ];
+
+        const seededPosts: ArticleContent[] = [];
+        for (const post of blogPosts) {
+            try {
+                // Check if blog post already exists
+                const existing = await getDocs(query(
+                    collection(db, 'jpc_articles'),
+                    where('slug', '==', post.slug),
+                    where('category', '==', 'blog')
+                ));
+
+                if (!existing.empty) {
+                    console.log(`Blog post "${post.title}" already exists, skipping...`);
+                    seededPosts.push({ id: existing.docs[0].id, ...existing.docs[0].data() } as ArticleContent);
+                    continue;
+                }
+
+                const docRef = await addDoc(collection(db, 'jpc_articles'), {
+                    ...post,
+                    category: 'blog',
+                    status: 'published',
+                    isAcademy: false,
+                    publishedAt: serverTimestamp(),
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+                seededPosts.push({ id: docRef.id, ...post, category: 'blog', status: 'published' as const, isAcademy: false } as ArticleContent);
+                console.log(`Seeded blog post: ${post.title}`);
+            } catch (err) {
+                console.error('Error seeding blog post:', post.title, err);
+            }
+        }
+        return seededPosts;
     };
 
     // Seed Academy Videos (30 videos total - 23 Academy, 7 public/teaser)
@@ -7679,6 +7899,24 @@ const AdminDashboard = ({
                                             >
                                                 <i className="fa-solid fa-wand-magic-sparkles"></i>
                                                 Create Blog (AI)
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('This will seed 5 sample blog posts. Existing posts with same slugs will be skipped. Continue?')) return;
+                                                    try {
+                                                        const seeded = await seedBlogPosts();
+                                                        const articlesSnap = await getDocs(collection(db, 'jpc_articles'));
+                                                        setArticles(articlesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as ArticleContent)));
+                                                        alert(`Successfully seeded ${seeded.length} blog posts!`);
+                                                    } catch (error) {
+                                                        console.error('Error seeding blog posts:', error);
+                                                        alert('Error seeding blog posts. Check console for details.');
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg font-medium flex items-center gap-2"
+                                            >
+                                                <i className="fa-solid fa-newspaper"></i>
+                                                Seed Blog Posts
                                             </button>
                                         </div>
                                     </div>
