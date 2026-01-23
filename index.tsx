@@ -2962,7 +2962,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                             </button>
                         )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {categories.map((category, index) => {
                             const articleCount = getArticleCountByCategory(category.slug);
                             const isSelected = selectedCategory === category.slug;
@@ -2973,8 +2973,19 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                                 'from-[#0093E9] to-[#80D0C7]',
                                 'from-[#8EC5FC] to-[#E0C3FC]',
                                 'from-[#FA8BFF] to-[#2BD2FF]',
+                                'from-[#667eea] to-[#764ba2]',
+                            ];
+                            // Icons related to books/learning
+                            const icons = [
+                                'fa-solid fa-book-open',
+                                'fa-solid fa-graduation-cap',
+                                'fa-solid fa-flask',
+                                'fa-solid fa-star',
+                                'fa-solid fa-bookmark',
+                                'fa-solid fa-lightbulb',
                             ];
                             const gradient = gradients[index % gradients.length];
+                            const icon = icons[index % icons.length];
 
                             return (
                                 <button
@@ -2991,18 +3002,21 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                                     {/* Dark overlay for readability */}
                                     <div className="absolute inset-0 bg-black/30"></div>
                                     {/* Content */}
-                                    <div className="relative z-10">
-                                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-                                            <i className={`${category.icon || 'fa-solid fa-folder'} text-white text-lg`}></i>
+                                    <div className="relative z-10 flex items-start gap-4">
+                                        {/* Glassmorphism icon */}
+                                        <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0 shadow-lg">
+                                            <i className={`${icon} text-white text-xl`}></i>
                                         </div>
-                                        <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
-                                        <p className="text-xs text-white/70">
-                                            {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
-                                        </p>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
+                                            <p className="text-xs text-white/70">
+                                                {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
+                                            </p>
+                                        </div>
                                     </div>
                                     {/* Selected indicator */}
                                     {isSelected && (
-                                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md">
                                             <i className="fa-solid fa-check text-[#9d4edd] text-xs"></i>
                                         </div>
                                     )}
