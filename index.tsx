@@ -3710,13 +3710,15 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                             </div>
                         </div>
 
-                        {/* Floating Card 3: Wrestler (Yelling) */}
+                        {/* Floating Card 3: Animated Video Circle */}
                         <div className="absolute bottom-0 right-10 w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] z-40 hover:scale-110 transition-transform duration-300 bg-black">
-                            {/* User: Replace src with your 'Wrestler' image */}
-                            <img 
-                                src="https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2069&auto=format&fit=crop"
-                                alt="Wrestling"
-                                className="w-full h-full object-cover scale-110"
+                            <video
+                                src="/Images/jon-andersen-animated-BJEEdMtL.mov"
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-contain"
                             />
                         </div>
 
@@ -3728,6 +3730,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                      <Badge icon={<i className="fa-solid fa-medal"></i>} text="IFBB Pro" />
                      <Badge icon={<i className="fa-solid fa-dumbbell"></i>} text="Elite Coach" />
                      <Badge icon={<i className="fa-solid fa-trophy"></i>} text="Pro Wrestler" />
+                     <Badge icon={<i className="fa-solid fa-briefcase"></i>} text="Entrepreneur" />
                 </div>
             </section>
 
