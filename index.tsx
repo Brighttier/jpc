@@ -60,6 +60,124 @@ const auth = getAuth(firebaseApp);
 const analytics = getAnalytics(firebaseApp);
 const functions = getFunctions(firebaseApp);
 
+// ==================== ANALYTICS UTILITY FUNCTIONS ====================
+
+interface AnalyticsEventParams {
+    [key: string]: string | number | boolean | undefined;
+}
+
+// Centralized analytics helper for consistent event logging
+const trackEvent = (eventName: string, params?: AnalyticsEventParams) => {
+    try {
+        logEvent(analytics, eventName, {
+            ...params,
+            timestamp: Date.now(),
+            page_location: window.location.href,
+        });
+    } catch (error) {
+        console.error('Analytics tracking error:', error);
+    }
+};
+
+// Article/Content tracking
+const trackArticleView = (article: { id: string; title: string; category: string; author: string; readTime: string }, source: 'blog' | 'academy') => {
+    trackEvent('view_item', {
+        content_type: 'article',
+        item_id: article.id,
+        item_name: article.title,
+        item_category: article.category,
+        content_source: source,
+        author: article.author,
+        read_time: article.readTime,
+    });
+};
+
+const trackArticleEngagement = (
+    articleId: string,
+    articleTitle: string,
+    engagementType: 'scroll_25' | 'scroll_50' | 'scroll_75' | 'scroll_100' | 'time_30s' | 'time_60s' | 'time_120s'
+) => {
+    trackEvent('article_engagement', {
+        content_type: 'article',
+        item_id: articleId,
+        item_name: articleTitle,
+        engagement_type: engagementType,
+    });
+};
+
+// Video tracking
+const trackVideoPlay = (video: { id: string; title: string; provider: string; category: string; duration: string }, source: 'landing' | 'academy') => {
+    trackEvent('video_start', {
+        content_type: 'video',
+        video_id: video.id,
+        video_title: video.title,
+        video_provider: video.provider,
+        video_category: video.category,
+        content_source: source,
+        video_duration: video.duration,
+    });
+};
+
+// CTA/Button tracking
+const trackCTAClick = (ctaName: string, ctaLocation: string, destination?: string) => {
+    trackEvent('cta_click', {
+        cta_name: ctaName,
+        cta_location: ctaLocation,
+        destination: destination,
+    });
+};
+
+// Navigation tracking
+const trackNavigation = (from: string, to: string, method: 'nav' | 'button' | 'link') => {
+    trackEvent('navigation', {
+        from_page: from,
+        to_page: to,
+        navigation_method: method,
+    });
+};
+
+// Subscription tracking
+const trackSubscriptionIntent = (trigger: string) => {
+    trackEvent('begin_checkout', {
+        item_name: 'Academy Subscription',
+        item_category: 'subscription',
+        price: 27.00,
+        currency: 'USD',
+        trigger_location: trigger,
+    });
+};
+
+const trackSubscriptionComplete = (subscriptionId: string) => {
+    trackEvent('purchase', {
+        transaction_id: subscriptionId,
+        item_name: 'Academy Subscription',
+        item_category: 'subscription',
+        price: 27.00,
+        currency: 'USD',
+    });
+};
+
+// Social share tracking
+const trackSocialShare = (platform: string, contentType: string, contentId: string) => {
+    trackEvent('share', {
+        method: platform,
+        content_type: contentType,
+        item_id: contentId,
+    });
+};
+
+// Shop/Product tracking (supplements existing)
+const trackShopLinkClick = (productId: string, productName: string, destinationUrl: string, location: string) => {
+    trackEvent('outbound_click', {
+        product_id: productId,
+        product_name: productName,
+        destination_url: destinationUrl,
+        click_location: location,
+    });
+};
+
+// ==================== END ANALYTICS UTILITY FUNCTIONS ====================
+
 // --- Admin Data Models ---
 
 interface VideoContent {
@@ -657,21 +775,26 @@ const GlobalHeader = ({
 }) => {
     const navItemClass = (page: string) => `hover:text-white transition-colors cursor-pointer uppercase font-bold tracking-widest text-sm bg-transparent border-none p-0 ${currentPage === page ? 'text-[#FF5252]' : 'text-zinc-500'}`;
 
+    const handleNavClick = (destination: string, callback: () => void) => {
+        trackNavigation(currentPage || 'unknown', destination, 'nav');
+        callback();
+    };
+
     return (
         <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                <div onClick={onHome} className="cursor-pointer">
+                <div onClick={() => handleNavClick('home', onHome)} className="cursor-pointer">
                     <Logo />
                 </div>
                 <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
-                    <button onClick={onHome} className={`${navItemClass('home')} hidden md:block`}>HOME</button>
-                    <button onClick={onAbout} className={`${navItemClass('about')} hidden md:block`}>ABOUT</button>
-                    <button onClick={onAcademy} className={`${navItemClass('academy')} hidden md:block`}>ACADEMY</button>
+                    <button onClick={() => handleNavClick('home', onHome)} className={`${navItemClass('home')} hidden md:block`}>HOME</button>
+                    <button onClick={() => handleNavClick('about', onAbout)} className={`${navItemClass('about')} hidden md:block`}>ABOUT</button>
+                    <button onClick={() => handleNavClick('academy', onAcademy)} className={`${navItemClass('academy')} hidden md:block`}>ACADEMY</button>
                     {user && (
                         <>
-                            <button onClick={onShop} className={`${navItemClass('shop')} hidden md:block`}>SHOP</button>
-                            <button onClick={onCalculator} className={`${navItemClass('calculator')} hidden md:block`}>AI CALCULATOR</button>
-                            <button onClick={onBlog} className={`${navItemClass('blog')} hidden md:block`}>BLOG</button>
+                            <button onClick={() => handleNavClick('shop', onShop)} className={`${navItemClass('shop')} hidden md:block`}>SHOP</button>
+                            <button onClick={() => handleNavClick('calculator', onCalculator)} className={`${navItemClass('calculator')} hidden md:block`}>AI CALCULATOR</button>
+                            <button onClick={() => handleNavClick('blog', onBlog)} className={`${navItemClass('blog')} hidden md:block`}>BLOG</button>
                         </>
                     )}
                     {user ? (
@@ -2076,6 +2199,8 @@ const SubscriptionModal = ({
     useEffect(() => {
         if (isOpen) {
             loadAcceptJs().then(setAcceptJsLoaded);
+            // Track subscription intent when modal opens
+            trackSubscriptionIntent('subscription_modal');
         }
     }, [isOpen]);
 
@@ -2398,7 +2523,10 @@ const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) =
                             </li>
                         </ul>
                         <button
-                            onClick={onNavigateToShop}
+                            onClick={() => {
+                                trackCTAClick('browse_shop', 'shop_cta_banner', 'shop');
+                                onNavigateToShop();
+                            }}
                             className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-[#FF5252]/30 inline-flex items-center justify-center gap-2 w-full md:w-auto"
                         >
                             Browse Shop
@@ -2434,7 +2562,10 @@ const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) =
                         </ul>
                         <button
                             className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-[#FF5252]/30 inline-flex items-center justify-center gap-2 w-full md:w-auto"
-                            onClick={() => alert('Coaching sign-up coming soon!')}
+                            onClick={() => {
+                                trackCTAClick('get_coaching', 'shop_cta_banner', 'coaching');
+                                alert('Coaching sign-up coming soon!');
+                            }}
                         >
                             <i className="fa-solid fa-user-graduate"></i>
                             Get Coaching
@@ -2669,6 +2800,55 @@ const BlogView = ({
         fetchBlogArticles();
     }, []);
 
+    // Track article engagement (scroll depth and time spent)
+    useEffect(() => {
+        if (!selectedArticle) return;
+
+        // Track time spent
+        const timeIntervals = [
+            { time: 30000, event: 'time_30s' as const },
+            { time: 60000, event: 'time_60s' as const },
+            { time: 120000, event: 'time_120s' as const },
+        ];
+
+        const timers = timeIntervals.map(({ time, event }) =>
+            setTimeout(() => trackArticleEngagement(selectedArticle.id, selectedArticle.title, event), time)
+        );
+
+        // Track scroll depth
+        const scrollMilestones = { 25: false, 50: false, 75: false, 100: false };
+
+        const handleScroll = () => {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollHeight <= 0) return;
+            const scrollPercent = Math.round((window.scrollY / scrollHeight) * 100);
+
+            if (scrollPercent >= 25 && !scrollMilestones[25]) {
+                scrollMilestones[25] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_25');
+            }
+            if (scrollPercent >= 50 && !scrollMilestones[50]) {
+                scrollMilestones[50] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_50');
+            }
+            if (scrollPercent >= 75 && !scrollMilestones[75]) {
+                scrollMilestones[75] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_75');
+            }
+            if (scrollPercent >= 95 && !scrollMilestones[100]) {
+                scrollMilestones[100] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_100');
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            timers.forEach(clearTimeout);
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [selectedArticle]);
+
     if (selectedArticle) {
         return (
             <div className="min-h-screen bg-[#050505] text-white font-inter">
@@ -2696,21 +2876,30 @@ const BlogView = ({
                     </button>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(selectedArticle.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            onClick={() => {
+                                trackSocialShare('twitter', 'article', selectedArticle.id);
+                                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(selectedArticle.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
                             className="p-2 text-zinc-400 hover:text-[#1DA1F2] hover:bg-zinc-800 rounded-lg transition-colors"
                             title="Share on X"
                         >
                             <i className="fa-brands fa-x-twitter"></i>
                         </button>
                         <button
-                            onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            onClick={() => {
+                                trackSocialShare('facebook', 'article', selectedArticle.id);
+                                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
                             className="p-2 text-zinc-400 hover:text-[#1877F2] hover:bg-zinc-800 rounded-lg transition-colors"
                             title="Share on Facebook"
                         >
                             <i className="fa-brands fa-facebook-f"></i>
                         </button>
                         <button
-                            onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            onClick={() => {
+                                trackSocialShare('linkedin', 'article', selectedArticle.id);
+                                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
                             className="p-2 text-zinc-400 hover:text-[#0A66C2] hover:bg-zinc-800 rounded-lg transition-colors"
                             title="Share on LinkedIn"
                         >
@@ -2718,6 +2907,7 @@ const BlogView = ({
                         </button>
                         <button
                             onClick={() => {
+                                trackSocialShare('copy_link', 'article', selectedArticle.id);
                                 navigator.clipboard.writeText(window.location.href);
                                 alert('Link copied to clipboard!');
                             }}
@@ -2799,7 +2989,10 @@ const BlogView = ({
                             {blogArticles.map(article => (
                                 <article
                                     key={article.id}
-                                    onClick={() => setSelectedArticle(article)}
+                                    onClick={() => {
+                                        trackArticleView(article, 'blog');
+                                        setSelectedArticle(article);
+                                    }}
                                     className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden hover:border-[#FF5252]/50 hover:shadow-[0_0_30px_-10px_rgba(255,82,82,0.3)] transition-all cursor-pointer group"
                                 >
                                     {article.thumbnailUrl ? (
@@ -2898,6 +3091,9 @@ const ExploreAcademyView = ({
 
     // Handle successful subscription
     const handleSubscriptionSuccess = async (subscriptionId: string) => {
+        // Track successful subscription with Firebase Analytics
+        trackSubscriptionComplete(subscriptionId);
+
         if (user) {
             const updatedUser = {
                 ...user,
@@ -2996,7 +3192,10 @@ const ExploreAcademyView = ({
 
                         {user?.isAcademyMember ? (
                             <button
-                                onClick={onEnterAcademy}
+                                onClick={() => {
+                                    trackCTAClick('enter_academy', 'explore_academy_hero', 'academy_content');
+                                    onEnterAcademy();
+                                }}
                                 className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
                             >
                                 <i className="fa-solid fa-unlock mr-2"></i>
@@ -3004,7 +3203,10 @@ const ExploreAcademyView = ({
                             </button>
                         ) : (
                             <button
-                                onClick={() => user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe')}
+                                onClick={() => {
+                                    trackCTAClick('subscribe_now', 'explore_academy_hero', 'subscription_modal');
+                                    user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe');
+                                }}
                                 className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
                             >
                                 Subscribe Now - $27/mo
@@ -3226,11 +3428,68 @@ const AcademyContentView = ({
         setArticlePage(1);
     }, [searchQuery, selectedCategory]);
 
+    // Track article engagement in Academy (scroll depth and time spent)
+    useEffect(() => {
+        if (!selectedArticle) return;
+
+        // Track time spent
+        const timeIntervals = [
+            { time: 30000, event: 'time_30s' as const },
+            { time: 60000, event: 'time_60s' as const },
+            { time: 120000, event: 'time_120s' as const },
+        ];
+
+        const timers = timeIntervals.map(({ time, event }) =>
+            setTimeout(() => trackArticleEngagement(selectedArticle.id, selectedArticle.title, event), time)
+        );
+
+        // Track scroll depth (for modal, track based on modal scroll)
+        const scrollMilestones = { 25: false, 50: false, 75: false, 100: false };
+        const modalContent = document.querySelector('[data-article-modal-content]');
+
+        const handleModalScroll = (e: Event) => {
+            const target = e.target as HTMLElement;
+            const scrollHeight = target.scrollHeight - target.clientHeight;
+            if (scrollHeight <= 0) return;
+            const scrollPercent = Math.round((target.scrollTop / scrollHeight) * 100);
+
+            if (scrollPercent >= 25 && !scrollMilestones[25]) {
+                scrollMilestones[25] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_25');
+            }
+            if (scrollPercent >= 50 && !scrollMilestones[50]) {
+                scrollMilestones[50] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_50');
+            }
+            if (scrollPercent >= 75 && !scrollMilestones[75]) {
+                scrollMilestones[75] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_75');
+            }
+            if (scrollPercent >= 95 && !scrollMilestones[100]) {
+                scrollMilestones[100] = true;
+                trackArticleEngagement(selectedArticle.id, selectedArticle.title, 'scroll_100');
+            }
+        };
+
+        if (modalContent) {
+            modalContent.addEventListener('scroll', handleModalScroll);
+        }
+
+        return () => {
+            timers.forEach(clearTimeout);
+            if (modalContent) {
+                modalContent.removeEventListener('scroll', handleModalScroll);
+            }
+        };
+    }, [selectedArticle]);
+
     // Handle video play
     const handleVideoPlay = (video: VideoContent) => {
         console.log('handleVideoPlay called with:', video.title, 'embedUrl:', video.embedUrl);
         setSelectedVideo(video);
-        // Track view
+        // Track with Firebase Analytics
+        trackVideoPlay(video, 'academy');
+        // Track view in Firestore
         if (video.id) {
             updateDoc(doc(db, 'jpc_videos', video.id), {
                 views: (video.views || 0) + 1
@@ -3241,7 +3500,9 @@ const AcademyContentView = ({
     // Handle article click
     const handleArticleClick = (article: ArticleContent) => {
         setSelectedArticle(article);
-        // Track view
+        // Track with Firebase Analytics
+        trackArticleView(article, 'academy');
+        // Track view in Firestore
         if (article.id) {
             updateDoc(doc(db, 'jpc_articles', article.id), {
                 views: (article.views || 0) + 1
@@ -3715,7 +3976,7 @@ const AcademyContentView = ({
 
             {/* Article Modal */}
             {selectedArticle && (
-                <div className="fixed inset-0 z-50 bg-black/90 overflow-y-auto">
+                <div className="fixed inset-0 z-50 bg-black/90 overflow-y-auto" data-article-modal-content>
                     <div className="min-h-screen py-8 px-4">
                         <div className="relative max-w-4xl mx-auto bg-[#0a0a0a] rounded-2xl overflow-hidden border border-zinc-800">
                             <button
@@ -4501,6 +4762,14 @@ const VideoCard = ({
 
     const handleClick = () => {
         if (embedUrl) {
+            // Track video play with Firebase Analytics
+            trackEvent('video_start', {
+                content_type: 'video',
+                video_id: videoId || 'unknown',
+                video_title: title,
+                content_source: 'landing',
+            });
+
             if (onPlay && videoId) {
                 onPlay(videoId);  // Notify parent (controlled mode)
             } else {
@@ -4665,14 +4934,20 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         </p>
 
                         <div className="flex gap-4 pt-4">
-                             <button 
-                                onClick={onStartCalculator}
+                             <button
+                                onClick={() => {
+                                    trackCTAClick('get_free_protocol', 'landing_hero', 'calculator');
+                                    onStartCalculator();
+                                }}
                                 className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:shadow-[0_0_40px_-10px_rgba(255,82,82,0.6)] hover:scale-105 active:scale-95 flex items-center gap-3"
                             >
                                 Get Free Protocol
                                 <ArrowRightIcon />
                             </button>
-                             <button onClick={onStartAcademy} className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-zinc-800 hover:border-zinc-700">
+                             <button onClick={() => {
+                                trackCTAClick('explore_academy', 'landing_hero', 'academy');
+                                onStartAcademy();
+                             }} className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-zinc-800 hover:border-zinc-700">
                                 Explore Academy
                             </button>
                         </div>
