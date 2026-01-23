@@ -626,6 +626,75 @@ const Logo = () => (
     </div>
 );
 
+// Global Header Component - Consistent navigation across all pages
+const GlobalHeader = ({
+    user,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout,
+    currentPage
+}: {
+    user: User | null;
+    onHome: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+    currentPage?: 'home' | 'academy' | 'shop' | 'calculator' | 'blog' | 'admin';
+}) => {
+    const navItemClass = (page: string) => `hover:text-white transition-colors cursor-pointer uppercase font-bold tracking-widest text-sm bg-transparent border-none p-0 ${currentPage === page ? 'text-[#FF5252]' : 'text-zinc-500'}`;
+
+    return (
+        <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
+            <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div onClick={onHome} className="cursor-pointer">
+                    <Logo />
+                </div>
+                <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                    <button onClick={onHome} className={`${navItemClass('home')} hidden md:block`}>HOME</button>
+                    <button onClick={onAcademy} className={`${navItemClass('academy')} hidden md:block`}>ACADEMY</button>
+                    {user && (
+                        <>
+                            <button onClick={onShop} className={`${navItemClass('shop')} hidden md:block`}>SHOP</button>
+                            <button onClick={onCalculator} className={`${navItemClass('calculator')} hidden md:block`}>PEPTIDES</button>
+                            <button onClick={onBlog} className={`${navItemClass('blog')} hidden md:block`}>BLOG</button>
+                        </>
+                    )}
+                    {user ? (
+                         <div className="flex items-center gap-3 text-white pl-4 border-l border-zinc-800">
+                            <span className="text-xs text-zinc-400 hidden sm:inline-block">Hi, {user.email.split('@')[0]}</span>
+                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                <i className="fa-solid fa-user"></i>
+                            </div>
+                            <button
+                                onClick={onLogout}
+                                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                title="Logout"
+                            >
+                                <i className="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                         </div>
+                    ) : (
+                        <div
+                            onClick={onLogin}
+                            className="flex items-center gap-2 text-white cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 transition-all"
+                        >
+                            <i className="fa-regular fa-user"></i>
+                            <span>Login</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </nav>
+    );
+};
+
 const StepHeader = ({ step, title }: { step: string, title: string }) => (
   <div className="flex items-center gap-4 mb-5 group">
     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700/50 text-[#FF5252] font-bold font-mono text-sm shadow-lg shadow-black/20 group-hover:border-[#FF5252]/30 transition-colors">
@@ -1714,7 +1783,27 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
 
 // --- Shop Component ---
 
-const ShopView = ({ onBack }: { onBack: () => void }) => {
+const ShopView = ({
+    onBack,
+    user,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
+    onBack: () => void;
+    user: User | null;
+    onHome: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+}) => {
     const affiliateId = "japrotocols"; // Affiliate ID for tracking
 
     // Premium products from maxperformance4you.com
@@ -1829,22 +1918,23 @@ const ShopView = ({ onBack }: { onBack: () => void }) => {
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
-            
-            {/* Top Bar */}
-            <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button 
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-                >
-                    <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
-                    Back
-                </button>
-                <span className="font-serif italic text-zinc-500">Official Partner Store</span>
-                <div className="w-6"></div>
-            </div>
 
-            <section className="py-12 px-6 max-w-7xl mx-auto">
+            {/* Global Header */}
+            <GlobalHeader
+                user={user}
+                onHome={onHome}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
+                currentPage="shop"
+            />
+
+            <section className="pt-28 pb-12 px-6 max-w-7xl mx-auto">
                 <div className="text-center mb-16">
+                    <span className="text-xs font-serif italic text-zinc-500 mb-4 block">Official Partner Store</span>
                     <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">RECOMMENDED <span className="text-[#FF5252]">SOURCES</span></h1>
                     <p className="text-zinc-400 max-w-2xl mx-auto">
                         High-purity research compounds verified for quality. Purchases made through these links support the protocol engine.
@@ -2490,7 +2580,27 @@ const MemberAreaCard = ({ title, icon, items, count }: { title: string, icon: an
 );
 
 // Blog View - Public articles for promotion and sharing
-const BlogView = ({ onBack }: { onBack: () => void }) => {
+const BlogView = ({
+    onBack,
+    user,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
+    onBack: () => void;
+    user: User | null;
+    onHome: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+}) => {
     const [blogArticles, setBlogArticles] = useState<ArticleContent[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedArticle, setSelectedArticle] = useState<ArticleContent | null>(null);
@@ -2519,7 +2629,19 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
         return (
             <div className="min-h-screen bg-[#050505] text-white font-inter">
                 <AmbientBackground />
-                <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
+                <GlobalHeader
+                    user={user}
+                    onHome={onHome}
+                    onAcademy={onAcademy}
+                    onShop={onShop}
+                    onCalculator={onCalculator}
+                    onBlog={onBlog}
+                    onLogin={onLogin}
+                    onLogout={onLogout}
+                    currentPage="blog"
+                />
+                {/* Back to Blog + Social Share */}
+                <div className="fixed top-20 left-0 right-0 z-30 bg-[#050505]/80 backdrop-blur-sm border-b border-white/5 px-6 h-12 flex items-center justify-between">
                     <button
                         onClick={() => setSelectedArticle(null)}
                         className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
@@ -2528,7 +2650,6 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         Back to Blog
                     </button>
                     <div className="flex items-center gap-2">
-                        {/* Twitter/X */}
                         <button
                             onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(selectedArticle.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank')}
                             className="p-2 text-zinc-400 hover:text-[#1DA1F2] hover:bg-zinc-800 rounded-lg transition-colors"
@@ -2536,7 +2657,6 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         >
                             <i className="fa-brands fa-x-twitter"></i>
                         </button>
-                        {/* Facebook */}
                         <button
                             onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
                             className="p-2 text-zinc-400 hover:text-[#1877F2] hover:bg-zinc-800 rounded-lg transition-colors"
@@ -2544,7 +2664,6 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         >
                             <i className="fa-brands fa-facebook-f"></i>
                         </button>
-                        {/* LinkedIn */}
                         <button
                             onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank')}
                             className="p-2 text-zinc-400 hover:text-[#0A66C2] hover:bg-zinc-800 rounded-lg transition-colors"
@@ -2552,7 +2671,6 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         >
                             <i className="fa-brands fa-linkedin-in"></i>
                         </button>
-                        {/* Copy Link */}
                         <button
                             onClick={() => {
                                 navigator.clipboard.writeText(window.location.href);
@@ -2565,7 +2683,7 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         </button>
                     </div>
                 </div>
-                <article className="max-w-3xl mx-auto px-6 py-16">
+                <article className="max-w-3xl mx-auto px-6 pt-36 pb-16">
                     {selectedArticle.thumbnailUrl && (
                         <img src={selectedArticle.thumbnailUrl} alt="" className="w-full h-64 object-cover rounded-xl mb-8" />
                     )}
@@ -2588,21 +2706,21 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
 
-            {/* Top Bar */}
-            <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-                >
-                    <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
-                    Back
-                </button>
-                <span className="font-serif italic text-zinc-500">JA Protocols Blog</span>
-                <div className="w-6"></div>
-            </div>
+            {/* Global Header */}
+            <GlobalHeader
+                user={user}
+                onHome={onHome}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
+                currentPage="blog"
+            />
 
             {/* Header */}
-            <section className="py-20 px-6 text-center relative overflow-hidden">
+            <section className="pt-28 pb-12 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
                     <div className="inline-block px-4 py-2 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
                         Latest Updates
@@ -2677,12 +2795,32 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
 };
 
 // ExploreAcademyView - Promotional page for non-subscribers (Explore Academy)
-const ExploreAcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate, onEnterAcademy }: {
+const ExploreAcademyView = ({
+    user,
+    onBack,
+    onNavigateToShop,
+    onUserUpdate,
+    onEnterAcademy,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
     user: User | null,
     onBack: () => void,
     onNavigateToShop: () => void,
     onUserUpdate: (user: User) => void,
-    onEnterAcademy: () => void
+    onEnterAcademy: () => void,
+    onHome: () => void,
+    onAcademy: () => void,
+    onShop: () => void,
+    onCalculator: () => void,
+    onBlog: () => void,
+    onLogin: () => void,
+    onLogout: () => void
 }) => {
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
     const [academyVideosCount, setAcademyVideosCount] = useState(0);
@@ -2727,30 +2865,21 @@ const ExploreAcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate, onEn
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
 
-            {/* Top Bar */}
-            <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-                >
-                    <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
-                    Back
-                </button>
-                <span className="font-serif italic text-zinc-500">Explore Academy</span>
-                {user?.isAcademyMember && (
-                    <button
-                        onClick={onEnterAcademy}
-                        className="flex items-center gap-2 text-[#9d4edd] hover:text-[#c77dff] transition-colors text-xs font-bold uppercase tracking-widest"
-                    >
-                        Enter Academy
-                        <i className="fa-solid fa-arrow-right"></i>
-                    </button>
-                )}
-                {!user?.isAcademyMember && <div className="w-6"></div>}
-            </div>
+            {/* Global Header */}
+            <GlobalHeader
+                user={user}
+                onHome={onHome}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
+                currentPage="academy"
+            />
 
             {/* Header */}
-            <section className="py-16 px-6 text-center relative overflow-hidden">
+            <section className="pt-28 pb-16 px-6 text-center relative overflow-hidden">
                 <div className="max-w-3xl mx-auto relative z-10">
                     {/* Cellular Advantage Logo */}
                     <div className="mb-8 flex justify-center">
@@ -2925,11 +3054,30 @@ const ExploreAcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate, onEn
 };
 
 // AcademyContentView - Full content library for subscribed members
-const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }: {
+const AcademyContentView = ({
+    user,
+    onBack,
+    onNavigateToShop,
+    onExploreAcademy,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
     user: User | null,
     onBack: () => void,
     onNavigateToShop: () => void,
-    onExploreAcademy: () => void
+    onExploreAcademy: () => void,
+    onHome: () => void,
+    onAcademy: () => void,
+    onShop: () => void,
+    onCalculator: () => void,
+    onBlog: () => void,
+    onLogin: () => void,
+    onLogout: () => void
 }) => {
     const [academyVideos, setAcademyVideos] = useState<VideoContent[]>([]);
     const [academyArticles, setAcademyArticles] = useState<ArticleContent[]>([]);
@@ -3048,26 +3196,21 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
         <div className="min-h-screen bg-[#050505] text-white font-inter">
             <AmbientBackground />
 
-            {/* Top Bar */}
-            <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-                >
-                    <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
-                    Back
-                </button>
-                <span className="font-serif italic text-zinc-500">Cellular Advantage Academy</span>
-                <button
-                    onClick={onExploreAcademy}
-                    className="flex items-center gap-2 text-zinc-500 hover:text-[#c77dff] transition-colors text-xs font-bold uppercase tracking-widest"
-                >
-                    About Academy
-                </button>
-            </div>
+            {/* Global Header */}
+            <GlobalHeader
+                user={user}
+                onHome={onHome}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
+                currentPage="academy"
+            />
 
             {/* Subscription Status Bar */}
-            <div className="max-w-7xl mx-auto px-6 pt-6">
+            <div className="max-w-7xl mx-auto px-6 pt-24">
                 <SubscriptionStatusBar
                     expiresAt={user?.subscriptionExpiresAt}
                     status={user?.subscriptionStatus}
@@ -3554,11 +3697,30 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
 };
 
 // Legacy AcademyView wrapper that routes to the correct view based on membership
-const AcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate }: {
+const AcademyView = ({
+    user,
+    onBack,
+    onNavigateToShop,
+    onUserUpdate,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
     user: User | null,
     onBack: () => void,
     onNavigateToShop: () => void,
-    onUserUpdate: (user: User) => void
+    onUserUpdate: (user: User) => void,
+    onHome: () => void,
+    onAcademy: () => void,
+    onShop: () => void,
+    onCalculator: () => void,
+    onBlog: () => void,
+    onLogin: () => void,
+    onLogout: () => void
 }) => {
     const [showContent, setShowContent] = useState(user?.isAcademyMember || false);
 
@@ -3576,6 +3738,13 @@ const AcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate }: {
                 onBack={onBack}
                 onNavigateToShop={onNavigateToShop}
                 onExploreAcademy={() => setShowContent(false)}
+                onHome={onHome}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
             />
         );
     }
@@ -3587,6 +3756,13 @@ const AcademyView = ({ user, onBack, onNavigateToShop, onUserUpdate }: {
             onNavigateToShop={onNavigateToShop}
             onUserUpdate={onUserUpdate}
             onEnterAcademy={() => setShowContent(true)}
+            onHome={onHome}
+            onAcademy={onAcademy}
+            onShop={onShop}
+            onCalculator={onCalculator}
+            onBlog={onBlog}
+            onLogin={onLogin}
+            onLogout={onLogout}
         />
     );
 };
@@ -3870,7 +4046,27 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
 // --- Calculator View Component ---
 
-const CalculatorView = ({ onBack, user }: { onBack: () => void; user: User | null }) => {
+const CalculatorView = ({
+    onBack,
+    user,
+    onHome,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
+    onBack: () => void;
+    user: User | null;
+    onHome: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+}) => {
   // State
   const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -4063,20 +4259,20 @@ const CalculatorView = ({ onBack, user }: { onBack: () => void; user: User | nul
     <div className="min-h-screen bg-[#050505] text-zinc-200 font-inter selection:bg-[#FF5252] selection:text-white pb-20">
       <AmbientBackground />
 
-      {/* Top Bar */}
-      <div className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 px-6 h-16 flex items-center justify-between">
-           <button 
-                onClick={onBack}
-                className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest group"
-             >
-                <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
-                Home
-           </button>
-           <span className="font-serif italic text-zinc-500">Jon Andersen Protocol Engine</span>
-           <div className="w-6"></div> {/* Spacer for center alignment */}
-      </div>
+      {/* Global Header */}
+      <GlobalHeader
+          user={user}
+          onHome={onHome}
+          onAcademy={onAcademy}
+          onShop={onShop}
+          onCalculator={onCalculator}
+          onBlog={onBlog}
+          onLogin={onLogin}
+          onLogout={onLogout}
+          currentPage="calculator"
+      />
 
-      <div className="w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12">
+      <div className="w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12 pt-28">
 
         {/* Left Column: Peptide List */}
         <div className="lg:col-span-3 flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:sticky lg:top-24">
@@ -8676,7 +8872,17 @@ const App = () => {
             )}
             
             {view === 'calculator' && (
-                <CalculatorView onBack={() => setView('landing')} user={user} />
+                <CalculatorView
+                    onBack={() => setView('landing')}
+                    user={user}
+                    onHome={() => setView('landing')}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
+                />
             )}
 
             {view === 'academy' && (
@@ -8685,15 +8891,42 @@ const App = () => {
                     onBack={() => setView('landing')}
                     onNavigateToShop={() => setView('shop')}
                     onUserUpdate={(updatedUser) => setUser(updatedUser)}
+                    onHome={() => setView('landing')}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
                 />
             )}
 
             {view === 'shop' && (
-                <ShopView onBack={() => setView('landing')} />
+                <ShopView
+                    onBack={() => setView('landing')}
+                    user={user}
+                    onHome={() => setView('landing')}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
+                />
             )}
 
             {view === 'blog' && (
-                <BlogView onBack={() => setView('landing')} />
+                <BlogView
+                    onBack={() => setView('landing')}
+                    user={user}
+                    onHome={() => setView('landing')}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
+                />
             )}
 
             {view === 'assessment' && (
