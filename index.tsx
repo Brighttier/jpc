@@ -320,6 +320,17 @@ interface PeptideEntry {
   category: Category;
 }
 
+interface SavedProtocol {
+  id: string;
+  peptideName: string;
+  vialMg: number;
+  bacWaterMl: number;
+  desiredDoseMcg: number;
+  concentration: number;
+  unitsToDraw: number;
+  savedAt: Date;
+}
+
 const PEPTIDE_DB: PeptideEntry[] = [
   // --- Peptides ---
   { name: "Adipotide (FTPP)", url: "https://peptidescalculator.com/adipotide-ftpp", category: "Peptide" },
@@ -744,9 +755,18 @@ const SyringeSelector = ({ capacity, setCapacity }: { capacity: SyringeCapacity,
     );
 };
 
-const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacity: SyringeCapacity }) => {
+const ResultVisual = ({ result, capacity, onSave, canSave }: { result: CalculationResult, capacity: SyringeCapacity, onSave?: () => void, canSave?: boolean }) => {
     const percentage = Math.min((result.unitsToDraw / capacity) * 100, 100);
     const isOverCapacity = result.unitsToDraw > capacity;
+    const [showSaved, setShowSaved] = useState(false);
+
+    const handleSave = () => {
+        if (onSave && canSave) {
+            onSave();
+            setShowSaved(true);
+            setTimeout(() => setShowSaved(false), 2000);
+        }
+    };
 
     return (
         <div className="bg-gradient-to-br from-[#121212] to-black rounded-2xl p-8 border border-zinc-800 relative overflow-hidden shadow-2xl">
@@ -773,7 +793,7 @@ const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacit
                 {/* Ruler Graphic */}
                 <div className="relative h-16 w-full bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden mb-6 shadow-inner">
                     {/* Fill */}
-                    <div 
+                    <div
                         className={`absolute top-0 left-0 h-full transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) ${isOverCapacity ? 'bg-red-900/40' : 'bg-gradient-to-r from-[#FF5252]/60 to-[#FF5252]'}`}
                         style={{ width: `${isNaN(percentage) ? 0 : percentage}%` }}
                     >
@@ -788,7 +808,7 @@ const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacit
                              </div>
                         ))}
                     </div>
-                    
+
                     {/* Labels */}
                      <div className="absolute bottom-6 left-0 w-full flex justify-between px-3 pointer-events-none opacity-50">
                         <span className="text-[10px] text-zinc-400 font-mono">0</span>
@@ -796,7 +816,7 @@ const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacit
                         <span className="text-[10px] text-zinc-400 font-mono">{capacity}</span>
                      </div>
                 </div>
-                
+
                 {isOverCapacity && (
                     <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6 flex items-center gap-3 animate-pulse">
                         <i className="fa-solid fa-triangle-exclamation text-red-500"></i>
@@ -819,15 +839,111 @@ const ResultVisual = ({ result, capacity }: { result: CalculationResult, capacit
                     </div>
                 </div>
 
-                <button className="w-full mt-6 bg-[#FF5252] hover:bg-[#ff3333] text-white py-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:shadow-[0_0_25px_rgba(255,82,82,0.4)] hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3">
-                    <SaveIcon />
-                    Save to Protocol
+                <button
+                    onClick={handleSave}
+                    disabled={!canSave}
+                    className={`w-full mt-6 py-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${
+                        showSaved
+                            ? 'bg-green-600 text-white'
+                            : canSave
+                                ? 'bg-[#FF5252] hover:bg-[#ff3333] text-white hover:shadow-[0_0_25px_rgba(255,82,82,0.4)] hover:scale-[1.01] active:scale-[0.99]'
+                                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                    }`}
+                >
+                    {showSaved ? (
+                        <>
+                            <i className="fa-solid fa-check"></i>
+                            Protocol Saved!
+                        </>
+                    ) : (
+                        <>
+                            <SaveIcon />
+                            {canSave ? 'Save Protocol' : 'Select a Compound'}
+                        </>
+                    )}
                 </button>
             </div>
         </div>
     );
 };
 
+// --- Saved Protocols List Component ---
+const SavedProtocolsList = ({ protocols, onDelete }: { protocols: SavedProtocol[], onDelete: (id: string) => void }) => {
+    if (protocols.length === 0) {
+        return (
+            <div className="bg-[#0a0a0a]/50 border border-dashed border-zinc-800 rounded-2xl p-8 text-center">
+                <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-600 text-2xl mx-auto mb-4">
+                    <i className="fa-solid fa-bookmark"></i>
+                </div>
+                <h3 className="text-zinc-400 font-bold uppercase tracking-widest text-sm mb-2">No Saved Protocols</h3>
+                <p className="text-zinc-600 text-xs">Save your calculated doses for quick reference</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-[#0a0a0a]/50 border border-zinc-800 rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#FF5252]/10 flex items-center justify-center text-[#FF5252]">
+                        <i className="fa-solid fa-bookmark"></i>
+                    </div>
+                    <span className="text-sm font-bold uppercase tracking-widest text-zinc-300">Saved Protocols</span>
+                </div>
+                <span className="text-xs text-zinc-500 bg-zinc-900 px-2 py-1 rounded-full">{protocols.length}</span>
+            </div>
+
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                {protocols.map((protocol) => (
+                    <div
+                        key={protocol.id}
+                        className="p-4 border-b border-zinc-800/50 hover:bg-zinc-900/50 transition-colors group"
+                    >
+                        <div className="flex items-start justify-between mb-3">
+                            <div>
+                                <h4 className="text-white font-bold text-sm">{protocol.peptideName}</h4>
+                                <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+                                    {new Date(protocol.savedAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => onDelete(protocol.id)}
+                                className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                title="Delete protocol"
+                            >
+                                <i className="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="bg-zinc-900/50 rounded-lg p-2">
+                                <span className="text-zinc-500 block">Vial</span>
+                                <span className="text-zinc-300 font-mono">{protocol.vialMg}mg</span>
+                            </div>
+                            <div className="bg-zinc-900/50 rounded-lg p-2">
+                                <span className="text-zinc-500 block">BAC Water</span>
+                                <span className="text-zinc-300 font-mono">{protocol.bacWaterMl}ml</span>
+                            </div>
+                            <div className="bg-zinc-900/50 rounded-lg p-2">
+                                <span className="text-zinc-500 block">Dose</span>
+                                <span className="text-zinc-300 font-mono">{protocol.desiredDoseMcg}mcg</span>
+                            </div>
+                            <div className="bg-[#FF5252]/10 rounded-lg p-2 border border-[#FF5252]/20">
+                                <span className="text-[#FF5252]/70 block">Draw</span>
+                                <span className="text-[#FF5252] font-mono font-bold">{protocol.unitsToDraw.toFixed(1)} units</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
   const [query, setQuery] = useState('');
@@ -921,14 +1037,25 @@ const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
   );
 };
 
-// --- New Component: Compound Profile ---
+// --- New Component: Compound Profile with AI Assistant ---
 const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
     const [profileData, setProfileData] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
+    // AI Advisor state (integrated)
+    const [aiQuery, setAiQuery] = useState('');
+    const [aiResponse, setAiResponse] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const [isAiOpen, setIsAiOpen] = useState(false);
+
     useEffect(() => {
         if (!peptide) return;
-        
+
+        // Reset AI state when peptide changes
+        setAiQuery('');
+        setAiResponse('');
+        setIsAiOpen(false);
+
         const fetchProfile = async () => {
             setLoading(true);
             setProfileData('');
@@ -936,8 +1063,8 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
                 const model = ai.models.generateContent({
                     model: 'gemini-3-flash-preview',
-                    contents: `Generate a detailed structured profile for the research compound: ${peptide.name}. 
-                    Include sections for: 
+                    contents: `Generate a detailed structured profile for the research compound: ${peptide.name}.
+                    Include sections for:
                     1. Description & Mechanism of Action
                     2. Common Research Applications/Benefits (Bullet points)
                     3. Standard Reconstitution Guidelines
@@ -959,8 +1086,33 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
         fetchProfile();
     }, [peptide]);
 
+    const handleAiAsk = async () => {
+        if (!aiQuery.trim()) return;
+
+        setAiLoading(true);
+        setAiResponse('');
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const model = ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: `CONTEXT: User is asking specifically about the compound "${peptide.name}". ONLY answer questions related to ${peptide.name}. If the question is not about ${peptide.name}, politely redirect them to ask about ${peptide.name} instead. QUESTION: ${aiQuery}`,
+                config: {
+                    systemInstruction: `You are an expert bio-science assistant specializing in the peptide/compound "${peptide.name}". ONLY answer questions about ${peptide.name}. If asked about other compounds, say "I can only help with questions about ${peptide.name}. Please select a different compound to ask about it." Keep answers concise, factual, and strictly scientific. FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown. Do not wrap in code blocks. Just return the raw HTML body content.`,
+                }
+            });
+            const result = await model;
+            setAiResponse(result.text || 'No response generated.');
+        } catch (e) {
+            setAiResponse('Error: Unable to fetch advice.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6 h-full flex flex-col animate-fadeIn">
+            {/* Header */}
             <div className="flex items-center justify-between p-6 bg-gradient-to-r from-zinc-900 to-transparent rounded-2xl border border-zinc-800">
                 <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-full bg-[#FF5252]/10 flex items-center justify-center text-[#FF5252] ring-1 ring-[#FF5252]/20">
@@ -971,9 +1123,9 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                          <span className="text-xs text-[#FF5252] uppercase tracking-widest font-bold bg-[#FF5252]/10 px-2 py-1 rounded-full">{peptide.category} Profile</span>
                      </div>
                 </div>
-                <a 
-                    href={peptide.url} 
-                    target="_blank" 
+                <a
+                    href={peptide.url}
+                    target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white bg-zinc-950 hover:bg-black border border-zinc-800 px-5 py-3 rounded-xl transition-colors shadow-sm"
                 >
@@ -982,7 +1134,8 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                 </a>
             </div>
 
-            <div className="flex-1 bg-[#0a0a0a]/50 border border-zinc-800/50 rounded-2xl p-8 overflow-y-auto custom-scrollbar relative min-h-[500px] shadow-inner backdrop-blur-md">
+            {/* Profile Content */}
+            <div className="flex-1 bg-[#0a0a0a]/50 border border-zinc-800/50 rounded-2xl p-8 overflow-y-auto custom-scrollbar relative min-h-[300px] shadow-inner backdrop-blur-md">
                 {loading ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-zinc-500">
                         <div className="relative">
@@ -992,14 +1145,72 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                         <p className="text-xs uppercase tracking-widest animate-pulse font-bold">Analyzing Compound Data...</p>
                     </div>
                 ) : (
-                    <div 
+                    <div
                         className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold"
                         dangerouslySetInnerHTML={{ __html: profileData }}
                     />
                 )}
             </div>
-            
-             <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest opacity-50">
+
+            {/* Integrated AI Assistant for this compound */}
+            <div className="border-t border-zinc-800/50 pt-4">
+                <button
+                    onClick={() => setIsAiOpen(!isAiOpen)}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${isAiOpen ? 'bg-[#FF5252]/10 border-[#FF5252]/30' : 'bg-transparent border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/30'}`}
+                >
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isAiOpen ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                            <RobotIcon />
+                        </div>
+                        <div className="text-left">
+                            <span className="text-sm font-bold uppercase tracking-wider text-zinc-300">Ask AI about {peptide.name}</span>
+                            <p className="text-[10px] text-zinc-500">Get specific answers about this compound only</p>
+                        </div>
+                    </div>
+                    <div className={`transition-transform duration-300 ${isAiOpen ? 'rotate-180' : ''}`}>
+                        <i className="fa-solid fa-chevron-down text-zinc-600"></i>
+                    </div>
+                </button>
+
+                {isAiOpen && (
+                    <div className="mt-4 bg-[#0a0a0a] border border-zinc-800 rounded-xl p-5 shadow-2xl animate-fadeIn relative overflow-hidden">
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF5252] rounded-full opacity-5 blur-[50px] pointer-events-none"></div>
+
+                        <div className="relative z-10 flex gap-3 mb-4">
+                            <input
+                                type="text"
+                                value={aiQuery}
+                                onChange={(e) => setAiQuery(e.target.value)}
+                                placeholder={`Ask about ${peptide.name}...`}
+                                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 focus:border-[#FF5252] focus:outline-none focus:bg-black transition-colors"
+                                onKeyDown={(e) => e.key === 'Enter' && handleAiAsk()}
+                            />
+                            <button
+                                onClick={handleAiAsk}
+                                disabled={aiLoading || !aiQuery.trim()}
+                                className="bg-[#FF5252] hover:bg-[#ff3333] disabled:bg-zinc-800 text-white disabled:text-zinc-500 text-xs uppercase font-bold px-6 rounded-lg transition-all disabled:cursor-not-allowed"
+                            >
+                                {aiLoading ? <i className="fa-solid fa-spinner animate-spin"></i> : 'ASK'}
+                            </button>
+                        </div>
+
+                        {aiResponse ? (
+                            <div className="prose prose-invert prose-sm max-w-none">
+                                <div
+                                    className="text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&>p]:text-sm"
+                                    dangerouslySetInnerHTML={{ __html: aiResponse }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-zinc-700 text-xs uppercase tracking-widest">
+                                Ask anything about <span className="text-[#FF5252]">{peptide.name}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <p className="text-[10px] text-zinc-600 text-center uppercase tracking-widest opacity-50">
                 Data generated by AI Agent • Verification Recommended
             </p>
         </div>
@@ -3151,15 +3362,30 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
   // State
   const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Calculator State
   const [vialMg, setVialMg] = useState<string>('5');
   const [bacWaterMl, setBacWaterMl] = useState<string>('2');
   const [desiredDoseMcg, setDesiredDoseMcg] = useState<string>('250');
-  const [syringeCapacity, setSyringeCapacity] = useState<SyringeCapacity>(100); 
+  const [syringeCapacity, setSyringeCapacity] = useState<SyringeCapacity>(100);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'calculator' | 'profile'>('calculator');
+
+  // Saved Protocols State (persisted to localStorage)
+  const [savedProtocols, setSavedProtocols] = useState<SavedProtocol[]>(() => {
+    try {
+      const stored = localStorage.getItem('jpc_saved_protocols');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist saved protocols to localStorage
+  useEffect(() => {
+    localStorage.setItem('jpc_saved_protocols', JSON.stringify(savedProtocols));
+  }, [savedProtocols]);
 
   // Derived State (Calculations)
   const [result, setResult] = useState<CalculationResult>({
@@ -3170,10 +3396,10 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
   });
 
   // Filter Peptides
-  const filteredPeptides = PEPTIDE_DB.filter(p => 
+  const filteredPeptides = PEPTIDE_DB.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const peptidesList = filteredPeptides.filter(p => p.category === 'Peptide');
   const aminosList = filteredPeptides.filter(p => p.category === 'Amino');
 
@@ -3181,12 +3407,12 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
     const mg = parseFloat(vialMg);
     const ml = parseFloat(bacWaterMl);
     const dose = parseFloat(desiredDoseMcg);
-    
+
     if (mg > 0 && ml > 0 && dose > 0) {
       const concentration = mg / ml; // mg/ml
       const doseMg = dose / 1000; // convert mcg to mg
       const volumeToInject = doseMg / concentration; // ml
-      
+
       const unitsToDraw = volumeToInject * 100;
 
       setResult({
@@ -3202,6 +3428,27 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
 
   const handleSelectPeptide = (peptide: PeptideEntry) => {
       setSelectedPeptide(peptide);
+  };
+
+  const handleSaveProtocol = () => {
+    if (!selectedPeptide || result.unitsToDraw <= 0) return;
+
+    const newProtocol: SavedProtocol = {
+      id: `protocol_${Date.now()}`,
+      peptideName: selectedPeptide.name,
+      vialMg: parseFloat(vialMg),
+      bacWaterMl: parseFloat(bacWaterMl),
+      desiredDoseMcg: parseFloat(desiredDoseMcg),
+      concentration: result.concentration,
+      unitsToDraw: result.unitsToDraw,
+      savedAt: new Date()
+    };
+
+    setSavedProtocols(prev => [newProtocol, ...prev]);
+  };
+
+  const handleDeleteProtocol = (id: string) => {
+    setSavedProtocols(prev => prev.filter(p => p.id !== id));
   };
 
   return (
@@ -3384,8 +3631,16 @@ const CalculatorView = ({ onBack }: { onBack: () => void }) => {
 
                             {/* Result Column */}
                             <div className="flex flex-col gap-6">
-                                <ResultVisual result={result} capacity={syringeCapacity} />
-                                <AIAdvisor currentPeptide={selectedPeptide?.name || ''} />
+                                <ResultVisual
+                                    result={result}
+                                    capacity={syringeCapacity}
+                                    onSave={handleSaveProtocol}
+                                    canSave={!!selectedPeptide && result.unitsToDraw > 0}
+                                />
+                                <SavedProtocolsList
+                                    protocols={savedProtocols}
+                                    onDelete={handleDeleteProtocol}
+                                />
                             </div>
                         </div>
                      ) : (
