@@ -3674,12 +3674,11 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
 
                         {/* Main Image (Big Picture - Portrait) */}
                         <div className="absolute top-0 right-0 w-[90%] h-[90%] rounded-[40px] overflow-hidden border border-zinc-800/50 shadow-2xl z-10 transition-transform duration-500 hover:scale-[1.02]">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80 z-20"></div>
-                            {/* User: Replace src with your 'Main Image' (Sunglasses/Smiling) */}
-                            <img 
-                                src="https://images.unsplash.com/photo-1567598508481-65985588e295?q=80&w=2070&auto=format&fit=crop" 
-                                alt="Jon Andersen Main"
-                                className="w-full h-full object-cover"
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-20"></div>
+                            <img
+                                src="/Images/Main.jpg"
+                                alt="Jon Andersen"
+                                className="w-full h-full object-cover object-top"
                             />
                             <div className="absolute bottom-10 left-10 z-30">
                                 <h2 className="text-5xl font-black text-white italic tracking-tighter leading-none mb-2">THE<br/>MAN</h2>
