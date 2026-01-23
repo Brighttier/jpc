@@ -2764,12 +2764,17 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
 }) => {
     const [academyVideos, setAcademyVideos] = useState<VideoContent[]>([]);
     const [academyArticles, setAcademyArticles] = useState<ArticleContent[]>([]);
+    const [categories, setCategories] = useState<ContentCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'videos' | 'articles'>('videos');
     const [selectedVideo, setSelectedVideo] = useState<VideoContent | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<ArticleContent | null>(null);
     const [videoPage, setVideoPage] = useState(1);
+    const [articlePage, setArticlePage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const VIDEOS_PER_PAGE = 8;
+    const ARTICLES_PER_PAGE = 9;
 
     // Fetch Academy content from Firestore
     useEffect(() => {
@@ -2801,6 +2806,14 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 const academyArts = allArticles.filter(a => a.isAcademy === true && a.status === 'published');
                 setAcademyArticles(academyArts);
 
+                // Fetch categories
+                const categoriesSnapshot = await getDocs(query(collection(db, 'jpc_categories'), orderBy('displayOrder')));
+                const cats = categoriesSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as ContentCategory));
+                setCategories(cats.filter(c => c.status === 'active'));
+
             } catch (err) {
                 console.error('Error fetching academy content:', err);
             } finally {
@@ -2810,6 +2823,34 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
 
         fetchAcademyContent();
     }, []);
+
+    // Get article count by category
+    const getArticleCountByCategory = (categorySlug: string) => {
+        return academyArticles.filter(a => a.category === categorySlug).length;
+    };
+
+    // Filter content based on search and category
+    const filteredVideos = academyVideos.filter(video => {
+        const matchesSearch = searchQuery === '' ||
+            video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (video.description && video.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesCategory = !selectedCategory || video.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    const filteredArticles = academyArticles.filter(article => {
+        const matchesSearch = searchQuery === '' ||
+            article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (article.excerpt && article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesCategory = !selectedCategory || article.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setVideoPage(1);
+        setArticlePage(1);
+    }, [searchQuery, selectedCategory]);
 
     // Handle video play
     const handleVideoPlay = (video: VideoContent) => {
@@ -2881,6 +2922,120 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                 </div>
             </section>
 
+            {/* Search Bar */}
+            <section className="max-w-3xl mx-auto px-6 mb-8">
+                <div className="relative">
+                    <i className="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search videos and articles..."
+                        className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-xl pl-14 pr-5 py-4 text-white placeholder-zinc-600 focus:border-[#9d4edd] focus:outline-none focus:ring-1 focus:ring-[#9d4edd]/30 transition-all"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                        >
+                            <i className="fa-solid fa-times"></i>
+                        </button>
+                    )}
+                </div>
+            </section>
+
+            {/* Category Cards */}
+            <section className="max-w-7xl mx-auto px-6 mb-10">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-bold text-white uppercase tracking-wider">
+                        <i className="fa-solid fa-layer-group mr-2 text-[#9d4edd]"></i>
+                        Browse by Category
+                    </h2>
+                    {selectedCategory && (
+                        <button
+                            onClick={() => setSelectedCategory(null)}
+                            className="text-xs font-bold text-zinc-400 hover:text-[#c77dff] uppercase tracking-widest transition-colors flex items-center gap-2"
+                        >
+                            <i className="fa-solid fa-times"></i>
+                            Clear Filter
+                        </button>
+                    )}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {categories.map((category, index) => {
+                        const articleCount = getArticleCountByCategory(category.slug);
+                        const isSelected = selectedCategory === category.slug;
+                        // Define gradient colors for each card
+                        const gradients = [
+                            'from-[#FF6B6B] to-[#FF8E53]',
+                            'from-[#4158D0] to-[#C850C0]',
+                            'from-[#0093E9] to-[#80D0C7]',
+                            'from-[#8EC5FC] to-[#E0C3FC]',
+                            'from-[#FA8BFF] to-[#2BD2FF]',
+                        ];
+                        const gradient = gradients[index % gradients.length];
+
+                        return (
+                            <button
+                                key={category.id}
+                                onClick={() => setSelectedCategory(isSelected ? null : category.slug)}
+                                className={`group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 ${
+                                    isSelected
+                                        ? 'ring-2 ring-[#9d4edd] scale-[1.02]'
+                                        : 'hover:scale-[1.02]'
+                                }`}
+                            >
+                                {/* Background gradient */}
+                                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
+                                {/* Dark overlay for readability */}
+                                <div className="absolute inset-0 bg-black/30"></div>
+                                {/* Content */}
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+                                        <i className={`${category.icon || 'fa-solid fa-folder'} text-white text-lg`}></i>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
+                                    <p className="text-xs text-white/70">
+                                        {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
+                                    </p>
+                                </div>
+                                {/* Selected indicator */}
+                                {isSelected && (
+                                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                                        <i className="fa-solid fa-check text-[#9d4edd] text-xs"></i>
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Active filter display */}
+                {(searchQuery || selectedCategory) && (
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                        <span className="text-xs text-zinc-500 uppercase tracking-widest">Active Filters:</span>
+                        {searchQuery && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
+                                <i className="fa-solid fa-search text-[10px]"></i>
+                                "{searchQuery}"
+                                <button onClick={() => setSearchQuery('')} className="hover:text-white transition-colors">
+                                    <i className="fa-solid fa-times text-[10px]"></i>
+                                </button>
+                            </span>
+                        )}
+                        {selectedCategory && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-full text-xs font-bold text-[#c77dff]">
+                                <i className="fa-solid fa-folder text-[10px]"></i>
+                                {categories.find(c => c.slug === selectedCategory)?.name}
+                                <button onClick={() => setSelectedCategory(null)} className="hover:text-white transition-colors">
+                                    <i className="fa-solid fa-times text-[10px]"></i>
+                                </button>
+                            </span>
+                        )}
+                    </div>
+                )}
+            </section>
+
             {/* Content Section */}
             <section className="max-w-7xl mx-auto px-6 pb-12">
                 {/* Content Tabs */}
@@ -2894,7 +3049,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                         }`}
                     >
                         <i className="fa-solid fa-video mr-2"></i>
-                        Videos ({academyVideos.length})
+                        Videos ({filteredVideos.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('articles')}
@@ -2905,7 +3060,7 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                         }`}
                     >
                         <i className="fa-solid fa-newspaper mr-2"></i>
-                        Articles ({academyArticles.length})
+                        Articles ({filteredArticles.length})
                     </button>
                 </div>
 
@@ -2918,18 +3073,22 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                     <>
                         {/* Videos Grid with Pagination */}
                         {activeTab === 'videos' && (() => {
-                            const totalPages = Math.ceil(academyVideos.length / VIDEOS_PER_PAGE);
+                            const totalPages = Math.ceil(filteredVideos.length / VIDEOS_PER_PAGE);
                             const startIndex = (videoPage - 1) * VIDEOS_PER_PAGE;
-                            const paginatedVideos = academyVideos.slice(startIndex, startIndex + VIDEOS_PER_PAGE);
+                            const paginatedVideos = filteredVideos.slice(startIndex, startIndex + VIDEOS_PER_PAGE);
 
                             return (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                        {academyVideos.length === 0 ? (
+                                        {filteredVideos.length === 0 ? (
                                             <div className="col-span-full text-center py-16">
                                                 <i className="fa-solid fa-video text-5xl text-zinc-700 mb-4"></i>
-                                                <h3 className="text-xl font-bold text-white mb-2">No Videos Yet</h3>
-                                                <p className="text-zinc-500">Academy videos will appear here once added.</p>
+                                                <h3 className="text-xl font-bold text-white mb-2">No Videos Found</h3>
+                                                <p className="text-zinc-500">
+                                                    {searchQuery || selectedCategory
+                                                        ? 'Try adjusting your search or filters.'
+                                                        : 'Academy videos will appear here once added.'}
+                                                </p>
                                             </div>
                                         ) : (
                                             paginatedVideos.map(video => (
@@ -2979,59 +3138,113 @@ const AcademyContentView = ({ user, onBack, onNavigateToShop, onExploreAcademy }
                                     )}
 
                                     {/* Page Info */}
-                                    {academyVideos.length > 0 && (
+                                    {filteredVideos.length > 0 && (
                                         <p className="text-center text-zinc-600 text-xs mt-4 uppercase tracking-widest">
-                                            Showing {startIndex + 1}-{Math.min(startIndex + VIDEOS_PER_PAGE, academyVideos.length)} of {academyVideos.length} videos
+                                            Showing {startIndex + 1}-{Math.min(startIndex + VIDEOS_PER_PAGE, filteredVideos.length)} of {filteredVideos.length} videos
                                         </p>
                                     )}
                                 </>
                             );
                         })()}
 
-                        {/* Articles Grid */}
-                        {activeTab === 'articles' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {academyArticles.length === 0 ? (
-                                    <div className="col-span-full text-center py-16">
-                                        <i className="fa-solid fa-newspaper text-5xl text-zinc-700 mb-4"></i>
-                                        <h3 className="text-xl font-bold text-white mb-2">No Articles Yet</h3>
-                                        <p className="text-zinc-500">Academy articles will appear here once added.</p>
-                                    </div>
-                                ) : (
-                                    academyArticles.map(article => (
-                                        <div
-                                            key={article.id}
-                                            onClick={() => handleArticleClick(article)}
-                                            className="group bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden cursor-pointer hover:border-[#9d4edd]/50 transition-all"
-                                        >
-                                            {article.thumbnailUrl ? (
-                                                <img src={article.thumbnailUrl} alt="" className="w-full h-40 object-cover" />
-                                            ) : (
-                                                <div className="w-full h-40 bg-gradient-to-br from-[#9d4edd]/30 to-[#7b2cbf]/30 flex items-center justify-center">
-                                                    <i className="fa-solid fa-newspaper text-3xl text-white/30"></i>
-                                                </div>
-                                            )}
-                                            <div className="p-5">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    {article.category && (
-                                                        <span className="text-[10px] uppercase font-bold text-[#c77dff] bg-[#9d4edd]/10 px-2 py-0.5 rounded">
-                                                            {article.category}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <h4 className="text-sm font-bold mb-2 line-clamp-2 text-white group-hover:text-[#c77dff] transition-colors">
-                                                    {article.title}
-                                                </h4>
-                                                <div className="flex items-center gap-3 text-xs text-zinc-500">
-                                                    <span><i className="fa-solid fa-user mr-1"></i>{article.author}</span>
-                                                    <span><i className="fa-solid fa-clock mr-1"></i>{article.readTime}</span>
-                                                </div>
+                        {/* Articles Grid with Pagination */}
+                        {activeTab === 'articles' && (() => {
+                            const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE);
+                            const startIndex = (articlePage - 1) * ARTICLES_PER_PAGE;
+                            const paginatedArticles = filteredArticles.slice(startIndex, startIndex + ARTICLES_PER_PAGE);
+
+                            return (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredArticles.length === 0 ? (
+                                            <div className="col-span-full text-center py-16">
+                                                <i className="fa-solid fa-newspaper text-5xl text-zinc-700 mb-4"></i>
+                                                <h3 className="text-xl font-bold text-white mb-2">No Articles Found</h3>
+                                                <p className="text-zinc-500">
+                                                    {searchQuery || selectedCategory
+                                                        ? 'Try adjusting your search or filters.'
+                                                        : 'Academy articles will appear here once added.'}
+                                                </p>
                                             </div>
+                                        ) : (
+                                            paginatedArticles.map(article => (
+                                                <div
+                                                    key={article.id}
+                                                    onClick={() => handleArticleClick(article)}
+                                                    className="group bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden cursor-pointer hover:border-[#9d4edd]/50 transition-all hover:scale-[1.02]"
+                                                >
+                                                    {article.thumbnailUrl ? (
+                                                        <img src={article.thumbnailUrl} alt="" className="w-full h-40 object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-40 bg-gradient-to-br from-[#9d4edd]/30 to-[#7b2cbf]/30 flex items-center justify-center">
+                                                            <i className="fa-solid fa-newspaper text-3xl text-white/30"></i>
+                                                        </div>
+                                                    )}
+                                                    <div className="p-5">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            {article.category && (
+                                                                <span className="text-[10px] uppercase font-bold text-[#c77dff] bg-[#9d4edd]/10 px-2 py-0.5 rounded">
+                                                                    {categories.find(c => c.slug === article.category)?.name || article.category}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <h4 className="text-sm font-bold mb-2 line-clamp-2 text-white group-hover:text-[#c77dff] transition-colors">
+                                                            {article.title}
+                                                        </h4>
+                                                        <div className="flex items-center gap-3 text-xs text-zinc-500">
+                                                            <span><i className="fa-solid fa-user mr-1"></i>{article.author}</span>
+                                                            <span><i className="fa-solid fa-clock mr-1"></i>{article.readTime}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-2 mt-10">
+                                            <button
+                                                onClick={() => setArticlePage(p => Math.max(1, p - 1))}
+                                                disabled={articlePage === 1}
+                                                className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                            >
+                                                <i className="fa-solid fa-chevron-left text-sm"></i>
+                                            </button>
+
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => setArticlePage(page)}
+                                                    className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${
+                                                        articlePage === page
+                                                            ? 'bg-[#9d4edd] text-white'
+                                                            : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ))}
+
+                                            <button
+                                                onClick={() => setArticlePage(p => Math.min(totalPages, p + 1))}
+                                                disabled={articlePage === totalPages}
+                                                className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-[#9d4edd]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                            >
+                                                <i className="fa-solid fa-chevron-right text-sm"></i>
+                                            </button>
                                         </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
+                                    )}
+
+                                    {/* Page Info */}
+                                    {filteredArticles.length > 0 && (
+                                        <p className="text-center text-zinc-600 text-xs mt-4 uppercase tracking-widest">
+                                            Showing {startIndex + 1}-{Math.min(startIndex + ARTICLES_PER_PAGE, filteredArticles.length)} of {filteredArticles.length} articles
+                                        </p>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </>
                 )}
             </section>
