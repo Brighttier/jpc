@@ -1796,7 +1796,9 @@ const ShopView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     onBack: () => void;
     user: User | null;
@@ -1808,6 +1810,8 @@ const ShopView = ({
     onBlog: () => void;
     onLogin: () => void;
     onLogout: () => void;
+    onPrivacy: () => void;
+    onTerms: () => void;
 }) => {
     const affiliateId = "japrotocols"; // Affiliate ID for tracking
 
@@ -1996,7 +2000,7 @@ const ShopView = ({
                 </div>
             </section>
 
-            <Footer />
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
 };
@@ -2596,7 +2600,9 @@ const BlogView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     onBack: () => void;
     user: User | null;
@@ -2608,6 +2614,8 @@ const BlogView = ({
     onBlog: () => void;
     onLogin: () => void;
     onLogout: () => void;
+    onPrivacy: () => void;
+    onTerms: () => void;
 }) => {
     const [blogArticles, setBlogArticles] = useState<ArticleContent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -2799,7 +2807,7 @@ const BlogView = ({
                 </div>
             </section>
 
-            <Footer />
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
 };
@@ -2818,7 +2826,9 @@ const ExploreAcademyView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     user: User | null,
     onBack: () => void,
@@ -2832,7 +2842,9 @@ const ExploreAcademyView = ({
     onCalculator: () => void,
     onBlog: () => void,
     onLogin: () => void,
-    onLogout: () => void
+    onLogout: () => void,
+    onPrivacy: () => void,
+    onTerms: () => void
 }) => {
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
     const [academyVideosCount, setAcademyVideosCount] = useState(0);
@@ -3049,7 +3061,7 @@ const ExploreAcademyView = ({
             {/* Coaching Placeholder */}
             <CoachingPlaceholder />
 
-            <Footer />
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
 
             {/* Subscription Modal */}
             {user && (
@@ -3077,7 +3089,9 @@ const AcademyContentView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     user: User | null,
     onBack: () => void,
@@ -3090,7 +3104,9 @@ const AcademyContentView = ({
     onCalculator: () => void,
     onBlog: () => void,
     onLogin: () => void,
-    onLogout: () => void
+    onLogout: () => void,
+    onPrivacy: () => void,
+    onTerms: () => void
 }) => {
     const [academyVideos, setAcademyVideos] = useState<VideoContent[]>([]);
     const [academyArticles, setAcademyArticles] = useState<ArticleContent[]>([]);
@@ -3705,7 +3721,7 @@ const AcademyContentView = ({
                 </div>
             )}
 
-            <Footer />
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
 };
@@ -3723,7 +3739,9 @@ const AcademyView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     user: User | null,
     onBack: () => void,
@@ -3736,7 +3754,9 @@ const AcademyView = ({
     onCalculator: () => void,
     onBlog: () => void,
     onLogin: () => void,
-    onLogout: () => void
+    onLogout: () => void,
+    onPrivacy: () => void,
+    onTerms: () => void
 }) => {
     const [showContent, setShowContent] = useState(user?.isAcademyMember || false);
 
@@ -3762,6 +3782,8 @@ const AcademyView = ({
                 onBlog={onBlog}
                 onLogin={onLogin}
                 onLogout={onLogout}
+                onPrivacy={onPrivacy}
+                onTerms={onTerms}
             />
         );
     }
@@ -3781,6 +3803,8 @@ const AcademyView = ({
             onBlog={onBlog}
             onLogin={onLogin}
             onLogout={onLogout}
+            onPrivacy={onPrivacy}
+            onTerms={onTerms}
         />
     );
 };
@@ -3796,7 +3820,9 @@ const AboutView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     user: User | null;
     onHome: () => void;
@@ -3807,6 +3833,8 @@ const AboutView = ({
     onBlog: () => void;
     onLogin: () => void;
     onLogout: () => void;
+    onPrivacy: () => void;
+    onTerms: () => void;
 }) => {
     // Timeline data for Jon's journey
     const timeline = [
@@ -4151,7 +4179,7 @@ const AboutView = ({
                 </div>
             </section>
 
-            <Footer />
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
 };
@@ -4168,24 +4196,250 @@ const Badge = ({ icon, text }: { icon: any, text: string }) => (
 );
 
 // Reusable Footer Component
-const Footer = ({ user, onStartAdmin }: { user?: User | null, onStartAdmin?: () => void }) => (
+const Footer = ({ user, onStartAdmin, onPrivacy, onTerms }: { user?: User | null, onStartAdmin?: () => void, onPrivacy?: () => void, onTerms?: () => void }) => (
     <footer className="py-12 border-t border-zinc-900 bg-black text-center relative z-10">
         <div className="flex items-center justify-center gap-2 mb-8 opacity-50">
             <span className="font-serif text-xl italic text-white">Jon Andersen</span>
         </div>
         <div className="flex justify-center gap-8 mb-8 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            <a href="#" className="hover:text-[#FF5252] transition-colors">Privacy</a>
-            <a href="#" className="hover:text-[#FF5252] transition-colors">Terms</a>
-            <a href="#" className="hover:text-[#FF5252] transition-colors">Support</a>
-            <a href="#" className="hover:text-[#FF5252] transition-colors">Instagram</a>
+            <button onClick={onPrivacy} className="hover:text-[#FF5252] transition-colors bg-transparent border-none cursor-pointer">Privacy</button>
+            <button onClick={onTerms} className="hover:text-[#FF5252] transition-colors bg-transparent border-none cursor-pointer">Terms</button>
+            <a href="mailto:support@japrotocols.com" className="hover:text-[#FF5252] transition-colors">Support</a>
+            <a href="https://www.instagram.com/japrotocols" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF5252] transition-colors">Instagram</a>
             {user?.isAdmin && onStartAdmin && (
-                <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors">
+                <button onClick={onStartAdmin} className="hover:text-[#FF5252] transition-colors bg-transparent border-none cursor-pointer">
                     Admin
                 </button>
             )}
         </div>
-        <p className="text-zinc-700 text-[10px]">© 2024 JA Protocols. All rights reserved.</p>
+        <p className="text-zinc-700 text-[10px]">© 2026 JA Protocols. Operated by JFAE LLC.</p>
     </footer>
+);
+
+// Privacy Policy View
+const PrivacyPolicyView = ({ onBack }: { onBack: () => void }) => (
+    <div className="min-h-screen bg-[#050505] text-zinc-300">
+        {/* Header */}
+        <div className="bg-black/80 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-50">
+            <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
+                <button onClick={onBack} className="text-zinc-400 hover:text-white transition-colors">
+                    <i className="fa-solid fa-arrow-left"></i>
+                </button>
+                <h1 className="text-white font-bold">Privacy Policy</h1>
+            </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-w-4xl mx-auto px-6 py-12">
+            <div className="prose prose-invert max-w-none">
+                <p className="text-zinc-500 text-sm mb-8">Last Updated: January 2026</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">1. Introduction</h2>
+                <p>Welcome to JA Protocols ("we," "our," or "us"), operated by JFAE LLC. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website japrotocols.web.app and use our services, including the Max Performance Peptide Engine AI Calculator and Cellular Advantage Academy.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">2. Information We Collect</h2>
+                <h3 className="text-xl font-semibold text-white mt-6 mb-3">Personal Information</h3>
+                <p>We may collect personal information that you voluntarily provide when you:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Create an account or register for our services</li>
+                    <li>Subscribe to the Cellular Advantage Academy</li>
+                    <li>Use our AI-powered peptide calculator</li>
+                    <li>Contact us for support</li>
+                    <li>Subscribe to our newsletter</li>
+                </ul>
+                <p className="mt-4">This information may include:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Name and email address</li>
+                    <li>Payment information (processed securely through Authorize.net)</li>
+                    <li>Account credentials</li>
+                    <li>Communication preferences</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-white mt-6 mb-3">Automatically Collected Information</h3>
+                <p>When you access our website, we may automatically collect:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Device information (browser type, operating system)</li>
+                    <li>IP address and general location</li>
+                    <li>Usage data (pages visited, time spent, interactions)</li>
+                    <li>Cookies and similar tracking technologies</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">3. How We Use Your Information</h2>
+                <p>We use the collected information to:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Provide and maintain our services</li>
+                    <li>Process subscriptions and payments</li>
+                    <li>Send you important updates and notifications</li>
+                    <li>Improve our website and user experience</li>
+                    <li>Respond to your inquiries and support requests</li>
+                    <li>Comply with legal obligations</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">4. Information Sharing</h2>
+                <p>We do not sell your personal information. We may share your information with:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Service Providers:</strong> Third-party vendors who assist in operating our website and services (e.g., payment processors, hosting providers)</li>
+                    <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+                    <li><strong>Business Transfers:</strong> In connection with any merger, sale, or acquisition</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">5. Data Security</h2>
+                <p>We implement appropriate technical and organizational measures to protect your personal information, including:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Encryption of data in transit (HTTPS/TLS)</li>
+                    <li>Secure payment processing through Authorize.net</li>
+                    <li>Firebase Authentication for account security</li>
+                    <li>Regular security assessments</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">6. Your Rights</h2>
+                <p>Depending on your location, you may have the right to:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Access your personal information</li>
+                    <li>Correct inaccurate data</li>
+                    <li>Request deletion of your data</li>
+                    <li>Opt-out of marketing communications</li>
+                    <li>Data portability</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">7. Cookies</h2>
+                <p>We use cookies and similar technologies to enhance your experience. You can control cookies through your browser settings, though some features may not function properly without them.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">8. Third-Party Links</h2>
+                <p>Our website may contain links to third-party websites. We are not responsible for the privacy practices of these external sites. We encourage you to review their privacy policies.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">9. Children's Privacy</h2>
+                <p>Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">10. Changes to This Policy</h2>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last Updated" date.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">11. Contact Us</h2>
+                <p>If you have questions about this Privacy Policy or our data practices, please contact us at:</p>
+                <p className="mt-4">
+                    <strong className="text-white">JFAE LLC</strong><br />
+                    Email: <a href="mailto:support@japrotocols.com" className="text-[#FF5252] hover:underline">support@japrotocols.com</a>
+                </p>
+            </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="py-8 border-t border-zinc-900 bg-black text-center">
+            <p className="text-zinc-700 text-[10px]">© 2026 JA Protocols. Operated by JFAE LLC.</p>
+        </footer>
+    </div>
+);
+
+// Terms of Service View
+const TermsOfServiceView = ({ onBack }: { onBack: () => void }) => (
+    <div className="min-h-screen bg-[#050505] text-zinc-300">
+        {/* Header */}
+        <div className="bg-black/80 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-50">
+            <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
+                <button onClick={onBack} className="text-zinc-400 hover:text-white transition-colors">
+                    <i className="fa-solid fa-arrow-left"></i>
+                </button>
+                <h1 className="text-white font-bold">Terms of Service</h1>
+            </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-w-4xl mx-auto px-6 py-12">
+            <div className="prose prose-invert max-w-none">
+                <p className="text-zinc-500 text-sm mb-8">Last Updated: January 2026</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">1. Acceptance of Terms</h2>
+                <p>By accessing and using JA Protocols ("the Service"), operated by JFAE LLC, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">2. Description of Services</h2>
+                <p>JA Protocols provides:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Max Performance Peptide Engine:</strong> An AI-powered research calculator for educational purposes</li>
+                    <li><strong>Cellular Advantage Academy:</strong> A subscription-based educational platform with videos and articles</li>
+                    <li><strong>Educational Content:</strong> Articles, protocols, and research information about peptides</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">3. Important Disclaimers</h2>
+                <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-6 my-6">
+                    <p className="text-red-400 font-bold mb-2">EDUCATIONAL PURPOSES ONLY</p>
+                    <p>All content, calculations, protocols, and information provided by JA Protocols are <strong>strictly for educational and research purposes only</strong>. This information:</p>
+                    <ul className="list-disc pl-6 space-y-2 mt-4">
+                        <li>Is NOT medical advice</li>
+                        <li>Is NOT intended to diagnose, treat, cure, or prevent any disease</li>
+                        <li>Should NOT be used as a substitute for professional medical advice</li>
+                        <li>Should NOT be used to make decisions about your health</li>
+                    </ul>
+                    <p className="mt-4 font-semibold">Always consult with qualified healthcare professionals before using any peptides, supplements, or making changes to your health regimen.</p>
+                </div>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">4. User Accounts</h2>
+                <p>To access certain features, you may need to create an account. You agree to:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Provide accurate and complete information</li>
+                    <li>Maintain the security of your account credentials</li>
+                    <li>Notify us immediately of any unauthorized access</li>
+                    <li>Accept responsibility for all activities under your account</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">5. Subscription Terms</h2>
+                <h3 className="text-xl font-semibold text-white mt-6 mb-3">Cellular Advantage Academy</h3>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Pricing:</strong> $27/month for full access to premium content</li>
+                    <li><strong>Billing:</strong> Subscriptions are billed monthly through Authorize.net</li>
+                    <li><strong>Cancellation:</strong> You may cancel anytime. Access continues until the end of your billing period</li>
+                    <li><strong>Refunds:</strong> Subscription fees are non-refundable except as required by law</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">6. Acceptable Use</h2>
+                <p>You agree NOT to:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>Use the Service for any unlawful purpose</li>
+                    <li>Share, redistribute, or resell our content without permission</li>
+                    <li>Attempt to gain unauthorized access to our systems</li>
+                    <li>Interfere with or disrupt the Service</li>
+                    <li>Use automated systems to access the Service without permission</li>
+                    <li>Misrepresent your identity or affiliation</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">7. Intellectual Property</h2>
+                <p>All content on JA Protocols, including but not limited to text, graphics, logos, videos, and software, is the property of JFAE LLC or its content suppliers and is protected by copyright and intellectual property laws.</p>
+                <p className="mt-4">You may not reproduce, distribute, modify, or create derivative works from our content without explicit written permission.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">8. Limitation of Liability</h2>
+                <p>To the maximum extent permitted by law:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                    <li>The Service is provided "AS IS" without warranties of any kind</li>
+                    <li>We are not liable for any direct, indirect, incidental, or consequential damages</li>
+                    <li>We are not responsible for any health outcomes resulting from the use of information provided</li>
+                    <li>Our total liability shall not exceed the amount you paid us in the past 12 months</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">9. Indemnification</h2>
+                <p>You agree to indemnify and hold harmless JFAE LLC, its officers, directors, employees, and agents from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">10. Termination</h2>
+                <p>We reserve the right to suspend or terminate your access to the Service at any time, with or without cause, with or without notice. Upon termination, your right to use the Service will immediately cease.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">11. Governing Law</h2>
+                <p>These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to conflict of law principles.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">12. Changes to Terms</h2>
+                <p>We reserve the right to modify these Terms at any time. We will provide notice of material changes by posting the updated Terms on this page. Your continued use of the Service after changes constitutes acceptance of the new Terms.</p>
+
+                <h2 className="text-2xl font-bold text-white mt-8 mb-4">13. Contact Information</h2>
+                <p>For questions about these Terms of Service, please contact us at:</p>
+                <p className="mt-4">
+                    <strong className="text-white">JFAE LLC</strong><br />
+                    Email: <a href="mailto:support@japrotocols.com" className="text-[#FF5252] hover:underline">support@japrotocols.com</a>
+                </p>
+            </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="py-8 border-t border-zinc-900 bg-black text-center">
+            <p className="text-zinc-700 text-[10px]">© 2026 JA Protocols. Operated by JFAE LLC.</p>
+        </footer>
+    </div>
 );
 
 const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title: string, desc: string, image?: string, duration?: string, embedUrl?: string, onClick?: () => void }) => {
@@ -4243,7 +4497,7 @@ const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title:
     );
 };
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
+const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
     
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
@@ -4429,7 +4683,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                 </div>
             </section>
 
-            <Footer user={user} onStartAdmin={onStartAdmin} />
+            <Footer user={user} onStartAdmin={onStartAdmin} onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
 };
@@ -4446,7 +4700,9 @@ const CalculatorView = ({
     onCalculator,
     onBlog,
     onLogin,
-    onLogout
+    onLogout,
+    onPrivacy,
+    onTerms
 }: {
     onBack: () => void;
     user: User | null;
@@ -4458,6 +4714,8 @@ const CalculatorView = ({
     onBlog: () => void;
     onLogin: () => void;
     onLogout: () => void;
+    onPrivacy: () => void;
+    onTerms: () => void;
 }) => {
   // State
   const [selectedPeptide, setSelectedPeptide] = useState<PeptideEntry | null>(null);
@@ -4859,7 +5117,7 @@ const CalculatorView = ({
         </div>
       </div>
 
-      <Footer />
+      <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
     </div>
   );
 };
@@ -9044,7 +9302,7 @@ const AdminDashboard = ({
 
 const App = () => {
     // App Flow State
-    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog'>('landing');
+    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms'>('landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
@@ -9264,6 +9522,8 @@ const App = () => {
                     onStartBlog={handleStartBlog}
                     onLogout={handleLogout}
                     onLoginRequest={() => setIsLoginModalOpen(true)}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                     user={user}
                     mainPageVideos={mainPageVideos}
                 />
@@ -9280,6 +9540,8 @@ const App = () => {
                     onBlog={handleStartBlog}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                 />
             )}
 
@@ -9295,6 +9557,8 @@ const App = () => {
                     onBlog={handleStartBlog}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                 />
             )}
 
@@ -9312,6 +9576,8 @@ const App = () => {
                     onBlog={handleStartBlog}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                 />
             )}
 
@@ -9327,6 +9593,8 @@ const App = () => {
                     onBlog={handleStartBlog}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                 />
             )}
 
@@ -9342,6 +9610,8 @@ const App = () => {
                     onBlog={handleStartBlog}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
                 />
             )}
 
@@ -9357,6 +9627,14 @@ const App = () => {
                     user={user}
                     onBack={() => setView('landing')}
                 />
+            )}
+
+            {view === 'privacy' && (
+                <PrivacyPolicyView onBack={() => setView('landing')} />
+            )}
+
+            {view === 'terms' && (
+                <TermsOfServiceView onBack={() => setView('landing')} />
             )}
 
             <AuthModal 
