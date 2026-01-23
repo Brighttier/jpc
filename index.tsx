@@ -630,6 +630,7 @@ const Logo = () => (
 const GlobalHeader = ({
     user,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -640,13 +641,14 @@ const GlobalHeader = ({
 }: {
     user: User | null;
     onHome: () => void;
+    onAbout: () => void;
     onAcademy: () => void;
     onShop: () => void;
     onCalculator: () => void;
     onBlog: () => void;
     onLogin: () => void;
     onLogout: () => void;
-    currentPage?: 'home' | 'academy' | 'shop' | 'calculator' | 'blog' | 'admin';
+    currentPage?: 'home' | 'about' | 'academy' | 'shop' | 'calculator' | 'blog' | 'admin';
 }) => {
     const navItemClass = (page: string) => `hover:text-white transition-colors cursor-pointer uppercase font-bold tracking-widest text-sm bg-transparent border-none p-0 ${currentPage === page ? 'text-[#FF5252]' : 'text-zinc-500'}`;
 
@@ -658,6 +660,7 @@ const GlobalHeader = ({
                 </div>
                 <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
                     <button onClick={onHome} className={`${navItemClass('home')} hidden md:block`}>HOME</button>
+                    <button onClick={onAbout} className={`${navItemClass('about')} hidden md:block`}>ABOUT</button>
                     <button onClick={onAcademy} className={`${navItemClass('academy')} hidden md:block`}>ACADEMY</button>
                     {user && (
                         <>
@@ -1787,6 +1790,7 @@ const ShopView = ({
     onBack,
     user,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -1797,6 +1801,7 @@ const ShopView = ({
     onBack: () => void;
     user: User | null;
     onHome: () => void;
+    onAbout: () => void;
     onAcademy: () => void;
     onShop: () => void;
     onCalculator: () => void;
@@ -1923,6 +1928,7 @@ const ShopView = ({
             <GlobalHeader
                 user={user}
                 onHome={onHome}
+                onAbout={onAbout}
                 onAcademy={onAcademy}
                 onShop={onShop}
                 onCalculator={onCalculator}
@@ -2584,6 +2590,7 @@ const BlogView = ({
     onBack,
     user,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -2594,6 +2601,7 @@ const BlogView = ({
     onBack: () => void;
     user: User | null;
     onHome: () => void;
+    onAbout: () => void;
     onAcademy: () => void;
     onShop: () => void;
     onCalculator: () => void;
@@ -2632,6 +2640,7 @@ const BlogView = ({
                 <GlobalHeader
                     user={user}
                     onHome={onHome}
+                    onAbout={onAbout}
                     onAcademy={onAcademy}
                     onShop={onShop}
                     onCalculator={onCalculator}
@@ -2710,6 +2719,7 @@ const BlogView = ({
             <GlobalHeader
                 user={user}
                 onHome={onHome}
+                onAbout={onAbout}
                 onAcademy={onAcademy}
                 onShop={onShop}
                 onCalculator={onCalculator}
@@ -2802,6 +2812,7 @@ const ExploreAcademyView = ({
     onUserUpdate,
     onEnterAcademy,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -2815,6 +2826,7 @@ const ExploreAcademyView = ({
     onUserUpdate: (user: User) => void,
     onEnterAcademy: () => void,
     onHome: () => void,
+    onAbout: () => void,
     onAcademy: () => void,
     onShop: () => void,
     onCalculator: () => void,
@@ -2869,6 +2881,7 @@ const ExploreAcademyView = ({
             <GlobalHeader
                 user={user}
                 onHome={onHome}
+                onAbout={onAbout}
                 onAcademy={onAcademy}
                 onShop={onShop}
                 onCalculator={onCalculator}
@@ -3060,6 +3073,7 @@ const AcademyContentView = ({
     onNavigateToShop,
     onExploreAcademy,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -3072,6 +3086,7 @@ const AcademyContentView = ({
     onNavigateToShop: () => void,
     onExploreAcademy: () => void,
     onHome: () => void,
+    onAbout: () => void,
     onAcademy: () => void,
     onShop: () => void,
     onCalculator: () => void,
@@ -3200,6 +3215,7 @@ const AcademyContentView = ({
             <GlobalHeader
                 user={user}
                 onHome={onHome}
+                onAbout={onAbout}
                 onAcademy={onAcademy}
                 onShop={onShop}
                 onCalculator={onCalculator}
@@ -3703,6 +3719,7 @@ const AcademyView = ({
     onNavigateToShop,
     onUserUpdate,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -3715,6 +3732,7 @@ const AcademyView = ({
     onNavigateToShop: () => void,
     onUserUpdate: (user: User) => void,
     onHome: () => void,
+    onAbout: () => void,
     onAcademy: () => void,
     onShop: () => void,
     onCalculator: () => void,
@@ -3739,6 +3757,7 @@ const AcademyView = ({
                 onNavigateToShop={onNavigateToShop}
                 onExploreAcademy={() => setShowContent(false)}
                 onHome={onHome}
+                onAbout={onAbout}
                 onAcademy={onAcademy}
                 onShop={onShop}
                 onCalculator={onCalculator}
@@ -3757,6 +3776,7 @@ const AcademyView = ({
             onUserUpdate={onUserUpdate}
             onEnterAcademy={() => setShowContent(true)}
             onHome={onHome}
+            onAbout={onAbout}
             onAcademy={onAcademy}
             onShop={onShop}
             onCalculator={onCalculator}
@@ -3764,6 +3784,377 @@ const AcademyView = ({
             onLogin={onLogin}
             onLogout={onLogout}
         />
+    );
+};
+
+// --- About Page ---
+
+const AboutView = ({
+    user,
+    onHome,
+    onAbout,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout
+}: {
+    user: User | null;
+    onHome: () => void;
+    onAbout: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+}) => {
+    // Timeline data for Jon's journey
+    const timeline = [
+        { year: '1972', title: 'The Beginning', desc: 'Born January 8th. A young boy with learning disabilities, weight problems, and low self-esteem—an easy target for bullies.' },
+        { year: '2002', title: 'Strongman Debut', desc: 'Won New Mexico\'s Strongest Man, beginning his professional strongman journey.' },
+        { year: '2003', title: 'Pro Status Earned', desc: 'Won Azalea Festival and North America\'s Strongest Man—his career-best strongman victory.' },
+        { year: '2005', title: 'IFSA World Stage', desc: '2nd place IFSA World Team Championships alongside Travis Ortmayer, Geoff Dolan, and Van Hatfield.' },
+        { year: '2006', title: 'Peak Performance', desc: 'Log press of 364 lbs (165 kg) at IFSA Holland Grand Prix. Atlas stones: 5 stones (120-170kg) in 46.84 seconds.' },
+        { year: '2009', title: 'Wrestling Career', desc: 'Signed with CMLL in Mexico as "Jon Strongman." Transitioned to professional wrestling full-time.' },
+        { year: '2010', title: 'Japan Success', desc: 'Named Best Tag-Team of Japan with Manabu Nakanishi. Challenged for titles at Tokyo Dome before 50,000 fans.' },
+        { year: '2014', title: 'Bodybuilding Era', desc: 'At 42, earned IFBB Pro card in only 2 contests—only the 3rd person in history to achieve this. Top 5 in pro debut.' },
+        { year: 'Now', title: 'Deep Water Method', desc: 'Author, speaker, coach. Helping thousands transform through his legendary training protocols.' }
+    ];
+
+    // Achievement cards
+    const achievements = [
+        { icon: 'fa-solid fa-dumbbell', title: 'Pro Strongman', stat: '364 lbs', subtitle: 'Log Press Record' },
+        { icon: 'fa-solid fa-mask', title: 'Pro Wrestler', stat: '50,000', subtitle: 'Tokyo Dome Fans' },
+        { icon: 'fa-solid fa-trophy', title: 'IFBB Pro', stat: '2', subtitle: 'Contests to Pro Card' },
+        { icon: 'fa-solid fa-book', title: 'Deep Water', stat: '6 Weeks', subtitle: 'Transformation Program' }
+    ];
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white font-inter">
+            <AmbientBackground />
+
+            {/* Global Header with About link */}
+            <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div onClick={onHome} className="cursor-pointer">
+                        <Logo />
+                    </div>
+                    <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <button onClick={onHome} className="hover:text-white transition-colors hidden md:block">HOME</button>
+                        <button onClick={onAbout} className="text-[#FF5252] hidden md:block">ABOUT</button>
+                        <button onClick={onAcademy} className="hover:text-white transition-colors hidden md:block">ACADEMY</button>
+                        {user && (
+                            <>
+                                <button onClick={onShop} className="hover:text-white transition-colors hidden md:block">SHOP</button>
+                                <button onClick={onCalculator} className="hover:text-white transition-colors hidden md:block">AI CALCULATOR</button>
+                                <button onClick={onBlog} className="hover:text-white transition-colors hidden md:block">BLOG</button>
+                            </>
+                        )}
+                        {user ? (
+                            <div className="flex items-center gap-3 text-white pl-4 border-l border-zinc-800">
+                                <span className="text-xs text-zinc-400 hidden sm:inline-block">Hi, {user.email.split('@')[0]}</span>
+                                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                    <i className="fa-solid fa-user"></i>
+                                </div>
+                                <button onClick={onLogout} className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors" title="Logout">
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            <div onClick={onLogin} className="flex items-center gap-2 text-white cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 transition-all">
+                                <i className="fa-regular fa-user"></i>
+                                <span>Login</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </nav>
+
+            {/* Hero Section */}
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+                {/* Dramatic gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#FF5252]/10 via-transparent to-[#050505]" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-transparent to-[#050505]" />
+
+                {/* Animated background elements */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#FF5252]/5 rounded-full blur-[100px] animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#FF5252]/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+
+                <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 text-center">
+                    {/* Main Image with artistic frame */}
+                    <div className="relative mx-auto mb-12 w-72 h-72 md:w-96 md:h-96">
+                        {/* Outer glow ring */}
+                        <div className="absolute inset-[-20px] rounded-full bg-gradient-to-br from-[#FF5252]/30 via-transparent to-[#FF5252]/10 animate-spin" style={{ animationDuration: '20s' }} />
+                        {/* Inner glow */}
+                        <div className="absolute inset-[-10px] rounded-full bg-gradient-to-tr from-[#FF5252]/20 to-transparent blur-xl" />
+                        {/* Border frame */}
+                        <div className="absolute inset-0 rounded-full border-2 border-[#FF5252]/30" />
+                        {/* Image */}
+                        <div className="absolute inset-2 rounded-full overflow-hidden border-4 border-[#0a0a0a]">
+                            <img
+                                src="/Images/Main.jpg"
+                                alt="Jon Andersen"
+                                className="w-full h-full object-cover object-top"
+                            />
+                        </div>
+                        {/* Achievement badges floating around */}
+                        <div className="absolute -top-4 -right-4 bg-[#FF5252] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-bounce" style={{ animationDuration: '3s' }}>
+                            IFBB PRO
+                        </div>
+                        <div className="absolute -bottom-4 -left-4 bg-zinc-900 border border-[#FF5252]/50 text-[#FF5252] text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-bounce" style={{ animationDuration: '3.5s' }}>
+                            PRO STRONGMAN
+                        </div>
+                    </div>
+
+                    {/* Name and title */}
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4">
+                        JON <span className="text-[#FF5252]">ANDERSEN</span>
+                    </h1>
+                    <p className="text-xl md:text-2xl text-zinc-400 font-light mb-6">
+                        Professional Strongman • Pro Wrestler • IFBB Pro Bodybuilder
+                    </p>
+                    <p className="text-lg text-zinc-500 italic font-serif max-w-2xl mx-auto mb-8">
+                        "Pain causes some men to break and some to break records."
+                    </p>
+
+                    {/* Achievement stats row */}
+                    <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                        {achievements.map((achievement, i) => (
+                            <div key={i} className="group text-center">
+                                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-zinc-900/50 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF5252] group-hover:border-[#FF5252]/50 transition-all duration-300">
+                                    <i className={`${achievement.icon} text-2xl`}></i>
+                                </div>
+                                <div className="text-2xl font-black text-white">{achievement.stat}</div>
+                                <div className="text-xs text-zinc-500 uppercase tracking-wider">{achievement.subtitle}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Scroll indicator */}
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+                        <i className="fa-solid fa-chevron-down text-zinc-600 text-2xl"></i>
+                    </div>
+                </div>
+            </section>
+
+            {/* Origin Story Section */}
+            <section className="py-24 px-6 relative">
+                <div className="max-w-4xl mx-auto">
+                    <div className="text-center mb-16">
+                        <span className="text-[#FF5252] text-xs font-bold uppercase tracking-widest">The Origin</span>
+                        <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">FROM BULLIED TO <span className="text-[#FF5252]">BEAST</span></h2>
+                    </div>
+
+                    <div className="relative">
+                        {/* Decorative quote marks */}
+                        <div className="absolute -top-8 -left-4 text-[#FF5252]/10 text-[120px] font-serif leading-none">"</div>
+
+                        <div className="bg-gradient-to-br from-zinc-900/50 to-zinc-900/30 border border-zinc-800 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+                            {/* Subtle gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#FF5252]/5 to-transparent opacity-50" />
+
+                            <div className="relative z-10 space-y-6 text-zinc-300 text-lg leading-relaxed">
+                                <p>
+                                    Jon was a <span className="text-white font-semibold">fat, unathletic little boy</span> with a learning disability,
+                                    searching for greatness. With very low self-esteem and a weight problem, he was an easy target
+                                    for neighborhood bullies.
+                                </p>
+                                <p>
+                                    But inside that struggling kid was a fire waiting to ignite. Through relentless determination
+                                    and developing a work ethic that was <span className="text-[#FF5252] font-semibold">virtually unmatched</span>,
+                                    Jon began to realize that reaching his dreams could become reality.
+                                </p>
+                                <p>
+                                    His journey was filled with trial and error—which ultimately produced an <span className="text-white font-semibold">organic system
+                                    of reaching very large goals</span>. That system would later become known as the
+                                    <span className="text-[#FF5252] font-semibold"> Deep Water Method</span>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Timeline Section */}
+            <section className="py-24 px-6 bg-gradient-to-b from-transparent via-zinc-900/20 to-transparent">
+                <div className="max-w-5xl mx-auto">
+                    <div className="text-center mb-16">
+                        <span className="text-[#FF5252] text-xs font-bold uppercase tracking-widest">The Journey</span>
+                        <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">A LEGACY <span className="text-[#FF5252]">FORGED</span></h2>
+                    </div>
+
+                    <div className="relative">
+                        {/* Timeline line */}
+                        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#FF5252] via-zinc-700 to-[#FF5252]/30" />
+
+                        {timeline.map((item, i) => (
+                            <div key={i} className={`relative flex items-center mb-12 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+                                {/* Timeline dot */}
+                                <div className="absolute left-8 md:left-1/2 w-4 h-4 -translate-x-1/2 rounded-full bg-[#FF5252] border-4 border-[#050505] z-10" />
+
+                                {/* Content card */}
+                                <div className={`ml-16 md:ml-0 md:w-[45%] ${i % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12'}`}>
+                                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-[#FF5252]/30 transition-all duration-300 group">
+                                        <span className="text-[#FF5252] font-mono text-sm font-bold">{item.year}</span>
+                                        <h3 className="text-xl font-bold text-white mt-1 group-hover:text-[#FF5252] transition-colors">{item.title}</h3>
+                                        <p className="text-zinc-400 mt-2 text-sm">{item.desc}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Deep Water Section */}
+            <section className="py-24 px-6 relative overflow-hidden">
+                {/* Water-like background effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-[#0a1628] to-[#050505] opacity-50" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF5252]/5 rounded-full blur-[120px]" />
+
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <div className="text-center mb-12">
+                        <span className="text-[#FF5252] text-xs font-bold uppercase tracking-widest">The Method</span>
+                        <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">DEEP <span className="text-[#FF5252]">WATER</span></h2>
+                        <p className="text-zinc-400 mt-4 max-w-2xl mx-auto">
+                            The legendary training protocol that has transformed thousands.
+                            6 weeks of high-volume, high-intensity training that pushes you beyond your limits.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 text-center hover:border-[#FF5252]/30 transition-all">
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center">
+                                <i className="fa-solid fa-fire text-[#FF5252] text-2xl"></i>
+                            </div>
+                            <h3 className="text-lg font-bold text-white mb-2">100 Rep Sets</h3>
+                            <p className="text-zinc-500 text-sm">Squat, deadlift, and push press—100 reps in as few sets as possible.</p>
+                        </div>
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 text-center hover:border-[#FF5252]/30 transition-all">
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center">
+                                <i className="fa-solid fa-brain text-[#FF5252] text-2xl"></i>
+                            </div>
+                            <h3 className="text-lg font-bold text-white mb-2">Mental Fortitude</h3>
+                            <p className="text-zinc-500 text-sm">Training that challenges both body and mind. You will feel sick. That's the point.</p>
+                        </div>
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 text-center hover:border-[#FF5252]/30 transition-all">
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center">
+                                <i className="fa-solid fa-chart-line text-[#FF5252] text-2xl"></i>
+                            </div>
+                            <h3 className="text-lg font-bold text-white mb-2">Proven Results</h3>
+                            <p className="text-zinc-500 text-sm">Jon did 100 power cleans with 220 lbs at 300 lbs bodyweight and 8% bodyfat.</p>
+                        </div>
+                    </div>
+
+                    {/* Testimonial */}
+                    <div className="mt-12 bg-gradient-to-r from-[#FF5252]/10 to-transparent border border-[#FF5252]/30 rounded-2xl p-8 text-center">
+                        <i className="fa-solid fa-quote-left text-[#FF5252] text-3xl mb-4"></i>
+                        <p className="text-lg text-zinc-300 italic">
+                            "Deep Water changed my life. I went from 240 lbs to 180 lbs in less than 6 months.
+                            I follow Jon's training and have seen a HUGE increase in lean muscle and fat loss."
+                        </p>
+                        <p className="text-zinc-500 mt-4 text-sm">— Deep Water Testimonial</p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Career Highlights Grid */}
+            <section className="py-24 px-6">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-16">
+                        <span className="text-[#FF5252] text-xs font-bold uppercase tracking-widest">Career Highlights</span>
+                        <h2 className="text-4xl md:text-5xl font-black mt-4 tracking-tight">THREE <span className="text-[#FF5252]">DISCIPLINES</span></h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Strongman Card */}
+                        <div className="group relative bg-gradient-to-br from-zinc-900 to-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:border-[#FF5252]/50 transition-all duration-500">
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10" />
+                            <div className="h-48 bg-gradient-to-br from-orange-900/30 to-red-900/30 flex items-center justify-center">
+                                <i className="fa-solid fa-dumbbell text-6xl text-orange-500/50 group-hover:text-orange-500 transition-colors"></i>
+                            </div>
+                            <div className="relative z-20 p-6 -mt-12">
+                                <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">STRONGMAN</span>
+                                <h3 className="text-2xl font-bold text-white mb-3">Professional Strongman</h3>
+                                <ul className="space-y-2 text-sm text-zinc-400">
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>North America's Strongest Man 2003</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>2nd Place IFSA World Teams 2005</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>364 lb Log Press Record</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>5 Atlas Stones in 46.84 seconds</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Wrestling Card */}
+                        <div className="group relative bg-gradient-to-br from-zinc-900 to-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:border-[#FF5252]/50 transition-all duration-500">
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10" />
+                            <div className="h-48 bg-gradient-to-br from-purple-900/30 to-blue-900/30 flex items-center justify-center">
+                                <i className="fa-solid fa-mask text-6xl text-purple-500/50 group-hover:text-purple-500 transition-colors"></i>
+                            </div>
+                            <div className="relative z-20 p-6 -mt-12">
+                                <span className="inline-block bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">WRESTLING</span>
+                                <h3 className="text-2xl font-bold text-white mb-3">Pro Wrestler</h3>
+                                <ul className="space-y-2 text-sm text-zinc-400">
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>NJPW & CMLL Competitor</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>Best Tag-Team of Japan 2010</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>Tokyo Dome - 50,000 Fans</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>PWR Tag Team Champion</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Bodybuilding Card */}
+                        <div className="group relative bg-gradient-to-br from-zinc-900 to-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:border-[#FF5252]/50 transition-all duration-500">
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10" />
+                            <div className="h-48 bg-gradient-to-br from-[#FF5252]/30 to-rose-900/30 flex items-center justify-center">
+                                <i className="fa-solid fa-trophy text-6xl text-[#FF5252]/50 group-hover:text-[#FF5252] transition-colors"></i>
+                            </div>
+                            <div className="relative z-20 p-6 -mt-12">
+                                <span className="inline-block bg-[#FF5252] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">BODYBUILDING</span>
+                                <h3 className="text-2xl font-bold text-white mb-3">IFBB Professional</h3>
+                                <ul className="space-y-2 text-sm text-zinc-400">
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>Pro Card in Only 2 Contests</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>3rd Person in History to Do So</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>Top 5 in Pro Debut</li>
+                                    <li><i className="fa-solid fa-check text-[#FF5252] mr-2"></i>Achieved at Age 42</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="py-24 px-6 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#FF5252]/10 to-transparent" />
+                <div className="max-w-3xl mx-auto text-center relative z-10">
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">
+                        READY TO <span className="text-[#FF5252]">TRANSFORM</span>?
+                    </h2>
+                    <p className="text-zinc-400 text-lg mb-8">
+                        Join the thousands who have used Jon's protocols to build muscle, burn fat, and achieve their goals.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                            onClick={onAcademy}
+                            className="px-8 py-4 bg-[#FF5252] text-white font-bold uppercase tracking-wider rounded-xl hover:bg-[#ff6b6b] transition-all shadow-lg shadow-[#FF5252]/25"
+                        >
+                            Enter the Academy
+                        </button>
+                        <button
+                            onClick={onCalculator}
+                            className="px-8 py-4 bg-zinc-900 border border-zinc-700 text-white font-bold uppercase tracking-wider rounded-xl hover:border-[#FF5252]/50 transition-all"
+                        >
+                            Try AI Calculator
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <Footer />
+        </div>
     );
 };
 
@@ -3854,7 +4245,7 @@ const VideoCard = ({ title, desc, image, duration, embedUrl, onClick }: { title:
     );
 };
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
+const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
     
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
@@ -3869,11 +4260,12 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                     <Logo />
                     <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
                         <a href="#" className={navItemClass}>HOME</a>
+                        <button onClick={onStartAbout} className={navItemClass}>ABOUT</button>
                         <button onClick={onStartAcademy} className={navItemClass}>ACADEMY</button>
                         {user && (
                             <>
                                 <button onClick={onStartShop} className={navItemClass}>SHOP</button>
-                                <button onClick={onStartCalculator} className={navItemClass}>PEPTIDES</button>
+                                <button onClick={onStartCalculator} className={navItemClass}>AI CALCULATOR</button>
                                 <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
                             </>
                         )}
@@ -4050,6 +4442,7 @@ const CalculatorView = ({
     onBack,
     user,
     onHome,
+    onAbout,
     onAcademy,
     onShop,
     onCalculator,
@@ -4060,6 +4453,7 @@ const CalculatorView = ({
     onBack: () => void;
     user: User | null;
     onHome: () => void;
+    onAbout: () => void;
     onAcademy: () => void;
     onShop: () => void;
     onCalculator: () => void;
@@ -4263,6 +4657,7 @@ const CalculatorView = ({
       <GlobalHeader
           user={user}
           onHome={onHome}
+          onAbout={onAbout}
           onAcademy={onAcademy}
           onShop={onShop}
           onCalculator={onCalculator}
@@ -8651,7 +9046,7 @@ const AdminDashboard = ({
 
 const App = () => {
     // App Flow State
-    const [view, setView] = useState<'landing' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog'>('landing');
+    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog'>('landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
@@ -8820,6 +9215,10 @@ const App = () => {
         }
     };
 
+    const handleStartAbout = () => {
+        setView('about');
+    };
+
     const handleStartAcademy = () => {
         // Academy is viewable but locked for guests or non-paid users
         // If logged in but not paid, they see locked content
@@ -8861,6 +9260,7 @@ const App = () => {
                 <LandingPage
                     onStartCalculator={handleStartCalculator}
                     onStartAcademy={handleStartAcademy}
+                    onStartAbout={handleStartAbout}
                     onStartShop={handleStartShop}
                     onStartAdmin={handleStartAdmin}
                     onStartBlog={handleStartBlog}
@@ -8871,11 +9271,26 @@ const App = () => {
                 />
             )}
             
+            {view === 'about' && (
+                <AboutView
+                    user={user}
+                    onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
+                />
+            )}
+
             {view === 'calculator' && (
                 <CalculatorView
                     onBack={() => setView('landing')}
                     user={user}
                     onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
                     onAcademy={handleStartAcademy}
                     onShop={handleStartShop}
                     onCalculator={() => setView('calculator')}
@@ -8892,6 +9307,7 @@ const App = () => {
                     onNavigateToShop={() => setView('shop')}
                     onUserUpdate={(updatedUser) => setUser(updatedUser)}
                     onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
                     onAcademy={handleStartAcademy}
                     onShop={handleStartShop}
                     onCalculator={() => setView('calculator')}
@@ -8906,6 +9322,7 @@ const App = () => {
                     onBack={() => setView('landing')}
                     user={user}
                     onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
                     onAcademy={handleStartAcademy}
                     onShop={handleStartShop}
                     onCalculator={() => setView('calculator')}
@@ -8920,6 +9337,7 @@ const App = () => {
                     onBack={() => setView('landing')}
                     user={user}
                     onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
                     onAcademy={handleStartAcademy}
                     onShop={handleStartShop}
                     onCalculator={() => setView('calculator')}
