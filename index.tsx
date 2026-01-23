@@ -3676,7 +3676,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                         <div className="absolute top-0 right-0 w-[90%] h-[90%] rounded-[40px] overflow-hidden border border-zinc-800/50 shadow-2xl z-10 transition-transform duration-500 hover:scale-[1.02]">
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-20"></div>
                             <img
-                                src="/Images/Main.jpg"
+                                src="/Images/Main-HD.jpeg"
                                 alt="Jon Andersen"
                                 className="w-full h-full object-cover object-top"
                             />
