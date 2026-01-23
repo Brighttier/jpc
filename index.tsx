@@ -3703,7 +3703,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                             <img
                                 src="/Images/IFSA Pro.jpg"
                                 alt="IFSA Pro Strongman"
-                                className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 transition-opacity"
+                                className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 transition-opacity"
                             />
                             <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
                                 <span className="text-white font-black italic text-xl">IFSA PRO</span>
