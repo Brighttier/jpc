@@ -1,0 +1,52 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // JPC Users - allow read/write for authenticated users on their own doc
+    match /jpc_users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // JPC Videos - public read, admin write
+    match /jpc_videos/{videoId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        exists(/databases/$(database)/documents/jpc_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // JPC Articles - public read, admin write
+    match /jpc_articles/{articleId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        exists(/databases/$(database)/documents/jpc_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // JPC Categories - public read, admin write
+    match /jpc_categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        exists(/databases/$(database)/documents/jpc_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // JPC Products - public read, admin write
+    match /jpc_products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        exists(/databases/$(database)/documents/jpc_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // JPC Analytics - public write (for tracking), admin read
+    match /jpc_analytics/{eventId} {
+      allow create: if true;
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/jpc_users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+  }
+}

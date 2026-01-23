@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "guardian-intelligence-platform"
+  },
+  "targets": {
+    "guardian-intelligence-platform": {
+      "hosting": {
+        "japrotocols": [
+          "japrotocols"
+        ]
+      }
+    }
+  }
+}
