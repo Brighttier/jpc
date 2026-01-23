@@ -3686,29 +3686,27 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onLoginRequest, onStar
                             </div>
                         </div>
 
-                        {/* Floating Card 1: IFBB Pro (Bodybuilding Pose) */}
+                        {/* Floating Card 1: IFBB Pro */}
                         <div className="absolute top-20 -left-6 w-48 h-64 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] z-20 transform -rotate-6 hover:rotate-0 transition-all duration-300 group bg-black">
-                            {/* User: Replace src with your 'Bodybuilder Pose' image */}
-                            <img 
-                                src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=2070&auto=format&fit=crop"
+                            <img
+                                src="/Images/IFBB Pro.jpg"
                                 alt="IFBB Pro"
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 transition-opacity"
                             />
                             <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
                                 <span className="text-[#FF5252] font-black italic text-xl">IFBB PRO</span>
                             </div>
                         </div>
 
-                        {/* Floating Card 2: Strongman (Car Lift) */}
+                        {/* Floating Card 2: IFSA Pro (Strongman) */}
                         <div className="absolute bottom-32 -left-10 w-64 h-48 rounded-2xl overflow-hidden border-2 border-zinc-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] z-30 transform rotate-3 hover:rotate-0 transition-all duration-300 group bg-black">
-                            {/* User: Replace src with your 'Strongman' image */}
-                            <img 
-                                src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop"
-                                alt="Strongman"
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                            <img
+                                src="/Images/IFSA Pro.jpg"
+                                alt="IFSA Pro Strongman"
+                                className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 transition-opacity"
                             />
                             <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black to-transparent">
-                                <span className="text-white font-black italic text-xl">STRONGMAN</span>
+                                <span className="text-white font-black italic text-xl">IFSA PRO</span>
                             </div>
                         </div>
 
