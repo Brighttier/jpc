@@ -2525,13 +2525,41 @@ const BlogView = ({ onBack }: { onBack: () => void }) => {
                         <i className="fa-solid fa-arrow-left transform group-hover:-translate-x-1 transition-transform"></i>
                         Back to Blog
                     </button>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        {/* Twitter/X */}
                         <button
-                            onClick={() => navigator.share?.({ title: selectedArticle.title, url: window.location.href })}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                            title="Share"
+                            onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(selectedArticle.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            className="p-2 text-zinc-400 hover:text-[#1DA1F2] hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Share on X"
                         >
-                            <i className="fa-solid fa-share-nodes"></i>
+                            <i className="fa-brands fa-x-twitter"></i>
+                        </button>
+                        {/* Facebook */}
+                        <button
+                            onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            className="p-2 text-zinc-400 hover:text-[#1877F2] hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Share on Facebook"
+                        >
+                            <i className="fa-brands fa-facebook-f"></i>
+                        </button>
+                        {/* LinkedIn */}
+                        <button
+                            onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank')}
+                            className="p-2 text-zinc-400 hover:text-[#0A66C2] hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Share on LinkedIn"
+                        >
+                            <i className="fa-brands fa-linkedin-in"></i>
+                        </button>
+                        {/* Copy Link */}
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                alert('Link copied to clipboard!');
+                            }}
+                            className="p-2 text-zinc-400 hover:text-[#FF5252] hover:bg-zinc-800 rounded-lg transition-colors"
+                            title="Copy Link"
+                        >
+                            <i className="fa-solid fa-link"></i>
                         </button>
                     </div>
                 </div>
