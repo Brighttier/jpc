@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchProduct = void 0;
+exports.fixArticleSpacing = exports.fetchProduct = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
@@ -313,6 +313,110 @@ exports.fetchProduct = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('not-found', 'Product page not found');
         }
         throw new functions.https.HttpsError('internal', 'Failed to fetch product data');
+    }
+});
+// ==================== ARTICLE SPACING FIX FUNCTION ====================
+exports.fixArticleSpacing = functions.https.onCall(async (data, context) => {
+    // Only allow authenticated admin users
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated');
+    }
+    const db = admin.firestore();
+    try {
+        const articleId = data === null || data === void 0 ? void 0 : data.articleId;
+        const dryRun = (data === null || data === void 0 ? void 0 : data.dryRun) !== false; // Default to true
+        // If articleId is provided, fix only that article
+        // Otherwise, fix all articles
+        let articlesQuery;
+        if (articleId) {
+            const docRef = db.collection('jpc_articles').doc(articleId);
+            const docSnap = await docRef.get();
+            articlesQuery = docSnap.exists ? [docSnap] : [];
+        }
+        else {
+            const snapshot = await db.collection('jpc_articles').get();
+            articlesQuery = snapshot.docs;
+        }
+        const results = [];
+        for (const doc of articlesQuery) {
+            const docData = doc.data();
+            const originalContent = (docData === null || docData === void 0 ? void 0 : docData.content) || '';
+            // Skip if content is empty or already properly formatted
+            if (!originalContent || originalContent.length < 100) {
+                continue;
+            }
+            // Apply spacing fixes
+            let fixedContent = originalContent;
+            let wasFixed = false;
+            // Fix 1: Add paragraph breaks between bold headers and following text
+            const beforeP1 = fixedContent;
+            fixedContent = fixedContent.replace(/(<\/strong>:?\s*)([A-Z])/g, '$1</p><p><strong>$2');
+            if (fixedContent !== beforeP1)
+                wasFixed = true;
+            // Fix 2: Add breaks before section headers that start with bold
+            const beforeP2 = fixedContent;
+            fixedContent = fixedContent.replace(/(New England Journal of Medicine\+1|PubMed)(<strong>)/g, '$1</p><p>$2');
+            if (fixedContent !== beforeP2)
+                wasFixed = true;
+            // Fix 3: Add line breaks before research paper titles in quotes
+            const beforeP3 = fixedContent;
+            fixedContent = fixedContent.replace(/(NEJM \(\d{4}\)|The Lancet \(\d{4}\))(")/g, '$1<br>$2');
+            if (fixedContent !== beforeP3)
+                wasFixed = true;
+            // Fix 4: Ensure proper paragraph wrapping
+            if (!fixedContent.startsWith('<p>')) {
+                fixedContent = '<p>' + fixedContent;
+                wasFixed = true;
+            }
+            if (!fixedContent.endsWith('</p>')) {
+                fixedContent = fixedContent + '</p>';
+                wasFixed = true;
+            }
+            // Fix 5: Add spacing between consecutive sections (What it is, Weight loss, etc.)
+            const beforeP5 = fixedContent;
+            fixedContent = fixedContent.replace(/(<\/a>)(<strong>(?:Weight loss|Type 2 diabetes|High cardiovascular|Top 3 Research))/g, '$1</p><p>$2');
+            if (fixedContent !== beforeP5)
+                wasFixed = true;
+            // Fix 6: Clean up multiple consecutive paragraph tags
+            fixedContent = fixedContent.replace(/<\/p>\s*<p>\s*<\/p>/g, '</p>');
+            fixedContent = fixedContent.replace(/<p>\s*<\/p>/g, '');
+            if (wasFixed) {
+                results.push({
+                    id: doc.id,
+                    title: (docData === null || docData === void 0 ? void 0 : docData.title) || 'Unknown',
+                    slug: (docData === null || docData === void 0 ? void 0 : docData.slug) || 'unknown',
+                    changed: true,
+                    preview: fixedContent.substring(0, 300) + '...',
+                    originalLength: originalContent.length,
+                    fixedLength: fixedContent.length
+                });
+                if (!dryRun) {
+                    await doc.ref.update({
+                        content: fixedContent,
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            }
+            else {
+                results.push({
+                    id: doc.id,
+                    title: (docData === null || docData === void 0 ? void 0 : docData.title) || 'Unknown',
+                    slug: (docData === null || docData === void 0 ? void 0 : docData.slug) || 'unknown',
+                    changed: false
+                });
+            }
+        }
+        return {
+            success: true,
+            dryRun,
+            totalProcessed: articlesQuery.length,
+            totalFixed: results.filter(r => r.changed).length,
+            results
+        };
+    }
+    catch (error) {
+        console.error('Error fixing article spacing:', error);
+        throw new functions.https.HttpsError('internal', error.message);
     }
 });
 //# sourceMappingURL=index.js.map
