@@ -2,14 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
 
-// TipTap Rich Text Editor imports
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import Highlight from '@tiptap/extension-highlight';
+// BlockNote Rich Text Editor imports
+import { BlockNoteEditor, Block } from "@blocknote/core";
+import { BlockNoteViewRaw, useCreateBlockNote } from "@blocknote/react";
+import "@blocknote/core/style.css";
+import "./src/styles/blocknote-theme.css";
 
 // Firebase imports
 import { initializeApp } from 'firebase/app';
@@ -6515,302 +6512,152 @@ const ImportProductModal = ({
 };
 
 // Rich Text Editor Component
+// Helper to parse HTML to BlockNote blocks
+const parseHTMLToBlocks = (html: string): Block[] => {
+    if (!html) return [];
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const blocks: Block[] = [];
+
+    const processNode = (node: Node): Block | Block[] | null => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent?.trim();
+            if (text) {
+                return {
+                    type: "paragraph",
+                    content: [{ type: "text", text, styles: {} }]
+                } as Block;
+            }
+            return null;
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            const tagName = element.tagName.toLowerCase();
+
+            switch (tagName) {
+                case 'p':
+                    return { type: "paragraph", content: parseInline(element) } as Block;
+                case 'h2':
+                    return { type: "heading", props: { level: 2 }, content: parseInline(element) } as Block;
+                case 'h3':
+                    return { type: "heading", props: { level: 3 }, content: parseInline(element) } as Block;
+                case 'ul':
+                    return Array.from(element.children).map(li => ({
+                        type: "bulletListItem",
+                        content: parseInline(li)
+                    })) as Block[];
+                case 'ol':
+                    return Array.from(element.children).map(li => ({
+                        type: "numberedListItem",
+                        content: parseInline(li)
+                    })) as Block[];
+                default:
+                    const text = element.textContent?.trim();
+                    if (text) {
+                        return { type: "paragraph", content: [{ type: "text", text, styles: {} }] } as Block;
+                    }
+            }
+        }
+        return null;
+    };
+
+    const parseInline = (element: Element): any[] => {
+        const content: any[] = [];
+        const traverse = (node: Node, styles: any = {}) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent || '';
+                if (text) content.push({ type: "text", text, styles });
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = node as Element;
+                const newStyles = { ...styles };
+                const tag = el.tagName.toLowerCase();
+                if (tag === 'strong' || tag === 'b') newStyles.bold = true;
+                if (tag === 'em' || tag === 'i') newStyles.italic = true;
+                if (tag === 'u') newStyles.underline = true;
+                if (tag === 'a') {
+                    content.push({
+                        type: "link",
+                        href: el.getAttribute('href') || '#',
+                        content: [{ type: "text", text: el.textContent || '', styles: {} }]
+                    });
+                    return;
+                }
+                Array.from(el.childNodes).forEach(child => traverse(child, newStyles));
+            }
+        };
+        Array.from(element.childNodes).forEach(child => traverse(child));
+        return content.length > 0 ? content : [{ type: "text", text: "", styles: {} }];
+    };
+
+    Array.from(doc.body.childNodes).forEach(node => {
+        const block = processNode(node);
+        if (Array.isArray(block)) blocks.push(...block);
+        else if (block) blocks.push(block);
+    });
+
+    return blocks.length > 0 ? blocks : [{ type: "paragraph", content: [{ type: "text", text: "", styles: {} }] } as Block];
+};
+
 const RichTextEditor = ({
     content,
     onChange,
-    placeholder = 'Start writing your article content...'
+    placeholder = 'Start writing... Type "/" for commands'
 }: {
     content: string;
     onChange: (content: string) => void;
     placeholder?: string;
 }) => {
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({
-                heading: { levels: [2, 3, 4] },
-            }),
-            Placeholder.configure({
-                placeholder,
-            }),
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: {
-                    class: 'text-[#FF5252] underline',
-                    target: '_blank',
-                    rel: 'noopener noreferrer',
-                },
-            }),
-            Underline,
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
-            Highlight.configure({
-                multicolor: true,
-            }),
-        ],
-        content,
-        editorProps: {
-            attributes: {
-                class: 'min-h-[400px] p-6 bg-zinc-950 text-zinc-200 focus:outline-none prose prose-invert prose-sm max-w-none',
-            },
+    const editor = useCreateBlockNote({
+        onEditorContentChange: (editor) => {
+            const html = editor.topLevelBlocks.map(blockToHTML).join('\n');
+            onChange(html);
         },
-        onUpdate: ({ editor }) => {
-            onChange(editor.getHTML());
-        },
+        initialContent: content ? parseHTMLToBlocks(content) : undefined,
     });
 
-    // Update editor content when content prop changes externally (e.g., from Auto Format)
-    useEffect(() => {
-        if (editor && content !== editor.getHTML()) {
-            editor.commands.setContent(content);
-        }
-    }, [content, editor]);
-
-    const ToolbarButton = ({ icon, onClick, active = false, title }: { icon: string; onClick: () => void; active?: boolean; title: string }) => (
-        <button
-            onClick={onClick}
-            title={title}
-            type="button"
-            className={`p-2 rounded hover:bg-zinc-700 transition-colors ${active ? 'bg-zinc-700 text-white' : 'text-zinc-400'}`}
-        >
-            <i className={`fa-solid ${icon}`}></i>
-        </button>
-    );
-
-    if (!editor) {
-        return <div className="min-h-[400px] bg-zinc-950 rounded-xl animate-pulse"></div>;
-    }
-
     return (
-        <div className="border border-zinc-800 rounded-xl overflow-hidden">
-            {/* Toolbar */}
-            <div className="bg-zinc-900 border-b border-zinc-800 p-2 flex flex-wrap gap-1">
-                <ToolbarButton icon="fa-undo" onClick={() => editor.chain().focus().undo().run()} title="Undo" />
-                <ToolbarButton icon="fa-redo" onClick={() => editor.chain().focus().redo().run()} title="Redo" />
-                <div className="w-px bg-zinc-700 mx-1"></div>
-
-                <select
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === 'p') {
-                            editor.chain().focus().setParagraph().run();
-                        } else if (value === 'h2') {
-                            editor.chain().focus().toggleHeading({ level: 2 }).run();
-                        } else if (value === 'h3') {
-                            editor.chain().focus().toggleHeading({ level: 3 }).run();
-                        } else if (value === 'h4') {
-                            editor.chain().focus().toggleHeading({ level: 4 }).run();
-                        }
-                    }}
-                    className="bg-zinc-800 text-zinc-300 text-sm rounded px-2 py-1 border-none outline-none"
-                >
-                    <option value="p">Paragraph</option>
-                    <option value="h2">Heading 2</option>
-                    <option value="h3">Heading 3</option>
-                    <option value="h4">Heading 4</option>
-                </select>
-                <div className="w-px bg-zinc-700 mx-1"></div>
-
-                <ToolbarButton
-                    icon="fa-bold"
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    active={editor.isActive('bold')}
-                    title="Bold"
-                />
-                <ToolbarButton
-                    icon="fa-italic"
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    active={editor.isActive('italic')}
-                    title="Italic"
-                />
-                <ToolbarButton
-                    icon="fa-underline"
-                    onClick={() => editor.chain().focus().toggleUnderline().run()}
-                    active={editor.isActive('underline')}
-                    title="Underline"
-                />
-                <ToolbarButton
-                    icon="fa-strikethrough"
-                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                    active={editor.isActive('strike')}
-                    title="Strikethrough"
-                />
-                <ToolbarButton
-                    icon="fa-highlighter"
-                    onClick={() => editor.chain().focus().toggleHighlight({ color: '#fef08a' }).run()}
-                    active={editor.isActive('highlight')}
-                    title="Highlight"
-                />
-                <ToolbarButton
-                    icon="fa-code"
-                    onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                    active={editor.isActive('codeBlock')}
-                    title="Code Block"
-                />
-                <div className="w-px bg-zinc-700 mx-1"></div>
-
-                <ToolbarButton
-                    icon="fa-align-left"
-                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                    active={editor.isActive({ textAlign: 'left' })}
-                    title="Align Left"
-                />
-                <ToolbarButton
-                    icon="fa-align-center"
-                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                    active={editor.isActive({ textAlign: 'center' })}
-                    title="Align Center"
-                />
-                <ToolbarButton
-                    icon="fa-align-right"
-                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                    active={editor.isActive({ textAlign: 'right' })}
-                    title="Align Right"
-                />
-                <ToolbarButton
-                    icon="fa-align-justify"
-                    onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-                    active={editor.isActive({ textAlign: 'justify' })}
-                    title="Justify"
-                />
-                <div className="w-px bg-zinc-700 mx-1"></div>
-
-                <ToolbarButton
-                    icon="fa-list-ul"
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                    active={editor.isActive('bulletList')}
-                    title="Bullet List"
-                />
-                <ToolbarButton
-                    icon="fa-list-ol"
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                    active={editor.isActive('orderedList')}
-                    title="Numbered List"
-                />
-                <ToolbarButton
-                    icon="fa-quote-left"
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                    active={editor.isActive('blockquote')}
-                    title="Quote"
-                />
-                <div className="w-px bg-zinc-700 mx-1"></div>
-
-                <ToolbarButton
-                    icon="fa-link"
-                    onClick={() => {
-                        const url = prompt('Enter URL:');
-                        if (url) {
-                            editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-                        }
-                    }}
-                    active={editor.isActive('link')}
-                    title="Link"
-                />
-                <ToolbarButton
-                    icon="fa-link-slash"
-                    onClick={() => editor.chain().focus().unsetLink().run()}
-                    title="Remove Link"
-                />
+        <div className="border border-zinc-800 rounded-xl overflow-hidden bg-[#09090b]">
+            <div className="text-zinc-500 text-xs p-2 bg-zinc-900/50 border-b border-zinc-800">
+                <i className="fa-solid fa-circle-info mr-1"></i>
+                Type <strong className="text-[#FF5252]">/</strong> for commands • Select text for formatting • Drag blocks to reorder
             </div>
-
-            {/* TipTap Editor Content */}
-            <EditorContent editor={editor} />
-
-            {/* TipTap Editor Styles */}
-            <style>{`
-                .ProseMirror {
-                    min-height: 400px;
-                    padding: 1.5rem;
-                    background: #09090b;
-                    color: #e4e4e7;
-                    outline: none;
-                }
-                .ProseMirror p.is-editor-empty:first-child::before {
-                    color: #71717a;
-                    content: attr(data-placeholder);
-                    float: left;
-                    height: 0;
-                    pointer-events: none;
-                }
-                .ProseMirror h2 {
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: #ffffff;
-                    margin-top: 1.5rem;
-                    margin-bottom: 0.75rem;
-                }
-                .ProseMirror h3 {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: #ffffff;
-                    margin-top: 1rem;
-                    margin-bottom: 0.5rem;
-                }
-                .ProseMirror h4 {
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #ffffff;
-                    margin-top: 0.75rem;
-                    margin-bottom: 0.5rem;
-                }
-                .ProseMirror p {
-                    margin-bottom: 1rem;
-                    line-height: 1.7;
-                }
-                .ProseMirror a {
-                    color: #FF5252;
-                    text-decoration: underline;
-                    cursor: pointer;
-                }
-                .ProseMirror ul {
-                    list-style-type: disc;
-                    padding-left: 1.5rem;
-                    margin-bottom: 1rem;
-                }
-                .ProseMirror ol {
-                    list-style-type: decimal;
-                    padding-left: 1.5rem;
-                    margin-bottom: 1rem;
-                }
-                .ProseMirror li {
-                    margin-bottom: 0.25rem;
-                }
-                .ProseMirror blockquote {
-                    border-left: 4px solid #FF5252;
-                    padding-left: 1rem;
-                    font-style: italic;
-                    color: #a1a1aa;
-                    margin: 1rem 0;
-                }
-                .ProseMirror pre {
-                    background: #18181b;
-                    padding: 1rem;
-                    border-radius: 0.5rem;
-                    font-family: monospace;
-                    font-size: 0.9rem;
-                    overflow-x: auto;
-                    margin: 1rem 0;
-                }
-                .ProseMirror code {
-                    background: #18181b;
-                    padding: 0.2rem 0.4rem;
-                    border-radius: 0.25rem;
-                    font-family: monospace;
-                    font-size: 0.9em;
-                }
-                .ProseMirror mark {
-                    background-color: #fef08a;
-                    color: #000;
-                    padding: 0.1rem 0.2rem;
-                    border-radius: 0.2rem;
-                }
-                .ProseMirror strong {
-                    font-weight: 700;
-                    color: #ffffff;
-                }
-            `}</style>
+            <BlockNoteViewRaw
+                editor={editor}
+                theme="dark"
+            />
         </div>
     );
+};
+
+// Helper to convert Block to HTML
+const blockToHTML = (block: Block): string => {
+    const { type, content, props } = block;
+    const renderInline = (c: any): string => {
+        if (typeof c === 'string') return c;
+        if (c.type === 'text') {
+            let text = c.text || '';
+            if (c.styles?.bold) text = `<strong>${text}</strong>`;
+            if (c.styles?.italic) text = `<em>${text}</em>`;
+            if (c.styles?.underline) text = `<u>${text}</u>`;
+            return text;
+        }
+        if (c.type === 'link') {
+            return `<a href="${c.href || '#'}" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">${c.content?.[0]?.text || ''}</a>`;
+        }
+        return '';
+    };
+
+    const contentHTML = content?.map(renderInline).join('') || '';
+    switch (type) {
+        case "paragraph": return `<p>${contentHTML}</p>`;
+        case "heading": return `<h${props?.level || 2}>${contentHTML}</h${props?.level || 2}>`;
+        case "bulletListItem": return `<li>${contentHTML}</li>`;
+        case "numberedListItem": return `<li>${contentHTML}</li>`;
+        case "codeBlock": return `<pre><code>${contentHTML}</code></pre>`;
+        default: return '';
+    }
 };
 
 // Article Editor View (Full Page)
