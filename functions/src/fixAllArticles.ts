@@ -48,13 +48,26 @@ export const fixAllArticlesFormatting = functions
           headings: 0,
         };
 
-        // Fix 1: Convert markdown links to HTML
-        // Match [text](url) and convert to <a href="url">text</a>
+        // Fix 1: Convert markdown links to HTML and fix nested links
+        // First, fix already-broken nested links where href contains <a> tags
+        fixedContent = fixedContent.replace(
+          /href="<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>"/g,
+          (match: string, url: string) => {
+            fixes.markdownLinks++;
+            return `href="${url}"`;
+          }
+        );
+
+        // Then convert any remaining markdown-style links [text](url)
         const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
         fixedContent = fixedContent.replace(markdownLinkRegex, (_match: string, text: string, url: string) => {
           fixes.markdownLinks++;
-          // Clean up URL if it's already wrapped in <a> tags (nested issue)
-          const cleanUrl = url.replace(/<a[^>]*href="([^"]*)"[^>]*>.*?<\/a>/g, '$1');
+          // Clean up URL if it contains HTML tags
+          let cleanUrl = url.trim();
+          const hrefMatch = cleanUrl.match(/href="([^"]*)"/);
+          if (hrefMatch) {
+            cleanUrl = hrefMatch[1];
+          }
           return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">${text}</a>`;
         });
 
