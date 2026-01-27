@@ -1983,6 +1983,7 @@ const WelcomeSetupPage = ({
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [generatingProtocol, setGeneratingProtocol] = useState(false);
     const [error, setError] = useState('');
 
     // Get email from localStorage if not provided as prop
@@ -2028,18 +2029,20 @@ const WelcomeSetupPage = ({
                 claimedAt: serverTimestamp()
             });
 
-            // Trigger personalized protocol generation (async - don't wait)
-            try {
-                const generateProtocol = httpsCallable(functions, 'generatePersonalizedProtocol');
-                generateProtocol({ assessmentId, userId: newUser.uid })
-                    .then(() => console.log('Protocol generation triggered'))
-                    .catch(err => console.error('Protocol generation error:', err));
-            } catch (e) {
-                console.error('Failed to trigger protocol generation:', e);
-            }
-
             // Store assessmentId for protocol retrieval
             window.localStorage.setItem('protocolAssessmentId', assessmentId);
+
+            // Generate personalized protocol (wait for completion)
+            setGeneratingProtocol(true);
+            try {
+                const generateProtocol = httpsCallable(functions, 'generatePersonalizedProtocol');
+                await generateProtocol({ assessmentId, userId: newUser.uid });
+                console.log('Protocol generated successfully');
+            } catch (e) {
+                console.error('Protocol generation error:', e);
+                // Continue anyway - protocol can be regenerated later
+            }
+            setGeneratingProtocol(false);
 
             // Clear sign-in localStorage
             window.localStorage.removeItem('emailForSignIn');
@@ -2121,13 +2124,18 @@ const WelcomeSetupPage = ({
 
                         <button
                             onClick={handleSetPassword}
-                            disabled={loading || !password || !confirmPassword}
+                            disabled={loading || generatingProtocol || !password || !confirmPassword}
                             className="w-full bg-[#FF5252] hover:bg-[#ff3333] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                         >
-                            {loading ? (
+                            {generatingProtocol ? (
+                                <>
+                                    <i className="fa-solid fa-flask-vial animate-pulse"></i>
+                                    Generating Your Protocol...
+                                </>
+                            ) : loading ? (
                                 <>
                                     <i className="fa-solid fa-spinner animate-spin"></i>
-                                    Setting up...
+                                    Creating Account...
                                 </>
                             ) : (
                                 <>
