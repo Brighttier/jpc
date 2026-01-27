@@ -10062,14 +10062,19 @@ const AdminDashboard = ({
 
 
 const App = () => {
-    // App Flow State
-    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms' | 'thankYou' | 'welcomeSetup'>('landing');
+    // Check for magic link params immediately (before any state)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasMagicLink = urlParams.get('token') && urlParams.get('assessmentId');
+
+    // App Flow State - start on welcomeSetup if magic link detected
+    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms' | 'thankYou' | 'welcomeSetup'>(hasMagicLink ? 'welcomeSetup' : 'landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [mainPageVideos, setMainPageVideos] = useState<VideoContent[]>([]);
     const [pendingEmail, setPendingEmail] = useState('');
     const [assessmentIdForSetup, setAssessmentIdForSetup] = useState('');
+    const [magicLinkLoading, setMagicLinkLoading] = useState(!!hasMagicLink);
 
     // Listen for auth state changes (persist login across refreshes)
     useEffect(() => {
@@ -10163,6 +10168,7 @@ const App = () => {
                         // Show password setup page
                         setAssessmentIdForSetup(data.assessmentId);
                         setPendingEmail(data.email);
+                        setMagicLinkLoading(false);
                         setView('welcomeSetup');
                     }
                 } catch (error: any) {
@@ -10170,6 +10176,7 @@ const App = () => {
                     alert(error.message || 'Invalid or expired link. Please request a new one.');
                     // Clear URL params
                     window.history.replaceState({}, document.title, window.location.pathname);
+                    setMagicLinkLoading(false);
                     setView('landing');
                 }
             };
@@ -10459,15 +10466,27 @@ const App = () => {
                 <ThankYouPage userEmail={pendingEmail} />
             )}
 
-            {view === 'welcomeSetup' && assessmentIdForSetup && (
-                <WelcomeSetupPage
-                    assessmentId={assessmentIdForSetup}
-                    email={pendingEmail}
-                    onComplete={(newUser) => {
-                        setUser(newUser);
-                        setView('calculator');
-                    }}
-                />
+            {view === 'welcomeSetup' && (
+                magicLinkLoading ? (
+                    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="relative mb-6">
+                                <div className="w-16 h-16 border-4 border-zinc-800 rounded-full"></div>
+                                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-[#FF5252] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                            <p className="text-zinc-400 text-sm">Verifying your link...</p>
+                        </div>
+                    </div>
+                ) : assessmentIdForSetup ? (
+                    <WelcomeSetupPage
+                        assessmentId={assessmentIdForSetup}
+                        email={pendingEmail}
+                        onComplete={(newUser) => {
+                            setUser(newUser);
+                            setView('calculator');
+                        }}
+                    />
+                ) : null
             )}
 
             {view === 'admin' && user && (

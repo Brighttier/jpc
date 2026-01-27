@@ -85,7 +85,9 @@ exports.sendProtocolMagicLink = functions
             ? assessmentData.goals.map(g => `• ${g}`).join('<br>')
             : '• General wellness';
         // Send email via Resend
+        // Domain notifications.japrotocols.com must be verified in Resend dashboard
         const resend = getResend();
+        console.log('Attempting to send email to:', assessmentData.email);
         const { data, error } = await resend.emails.send({
             from: 'Jon Andersen <noreply@notifications.japrotocols.com>',
             to: assessmentData.email,
