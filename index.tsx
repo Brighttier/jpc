@@ -5557,8 +5557,10 @@ const CalculatorView = ({
   const [desiredDoseMcg, setDesiredDoseMcg] = useState<string>('250');
   const [syringeCapacity, setSyringeCapacity] = useState<SyringeCapacity>(100);
 
-  // Tab State
-  const [activeTab, setActiveTab] = useState<'calculator' | 'profile'>('calculator');
+  // Tab State - 'protocol' is the first tab for logged-in users with assessment
+  const [activeTab, setActiveTab] = useState<'protocol' | 'calculator' | 'profile'>(
+    user?.hasAssessment ? 'protocol' : 'calculator'
+  );
 
   // Saved Protocols State (persisted to Firestore)
   const [savedProtocols, setSavedProtocols] = useState<SavedProtocol[]>([]);
@@ -5754,14 +5756,6 @@ const CalculatorView = ({
       />
 
       <div className="w-full max-w-[90rem] mx-auto p-6 lg:p-12 pt-28">
-        {/* Personalized Protocol - Full Width Above Calculator */}
-        {user?.hasAssessment && (
-          <PersonalizedProtocol
-            user={user}
-            onSelectPeptide={handleSelectPeptide}
-          />
-        )}
-
         {/* Calculator Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
@@ -5848,22 +5842,40 @@ const CalculatorView = ({
                      {/* Tab Switcher - Floating Island Style */}
                      <div className="flex justify-center mb-10">
                         <div className="bg-black/50 backdrop-blur-xl p-1.5 rounded-2xl border border-zinc-800 inline-flex shadow-xl">
-                            <button 
+                            {user?.hasAssessment && (
+                                <button
+                                    onClick={() => setActiveTab('protocol')}
+                                    className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'protocol' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                >
+                                    <i className="fa-solid fa-flask-vial mr-2"></i>My Protocol
+                                </button>
+                            )}
+                            <button
                                 onClick={() => setActiveTab('calculator')}
-                                className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'calculator' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'calculator' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
                             >
                                 Dosage Calculator
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setActiveTab('profile')}
-                                className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'profile' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 ${activeTab === 'profile' ? 'bg-[#FF5252] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
                             >
                                 Compound Profile
                             </button>
                         </div>
                      </div>
 
-                     {activeTab === 'calculator' ? (
+                     {activeTab === 'protocol' && user?.hasAssessment ? (
+                         <div className="animate-fadeIn">
+                             <PersonalizedProtocol
+                                 user={user}
+                                 onSelectPeptide={(peptide) => {
+                                     handleSelectPeptide(peptide);
+                                     setActiveTab('calculator');
+                                 }}
+                             />
+                         </div>
+                     ) : activeTab === 'calculator' ? (
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-fadeIn">
                             {/* Input Column */}
                             <div className="space-y-8">

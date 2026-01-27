@@ -96,6 +96,11 @@ Example response structure:
             }
         });
         let responseText = result.response.text();
+        // Strip markdown code blocks if present (```html ... ``` or ``` ... ```)
+        responseText = responseText
+            .replace(/```html\s*/gi, '')
+            .replace(/```\s*/g, '')
+            .trim();
         // Ensure human support CTA is included
         if (!responseText.includes('human-support-cta') && !responseText.includes('Human Support')) {
             responseText += `
@@ -178,6 +183,11 @@ FORMAT as valid HTML:
             }
         });
         let responseText = result.response.text();
+        // Strip markdown code blocks if present (```html ... ``` or ``` ... ```)
+        responseText = responseText
+            .replace(/```html\s*/gi, '')
+            .replace(/```\s*/g, '')
+            .trim();
         // Ensure human support CTA is included
         if (!responseText.includes('human-support-cta')) {
             responseText += `
