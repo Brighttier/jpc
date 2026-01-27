@@ -1522,13 +1522,13 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                         onClick={() => setIsSignUp(false)}
                         className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${!isSignUp ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
-                        Sign In to JAProtocols
+                        Sign In
                     </button>
                     <button
                         onClick={() => setIsSignUp(true)}
                         className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${isSignUp ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
-                        Subscribe to Academy
+                        Subscribe
                     </button>
                 </div>
 
