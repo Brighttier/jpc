@@ -7,6 +7,9 @@ interface ArticleFix {
   emptyParagraphs: number;
   markdownBullets: number;
   headings: number;
+  markdownHeadings: number;
+  sectionTitles: number;
+  warningBoxes: number;
 }
 
 /**
@@ -46,7 +49,56 @@ export const fixAllArticlesFormatting = functions
           emptyParagraphs: 0,
           markdownBullets: 0,
           headings: 0,
+          markdownHeadings: 0,
+          sectionTitles: 0,
+          warningBoxes: 0,
         };
+
+        // NEW Fix: Convert markdown headings in paragraphs <p># Title</p> to <h2>Title</h2>
+        fixedContent = fixedContent.replace(
+          /<p>#\s*([^<]+)<\/p>/g,
+          (_match: string, title: string) => {
+            fixes.markdownHeadings++;
+            return `<h2>${title.trim()}</h2>`;
+          }
+        );
+
+        // NEW Fix: Convert plain text section titles to h2 headings
+        // Match patterns like <p>General Dosage Range...</p> or <p>Route of Administration...</p>
+        const sectionTitlePatterns = [
+          /<p>(General [^<]{5,50})<\/p>/gi,
+          /<p>(Route of [^<]{5,50})<\/p>/gi,
+          /<p>(Timing [^<]{5,50})<\/p>/gi,
+          /<p>(How to [^<]{5,50})<\/p>/gi,
+          /<p>(Dosing [^<]{5,50})<\/p>/gi,
+          /<p>(Administration [^<]{5,50})<\/p>/gi,
+          /<p>(Storage [^<]{5,50})<\/p>/gi,
+          /<p>(Safety [^<]{5,50})<\/p>/gi,
+          /<p>(Warnings? [^<]{0,50})<\/p>/gi,
+        ];
+
+        sectionTitlePatterns.forEach(pattern => {
+          fixedContent = fixedContent.replace(pattern, (_match: string, title: string) => {
+            fixes.sectionTitles++;
+            return `<h2>${title.trim()}</h2>`;
+          });
+        });
+
+        // NEW Fix: Wrap Medical Disclaimer sections in warning boxes
+        // Match <h2>Medical Disclaimer...</h2> followed by paragraphs
+        fixedContent = fixedContent.replace(
+          /<h2>Medical Disclaimer[^<]*<\/h2>\s*((?:<p>[\s\S]*?<\/p>\s*)+)/gi,
+          (_match: string, content: string) => {
+            fixes.warningBoxes++;
+            return `<div class="warning-box">
+  <div class="warning-header">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <strong>Medical Disclaimer (Please Read First)</strong>
+  </div>
+  <div class="warning-content">${content.trim()}</div>
+</div>`;
+          }
+        );
 
         // Fix 1: Convert markdown links to HTML and fix nested links
         // First, fix already-broken nested links where href contains <a> tags
@@ -141,7 +193,9 @@ export const fixAllArticlesFormatting = functions
 
         // Determine if changes were made
         const changed = fixedContent !== originalContent;
-        const totalFixes = fixes.markdownLinks + fixes.excessiveBr + fixes.emptyParagraphs + fixes.markdownBullets + fixes.headings;
+        const totalFixes = fixes.markdownLinks + fixes.excessiveBr + fixes.emptyParagraphs +
+                          fixes.markdownBullets + fixes.headings + fixes.markdownHeadings +
+                          fixes.sectionTitles + fixes.warningBoxes;
 
         if (changed) {
           totalFixed++;

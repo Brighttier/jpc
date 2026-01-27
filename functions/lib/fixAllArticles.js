@@ -68,14 +68,62 @@ exports.fixAllArticlesFormatting = functions
                 emptyParagraphs: 0,
                 markdownBullets: 0,
                 headings: 0,
+                markdownHeadings: 0,
+                sectionTitles: 0,
+                warningBoxes: 0,
             };
-            // Fix 1: Convert markdown links to HTML
-            // Match [text](url) and convert to <a href="url">text</a>
+            // NEW Fix: Convert markdown headings in paragraphs <p># Title</p> to <h2>Title</h2>
+            fixedContent = fixedContent.replace(/<p>#\s*([^<]+)<\/p>/g, (_match, title) => {
+                fixes.markdownHeadings++;
+                return `<h2>${title.trim()}</h2>`;
+            });
+            // NEW Fix: Convert plain text section titles to h2 headings
+            // Match patterns like <p>General Dosage Range...</p> or <p>Route of Administration...</p>
+            const sectionTitlePatterns = [
+                /<p>(General [^<]{5,50})<\/p>/gi,
+                /<p>(Route of [^<]{5,50})<\/p>/gi,
+                /<p>(Timing [^<]{5,50})<\/p>/gi,
+                /<p>(How to [^<]{5,50})<\/p>/gi,
+                /<p>(Dosing [^<]{5,50})<\/p>/gi,
+                /<p>(Administration [^<]{5,50})<\/p>/gi,
+                /<p>(Storage [^<]{5,50})<\/p>/gi,
+                /<p>(Safety [^<]{5,50})<\/p>/gi,
+                /<p>(Warnings? [^<]{0,50})<\/p>/gi,
+            ];
+            sectionTitlePatterns.forEach(pattern => {
+                fixedContent = fixedContent.replace(pattern, (_match, title) => {
+                    fixes.sectionTitles++;
+                    return `<h2>${title.trim()}</h2>`;
+                });
+            });
+            // NEW Fix: Wrap Medical Disclaimer sections in warning boxes
+            // Match <h2>Medical Disclaimer...</h2> followed by paragraphs
+            fixedContent = fixedContent.replace(/<h2>Medical Disclaimer[^<]*<\/h2>\s*((?:<p>[\s\S]*?<\/p>\s*)+)/gi, (_match, content) => {
+                fixes.warningBoxes++;
+                return `<div class="warning-box">
+  <div class="warning-header">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <strong>Medical Disclaimer (Please Read First)</strong>
+  </div>
+  <div class="warning-content">${content.trim()}</div>
+</div>`;
+            });
+            // Fix 1: Convert markdown links to HTML and fix nested links
+            // First, fix already-broken nested links where href contains <a> tags
+            fixedContent = fixedContent.replace(/href="<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>"/g, (match, url) => {
+                fixes.markdownLinks++;
+                return `href="${url}"`;
+            });
+            // Then convert any remaining markdown-style links [text](url)
             const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
             fixedContent = fixedContent.replace(markdownLinkRegex, (_match, text, url) => {
                 fixes.markdownLinks++;
-                // Clean up URL if it's already wrapped in <a> tags (nested issue)
-                const cleanUrl = url.replace(/<a[^>]*href="([^"]*)"[^>]*>.*?<\/a>/g, '$1');
+                // Clean up URL if it contains HTML tags
+                let cleanUrl = url.trim();
+                const hrefMatch = cleanUrl.match(/href="([^"]*)"/);
+                if (hrefMatch) {
+                    cleanUrl = hrefMatch[1];
+                }
                 return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">${text}</a>`;
             });
             // Fix 2: Remove empty paragraphs
@@ -141,7 +189,9 @@ exports.fixAllArticlesFormatting = functions
             }
             // Determine if changes were made
             const changed = fixedContent !== originalContent;
-            const totalFixes = fixes.markdownLinks + fixes.excessiveBr + fixes.emptyParagraphs + fixes.markdownBullets + fixes.headings;
+            const totalFixes = fixes.markdownLinks + fixes.excessiveBr + fixes.emptyParagraphs +
+                fixes.markdownBullets + fixes.headings + fixes.markdownHeadings +
+                fixes.sectionTitles + fixes.warningBoxes;
             if (changed) {
                 totalFixed++;
                 // Update Firestore if not in dry-run mode

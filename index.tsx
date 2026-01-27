@@ -6789,19 +6789,18 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
     };
 
     const handleAutoFormat = () => {
-        // TipTap-compatible auto-format - no inline styles, clean semantic HTML
+        // Comprehensive auto-format - matches Cloud Function formatting
         let formatted = content;
 
-        // === STEP 1: Remove ALL inline styles (TipTap handles styling via CSS) ===
+        // === STEP 1: Remove ALL inline styles ===
         formatted = formatted.replace(/\s*style="[^"]*"/gi, '');
 
         // === STEP 2: Clean up empty elements aggressively ===
-        // Empty paragraphs
         formatted = formatted.replace(/<p>\s*<\/p>/gi, '');
         formatted = formatted.replace(/<p><br\s*\/?><\/p>/gi, '');
         formatted = formatted.replace(/<p>&nbsp;<\/p>/gi, '');
 
-        // Empty list items (including nested empty paragraphs) - run multiple times
+        // Empty list items - run multiple times
         for (let i = 0; i < 3; i++) {
             formatted = formatted.replace(/<li>\s*<\/li>/gi, '');
             formatted = formatted.replace(/<li><p>\s*<\/p><\/li>/gi, '');
@@ -6810,7 +6809,7 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
             formatted = formatted.replace(/<li><p><br\s*\/?><\/p><\/li>/gi, '');
         }
 
-        // Empty lists (after removing empty items)
+        // Empty lists
         formatted = formatted.replace(/<ul>\s*<\/ul>/gi, '');
         formatted = formatted.replace(/<ol>\s*<\/ol>/gi, '');
 
@@ -6818,26 +6817,112 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
         formatted = formatted.replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
         formatted = formatted.replace(/\n{3,}/g, '\n\n');
 
-        // === STEP 3: Fix broken link patterns from copy-paste ===
-        // Pattern: URL">LinkText (most common broken pattern)
-        formatted = formatted.replace(/(https?:\/\/[^\s<>]+)">([^<\n]+)/gi, (match, url, linkText) => {
+        // === STEP 3: Convert markdown headings <p># Title</p> to <h2>Title</h2> ===
+        formatted = formatted.replace(/<p>#\s*([^<]+)<\/p>/g, '<h2>$1</h2>');
+        // Also handle ## for h3
+        formatted = formatted.replace(/<p>##\s*([^<]+)<\/p>/g, '<h3>$1</h3>');
+        // Plain text # at start of content
+        formatted = formatted.replace(/^#\s+(.+)$/gm, '<h2>$1</h2>');
+        formatted = formatted.replace(/^##\s+(.+)$/gm, '<h3>$1</h3>');
+
+        // === STEP 4: Convert plain text section titles to h2 headings ===
+        const sectionTitlePatterns = [
+            /<p>(General [^<]{5,50})<\/p>/gi,
+            /<p>(Route of [^<]{5,50})<\/p>/gi,
+            /<p>(Timing [^<]{5,50})<\/p>/gi,
+            /<p>(How to [^<]{5,50})<\/p>/gi,
+            /<p>(Dosing [^<]{5,50})<\/p>/gi,
+            /<p>(Dosage [^<]{5,50})<\/p>/gi,
+            /<p>(Administration [^<]{5,50})<\/p>/gi,
+            /<p>(Storage [^<]{5,50})<\/p>/gi,
+            /<p>(Safety [^<]{5,50})<\/p>/gi,
+            /<p>(Warnings?[^<]{0,50})<\/p>/gi,
+            /<p>(Side Effects?[^<]{0,50})<\/p>/gi,
+            /<p>(Benefits[^<]{0,50})<\/p>/gi,
+            /<p>(Mechanism[^<]{0,50})<\/p>/gi,
+            /<p>(Research[^<]{0,50})<\/p>/gi,
+            /<p>(Clinical [^<]{5,50})<\/p>/gi,
+            /<p>(Summary[^<]{0,50})<\/p>/gi,
+            /<p>(Conclusion[^<]{0,50})<\/p>/gi,
+            /<p>(Overview[^<]{0,50})<\/p>/gi,
+            /<p>(Introduction[^<]{0,50})<\/p>/gi,
+            /<p>(Key [^<]{5,50})<\/p>/gi,
+            /<p>(Important [^<]{5,50})<\/p>/gi,
+            /<p>(Example [^<]{5,50})<\/p>/gi,
+            /<p>(Typical [^<]{5,50})<\/p>/gi,
+            /<p>(Common [^<]{5,50})<\/p>/gi,
+            /<p>(Recommended [^<]{5,50})<\/p>/gi,
+        ];
+
+        sectionTitlePatterns.forEach(pattern => {
+            formatted = formatted.replace(pattern, '<h2>$1</h2>');
+        });
+
+        // === STEP 5: Convert markdown bullets to HTML lists ===
+        // Handle lines starting with - or * followed by space
+        const lines = formatted.split('\n');
+        const processedLines: string[] = [];
+        let inList = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
+            const isInHtmlList = line.includes('<li>') || line.includes('<ul>') || line.includes('</ul>');
+
+            if (bulletMatch && !isInHtmlList) {
+                if (!inList) {
+                    processedLines.push('<ul>');
+                    inList = true;
+                }
+                processedLines.push(`<li><p>${bulletMatch[1]}</p></li>`);
+            } else {
+                if (inList && !bulletMatch) {
+                    processedLines.push('</ul>');
+                    inList = false;
+                }
+                processedLines.push(lines[i]);
+            }
+        }
+        if (inList) {
+            processedLines.push('</ul>');
+        }
+        formatted = processedLines.join('\n');
+
+        // === STEP 6: Wrap Medical Disclaimer in warning box ===
+        // Only if not already wrapped
+        if (!formatted.includes('warning-box') && formatted.toLowerCase().includes('medical disclaimer')) {
+            formatted = formatted.replace(
+                /<h2>Medical Disclaimer[^<]*<\/h2>\s*((?:<p>[\s\S]*?<\/p>\s*)+)/gi,
+                `<div class="warning-box">
+  <div class="warning-header">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <strong>Medical Disclaimer (Please Read First)</strong>
+  </div>
+  <div class="warning-content">$1</div>
+</div>`
+            );
+        }
+
+        // === STEP 7: Fix broken link patterns from copy-paste ===
+        formatted = formatted.replace(/(https?:\/\/[^\s<>]+)">([^<\n]+)/gi, (_match, url, linkText) => {
             const cleanText = linkText.replace(/[<>"]/g, '').replace(/\+\d*$/, '').trim();
             if (url && cleanText && cleanText.length > 2) {
-                return '<a href="' + url + '">' + cleanText + '</a>';
+                return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">' + cleanText + '</a>';
             }
-            return match;
+            return _match;
         });
 
-        // Pattern: url](url)">text - markdown link broken during paste
-        formatted = formatted.replace(/(https?:\/\/[^\s<\]"]+)\]\([^)]*\)"?>([^<\n]+)/gi, (match, url, linkText) => {
-            const cleanText = linkText.replace(/[<>"]/g, '').replace(/\+\d*$/, '').trim();
-            if (url && cleanText) {
-                return '<a href="' + url + '">' + cleanText + '</a>';
-            }
-            return match;
-        });
+        // Fix nested <a> tags in href
+        formatted = formatted.replace(
+            /href="<a[^>]*href="([^"]*)"[^>]*>[^<]*<\/a>"/g,
+            'href="$1"'
+        );
 
-        // === STEP 4: Auto-link known journal/source names ===
+        // === STEP 8: Convert markdown-style links ===
+        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/gi,
+            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">$1</a>');
+
+        // === STEP 9: Auto-link known journal/source names ===
         const journalLinks: Record<string, string> = {
             'New England Journal of Medicine': 'https://www.nejm.org',
             'NEJM': 'https://www.nejm.org',
@@ -6856,36 +6941,35 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
             'WHO': 'https://www.who.int'
         };
 
-        // Match journal names with optional +N suffix (ChatGPT citation markers)
         Object.entries(journalLinks).forEach(([name, url]) => {
             const pattern = new RegExp('(?<!<a[^>]*>)(' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\+?\\d*(?!</a>)', 'gi');
-            formatted = formatted.replace(pattern, '<a href="' + url + '">' + name + '</a>');
+            formatted = formatted.replace(pattern, '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline">' + name + '</a>');
         });
 
-        // === STEP 5: Convert markdown-style links ===
-        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/gi, '<a href="$2">$1</a>');
-
-        // === STEP 6: Detect section headings (text ending with colon) ===
-        // Convert "What it is:" at start of paragraph to bold
-        formatted = formatted.replace(/<p>([A-Z][^<:]{0,70}:)\s*/gi, (match, heading) => {
-            if (heading.trim().endsWith(':')) {
-                return '<p><strong>' + heading.trim() + '</strong> ';
-            }
-            return match;
-        });
-
-        // Handle **bold** markdown syntax
+        // === STEP 10: Handle **bold** and *italic* markdown syntax ===
         formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
-        // === STEP 7: Convert h1 to h2 for consistency ===
+        // === STEP 11: Convert strong section headings to h2 ===
+        // Pattern: <p><strong>Section Title</strong></p> at the start of a section
+        formatted = formatted.replace(
+            /<p><strong>(What (it is|is [^<]+)|Overview|Introduction|Mechanism[^<]*|How (it works|does it work)|Research|Evidence|Studies|Clinical[^<]*|Key (benefits|findings|results|studies)|Side effects|Safety|Dosing|Usage|Summary|Conclusion|Takeaways)[^<]*<\/strong>:?\s*<\/p>/gi,
+            '<h2>$1</h2>'
+        );
+
+        // === STEP 12: Convert h1 to h2 for consistency ===
         formatted = formatted.replace(/<h1([^>]*)>/gi, '<h2$1>');
         formatted = formatted.replace(/<\/h1>/gi, '</h2>');
 
-        // === STEP 8: Final cleanup - remove empty tags ===
+        // === STEP 13: Final cleanup - remove empty tags ===
         formatted = formatted.replace(/<strong>\s*<\/strong>/gi, '');
         formatted = formatted.replace(/<em>\s*<\/em>/gi, '');
         formatted = formatted.replace(/<b>\s*<\/b>/gi, '');
         formatted = formatted.replace(/<p>\s*<\/p>/gi, '');
+
+        // Ensure all links have proper styling
+        formatted = formatted.replace(/<a href="([^"]+)"(?![^>]*class=)/gi,
+            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] underline"');
 
         setContent(formatted);
     };
