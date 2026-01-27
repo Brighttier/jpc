@@ -5566,9 +5566,14 @@ const CalculatorView = ({
   const [syringeCapacity, setSyringeCapacity] = useState<SyringeCapacity>(100);
 
   // Tab State - 'protocol' is the first tab for logged-in users with assessment
-  const [activeTab, setActiveTab] = useState<'protocol' | 'calculator' | 'profile'>(
-    user?.hasAssessment ? 'protocol' : 'calculator'
-  );
+  const [activeTab, setActiveTab] = useState<'protocol' | 'calculator' | 'profile'>('calculator');
+
+  // Switch to protocol tab when user with assessment loads
+  useEffect(() => {
+    if (user?.hasAssessment && activeTab === 'calculator') {
+      setActiveTab('protocol');
+    }
+  }, [user?.hasAssessment]);
 
   // Saved Protocols State (persisted to Firestore)
   const [savedProtocols, setSavedProtocols] = useState<SavedProtocol[]>([]);
@@ -10093,10 +10098,16 @@ const App = () => {
                     const userDocRef = doc(db, 'jpc_users', firebaseUser.uid);
                     const userSnap = await getDoc(userDocRef);
                     let isAdmin = false;
+                    let hasAssessment = false;
+                    let assessmentId: string | undefined;
+                    let isAcademyMember = false;
 
                     if (userSnap.exists()) {
-                        const userData = userSnap.data() as AppUser;
+                        const userData = userSnap.data();
                         isAdmin = userData.isAdmin || false;
+                        hasAssessment = userData.hasAssessment || false;
+                        assessmentId = userData.assessmentId;
+                        isAcademyMember = userData.isAcademyMember || false;
                     }
 
                     // Hardcoded admin emails (fallback)
@@ -10108,9 +10119,10 @@ const App = () => {
                     setUser({
                         uid: firebaseUser.uid,
                         email: firebaseUser.email || '',
-                        hasAssessment: false,
-                        isAcademyMember: true,
-                        isAdmin: isAdmin
+                        hasAssessment: hasAssessment,
+                        isAcademyMember: isAcademyMember,
+                        isAdmin: isAdmin,
+                        assessmentId: assessmentId
                     });
 
                     // Expose user context for chat widget (so it doesn't ask for user details)
