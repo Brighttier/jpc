@@ -309,5 +309,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
+
+    <!-- Peptide Chat Widget - Human Support -->
+    <script>
+      (function(w,d,s,o,f,js,fjs){
+        w['PeptideChat']=o;w[o]=w[o]||function(){
+          (w[o].q=w[o].q||[]).push(arguments)
+        };
+        js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+        js.src=f;js.async=1;fjs.parentNode.insertBefore(js,fjs);
+      })(window,document,'script','peptideChat','https://support.japrotocols.com/widget.js');
+      peptideChat('init', { repId: 'jon-cl' });
+    </script>
   </body>
 </html>

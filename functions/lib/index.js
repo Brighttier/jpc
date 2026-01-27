@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fixArticleSpacing = exports.fetchProduct = exports.fixAllArticlesFormatting = void 0;
+exports.fixArticleSpacing = exports.fetchProduct = exports.getCompoundOverview = exports.askJonAI = exports.getUserProtocol = exports.generatePersonalizedProtocol = exports.seedPeptideReference = exports.verifyMagicLink = exports.sendProtocolMagicLink = exports.fixAllArticlesFormatting = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
@@ -46,6 +46,17 @@ admin.initializeApp();
 // Export additional cloud functions
 var fixAllArticles_1 = require("./fixAllArticles");
 Object.defineProperty(exports, "fixAllArticlesFormatting", { enumerable: true, get: function () { return fixAllArticles_1.fixAllArticlesFormatting; } });
+var sendMagicLink_1 = require("./sendMagicLink");
+Object.defineProperty(exports, "sendProtocolMagicLink", { enumerable: true, get: function () { return sendMagicLink_1.sendProtocolMagicLink; } });
+Object.defineProperty(exports, "verifyMagicLink", { enumerable: true, get: function () { return sendMagicLink_1.verifyMagicLink; } });
+var seedPeptideReference_1 = require("./seedPeptideReference");
+Object.defineProperty(exports, "seedPeptideReference", { enumerable: true, get: function () { return seedPeptideReference_1.seedPeptideReference; } });
+var generateProtocol_1 = require("./generateProtocol");
+Object.defineProperty(exports, "generatePersonalizedProtocol", { enumerable: true, get: function () { return generateProtocol_1.generatePersonalizedProtocol; } });
+Object.defineProperty(exports, "getUserProtocol", { enumerable: true, get: function () { return generateProtocol_1.getUserProtocol; } });
+var jonAI_1 = require("./jonAI");
+Object.defineProperty(exports, "askJonAI", { enumerable: true, get: function () { return jonAI_1.askJonAI; } });
+Object.defineProperty(exports, "getCompoundOverview", { enumerable: true, get: function () { return jonAI_1.getCompoundOverview; } });
 // Helper functions
 function formatPrice(price) {
     if (!price)
@@ -214,7 +225,7 @@ async function extractWithAI(html, url) {
         return null;
     }
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     // Truncate HTML to avoid token limits
     const truncatedHtml = html.substring(0, 50000);
     const prompt = `Extract product information from this e-commerce page HTML.

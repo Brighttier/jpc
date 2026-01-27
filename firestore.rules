@@ -47,6 +47,30 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
+    // JPC Assessments - anyone can create (for initial submission), authenticated can update
+    match /jpc_assessments/{assessmentId} {
+      // Anyone can create an assessment (before they have an account)
+      allow create: if true;
+      // Authenticated users can read their own claimed assessments
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Authenticated users can update (to claim the assessment after email verification)
+      allow update: if request.auth != null;
+    }
+
+    // Peptide Reference - public read, admin write only
+    match /peptide_reference/{peptideId} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/jpc_users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // User Protocols - users read own, cloud function creates
+    match /user_protocols/{protocolId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if true;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
     // JPC Subscriptions - users can read/write their own, admins can read all
     match /jpc_subscriptions/{subscriptionId} {
       // Users can read their own subscriptions

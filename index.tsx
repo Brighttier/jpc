@@ -33,7 +33,11 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    User as FirebaseUser
+    User as FirebaseUser,
+    sendSignInLinkToEmail,
+    isSignInWithEmailLink,
+    signInWithEmailLink,
+    updatePassword
 } from 'firebase/auth';
 import { getAnalytics, logEvent } from 'firebase/analytics';
 import { increment } from 'firebase/firestore';
@@ -616,6 +620,7 @@ interface User {
     isAcademyMember: boolean;
     isAdmin: boolean;
     uid?: string;
+    assessmentId?: string;
     // Subscription fields
     subscriptionId?: string;
     subscriptionStatus?: 'active' | 'cancelled' | 'expired' | 'pending';
@@ -1151,28 +1156,24 @@ const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleAsk = async () => {
-    const context = currentPeptide 
-        ? `CONTEXT: User is asking about the compound "${currentPeptide}". Answer specifically about this compound. ` 
-        : '';
-    
-    const question = query || `What are the common storage and reconstitution protocols for ${currentPeptide || 'research peptides'}?`;
-    
+    const question = query || `What can you tell me about ${currentPeptide || 'research peptides'}?`;
+
     setLoading(true);
     setResponse('');
-    
+
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const model = ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `${context} QUESTION: ${question}`,
-        config: {
-          systemInstruction: "You are an expert bio-science assistant specializing in peptide reconstitution and protocols. Answer user questions about storage, stability, common dosages, and handling of peptides. Keep answers concise, factual, and strictly scientific. FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown (no `**` or `##`). Do not wrap in ```html code blocks. Just return the raw HTML body content.",
-        }
-      });
-      const result = await model;
-      setResponse(result.text || 'No response generated.');
+      const askJonAI = httpsCallable(functions, 'askJonAI');
+      const result = await askJonAI({ question, compound: currentPeptide || undefined });
+      const data = result.data as { success: boolean; response: string };
+      setResponse(data.response || 'No response generated.');
     } catch (e) {
-      setResponse('Error: Unable to fetch advice.');
+      setResponse(`
+        <p>I'm having trouble connecting right now. For immediate assistance, please reach out to our team.</p>
+        <div class="human-support-cta">
+          <p><strong>Connect with Human Support</strong></p>
+          <p>Our specialists are ready to help you with detailed protocols and personalized recommendations. Click the chat button below to get started.</p>
+        </div>
+      `);
     } finally {
       setLoading(false);
     }
@@ -1180,7 +1181,7 @@ const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
 
   return (
     <div className="mt-8 pt-8 border-t border-zinc-800/50">
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${isOpen ? 'bg-zinc-900 border-[#FF5252]/30' : 'bg-transparent border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/30'}`}
       >
@@ -1188,7 +1189,7 @@ const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
              <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isOpen ? 'bg-[#FF5252] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
                 <RobotIcon />
              </div>
-            <span className="text-sm font-bold uppercase tracking-wider">AI Protocol Assistant</span>
+            <span className="text-sm font-bold uppercase tracking-wider">Jon AI Assistant</span>
         </div>
         <div className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
             <i className="fa-solid fa-chevron-down text-zinc-600"></i>
@@ -1201,33 +1202,34 @@ const AIAdvisor = ({ currentPeptide }: { currentPeptide: string }) => {
            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF5252] rounded-full opacity-5 blur-[50px] pointer-events-none"></div>
 
           <div className="relative z-10 flex gap-3 mb-6">
-             <input 
-              type="text" 
+             <input
+              type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Ask specifics about ${currentPeptide || 'protocols'}...`}
+              placeholder={`Ask about ${currentPeptide || 'peptides'}...`}
               className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 focus:border-[#FF5252] focus:outline-none focus:bg-black transition-colors"
               onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
             />
-            <button 
-                onClick={handleAsk} 
-                disabled={loading} 
+            <button
+                onClick={handleAsk}
+                disabled={loading}
                 className="bg-zinc-800 hover:bg-[#FF5252] hover:text-white text-zinc-400 text-xs uppercase font-bold px-6 rounded-lg transition-all disabled:opacity-50"
             >
                {loading ? <i className="fa-solid fa-spinner animate-spin"></i> : 'ASK'}
             </button>
           </div>
-          
+
           {response ? (
              <div className="prose prose-invert prose-sm max-w-none">
-                <div 
-                    className="text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600"
+                <div
+                    className="text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&_.human-support-cta]:mt-6 [&_.human-support-cta]:p-4 [&_.human-support-cta]:bg-gradient-to-r [&_.human-support-cta]:from-[#FF5252]/10 [&_.human-support-cta]:to-transparent [&_.human-support-cta]:border [&_.human-support-cta]:border-[#FF5252]/20 [&_.human-support-cta]:rounded-xl"
                     dangerouslySetInnerHTML={{ __html: response }}
                 />
              </div>
           ) : (
-              <div className="text-center py-8 text-zinc-700 text-xs uppercase tracking-widest">
-                  Ready to answer your questions
+              <div className="text-center py-8 text-zinc-600 text-sm">
+                  <p className="mb-2">Ask me anything about peptides!</p>
+                  <p className="text-xs text-zinc-700">For personalized protocols, our Human Support team is here to help.</p>
               </div>
           )}
         </div>
@@ -1259,24 +1261,19 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
             setLoading(true);
             setProfileData('');
             try {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const model = ai.models.generateContent({
-                    model: 'gemini-3-flash-preview',
-                    contents: `Generate a detailed structured profile for the research compound: ${peptide.name}.
-                    Include sections for:
-                    1. Description & Mechanism of Action
-                    2. Common Research Applications/Benefits (Bullet points)
-                    3. Standard Reconstitution Guidelines
-                    4. Potential Side Effects
-                    FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown (no ` + '`' + '`' + '`' + ` or **). Do not wrap in html code blocks. Just return the raw HTML body content.`,
-                    config: {
-                        systemInstruction: "You are a professional research peptide database. Output in formatted HTML. Keep it objective and scientific.",
-                    }
-                });
-                const result = await model;
-                setProfileData(result.text || 'No data available.');
+                const getCompoundOverview = httpsCallable(functions, 'getCompoundOverview');
+                const result = await getCompoundOverview({ compound: peptide.name });
+                const data = result.data as { success: boolean; profile: string };
+                setProfileData(data.profile || 'No data available.');
             } catch (e) {
-                setProfileData(''); // Silently fail - no error message displayed
+                setProfileData(`
+                    <h3>Overview</h3>
+                    <p>${peptide.name} is a research compound in our database.</p>
+                    <div class="human-support-cta">
+                        <p><strong>Get Expert Guidance</strong></p>
+                        <p>Our Human Support team can provide comprehensive information about ${peptide.name}. Click the chat button below to connect with a specialist.</p>
+                    </div>
+                `);
             } finally {
                 setLoading(false);
             }
@@ -1292,18 +1289,18 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
         setAiResponse('');
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const model = ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: `CONTEXT: User is asking specifically about the compound "${peptide.name}". ONLY answer questions related to ${peptide.name}. If the question is not about ${peptide.name}, politely redirect them to ask about ${peptide.name} instead. QUESTION: ${aiQuery}`,
-                config: {
-                    systemInstruction: `You are an expert bio-science assistant specializing in the peptide/compound "${peptide.name}". ONLY answer questions about ${peptide.name}. If asked about other compounds, say "I can only help with questions about ${peptide.name}. Please select a different compound to ask about it." Keep answers concise, factual, and strictly scientific. FORMATTING: Return the answer as valid HTML code. Use <p> for paragraphs, <ul>/<li> for lists, <strong> for emphasis, and <h3> for headers. Do NOT use Markdown. Do not wrap in code blocks. Just return the raw HTML body content.`,
-                }
-            });
-            const result = await model;
-            setAiResponse(result.text || 'No response generated.');
+            const askJonAI = httpsCallable(functions, 'askJonAI');
+            const result = await askJonAI({ question: aiQuery, compound: peptide.name });
+            const data = result.data as { success: boolean; response: string };
+            setAiResponse(data.response || 'No response generated.');
         } catch (e) {
-            setAiResponse('Error: Unable to fetch advice.');
+            setAiResponse(`
+                <p>I'm having trouble connecting right now. For immediate assistance with ${peptide.name}, please reach out to our team.</p>
+                <div class="human-support-cta">
+                    <p><strong>Connect with Human Support</strong></p>
+                    <p>Our specialists are ready to help you with detailed information about ${peptide.name}. Click the chat button below.</p>
+                </div>
+            `);
         } finally {
             setAiLoading(false);
         }
@@ -1346,7 +1343,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                         </div>
                     ) : (
                         <div
-                            className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold"
+                            className="text-zinc-300 text-base leading-relaxed font-light [&>h3]:text-white [&>h3]:font-bold [&>h3]:text-lg [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:uppercase [&>h3]:tracking-wide [&>h3]:border-l-2 [&>h3]:border-[#FF5252] [&>h3]:pl-4 [&>p]:mb-6 [&>ul]:grid [&>ul]:gap-2 [&>ul]:mb-6 [&>li]:flex [&>li]:items-start [&>li]:before:content-['•'] [&>li]:before:text-[#FF5252] [&>li]:before:mr-2 [&>strong]:text-white [&>strong]:font-semibold [&_.human-support-cta]:mt-8 [&_.human-support-cta]:p-5 [&_.human-support-cta]:bg-gradient-to-r [&_.human-support-cta]:from-[#FF5252]/10 [&_.human-support-cta]:to-transparent [&_.human-support-cta]:border [&_.human-support-cta]:border-[#FF5252]/20 [&_.human-support-cta]:rounded-xl"
                             dangerouslySetInnerHTML={{ __html: profileData }}
                         />
                     )}
@@ -1410,7 +1407,7 @@ const CompoundProfile = ({ peptide }: { peptide: PeptideEntry }) => {
                                         />
                                     </div>
                                     <div
-                                        className="flex-1 text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&>p]:text-sm"
+                                        className="flex-1 text-zinc-300 leading-7 [&>h3]:text-[#FF5252] [&>h3]:font-bold [&>h3]:uppercase [&>h3]:tracking-wider [&>h3]:text-xs [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:space-y-1 [&>li]:marker:text-zinc-600 [&>p]:text-sm [&_.human-support-cta]:mt-4 [&_.human-support-cta]:p-4 [&_.human-support-cta]:bg-gradient-to-r [&_.human-support-cta]:from-[#FF5252]/10 [&_.human-support-cta]:to-transparent [&_.human-support-cta]:border [&_.human-support-cta]:border-[#FF5252]/20 [&_.human-support-cta]:rounded-xl"
                                         dangerouslySetInnerHTML={{ __html: aiResponse }}
                                     />
                                 </div>
@@ -1597,7 +1594,15 @@ const OptionCard = ({ label, desc, selected, onClick }: any) => (
     </div>
 );
 
-const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) => void, onCancel: () => void }) => {
+const AssessmentWizard = ({
+    onComplete,
+    onCancel,
+    onShowThankYou
+}: {
+    onComplete: (user: User) => void;
+    onCancel: () => void;
+    onShowThankYou?: (email: string) => void;
+}) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         sex: 'Male',
@@ -1612,6 +1617,7 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
         password: ''
     });
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const toggleItem = (list: string[], item: string) => {
         if (list.includes(item)) return list.filter(i => i !== item);
@@ -1620,58 +1626,51 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
 
     const handleFinish = async () => {
         setLoading(true);
+        setError('');
 
         try {
-            let newUser: User;
-
-            // If password is provided (6+ chars), create a real Firebase account
-            if (formData.password && formData.password.length >= 6) {
-                const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-
-                // Create user document in Firestore
-                await setDoc(doc(db, 'jpc_users', userCredential.user.uid), {
-                    uid: userCredential.user.uid,
+            // Call Resend Cloud Function to send magic link email
+            const sendMagicLink = httpsCallable(functions, 'sendProtocolMagicLink');
+            const result = await sendMagicLink({
+                assessmentData: {
                     email: formData.email,
-                    hasAssessment: true,
-                    isAdmin: false,
-                    isAcademyMember: false,
-                    createdAt: serverTimestamp()
-                });
+                    sex: formData.sex,
+                    dobYear: formData.dobYear,
+                    heightFt: formData.heightFt,
+                    heightIn: formData.heightIn,
+                    weight: formData.weight,
+                    unit: formData.unit,
+                    goals: formData.goals,
+                    injuries: formData.injuries,
+                }
+            });
 
-                newUser = {
-                    email: formData.email,
-                    hasAssessment: true,
-                    isAcademyMember: false,
-                    isAdmin: false,
-                    uid: userCredential.user.uid
-                };
-            } else {
-                // No password - proceed without persistent account (guest mode)
-                // Just simulate a delay for UX
-                await new Promise(resolve => setTimeout(resolve, 1500));
+            const data = result.data as { success: boolean; assessmentId: string };
 
-                newUser = {
-                    email: formData.email,
-                    hasAssessment: true,
-                    isAcademyMember: false
-                };
+            if (data.success) {
+                // Store assessment ID in localStorage for magic link handling
+                window.localStorage.setItem('assessmentIdForSignIn', data.assessmentId);
+                window.localStorage.setItem('emailForSignIn', formData.email);
+
+                // Show Thank You page
+                if (onShowThankYou) {
+                    onShowThankYou(formData.email);
+                } else {
+                    // Fallback to original behavior
+                    const newUser: User = {
+                        email: formData.email,
+                        hasAssessment: true,
+                        isAcademyMember: false,
+                        isAdmin: false
+                    };
+                    onComplete(newUser);
+                }
             }
 
-            onComplete(newUser);
         } catch (error: any) {
             console.error('Assessment finish error:', error);
-            // If email already exists, still proceed with local user
-            if (error.code === 'auth/email-already-in-use') {
-                const newUser: User = {
-                    email: formData.email,
-                    hasAssessment: true,
-                    isAcademyMember: false
-                };
-                onComplete(newUser);
-            } else {
-                setLoading(false);
-                alert(error.message || 'An error occurred. Please try again.');
-            }
+            setError(error.message || 'Failed to send email. Please try again.');
+            setLoading(false);
         }
     };
 
@@ -1904,6 +1903,245 @@ const AssessmentWizard = ({ onComplete, onCancel }: { onComplete: (user: User) =
                         </button>
                      )}
                  </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Thank You Page Component (shown after assessment submission) ---
+const ThankYouPage = ({ userEmail }: { userEmail: string }) => (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full bg-zinc-900/50 rounded-2xl overflow-hidden border border-zinc-800">
+            {/* Jon's Image */}
+            <div className="h-96 relative">
+                <img
+                    src="/Images/Main-HD.jpeg"
+                    alt="Jon Andersen"
+                    className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent" />
+            </div>
+
+            {/* Success Icon */}
+            <div className="flex justify-center -mt-8 relative z-10">
+                <div className="w-16 h-16 bg-[#050505] rounded-full flex items-center justify-center border-4 border-[#FF5252]">
+                    <i className="fa-solid fa-circle-check text-[#FF5252] text-2xl"></i>
+                </div>
+            </div>
+
+            {/* Welcome Message */}
+            <div className="p-8 text-center">
+                <h1 className="text-3xl font-bold text-white mb-4">Welcome to Your Journey!</h1>
+                <p className="text-zinc-300 mb-2">
+                    <strong className="text-white">Congratulations on taking the first step</strong> toward optimizing your
+                    performance and achieving your goals.
+                </p>
+                <p className="text-zinc-400 mb-4">
+                    The decision to invest in yourself is the most powerful choice you can make.
+                    Whether you're looking to build strength, enhance recovery, or unlock your full
+                    potential—this is where transformation begins.
+                </p>
+                <p className="text-zinc-400 mb-6">
+                    Stay focused. Stay disciplined. And remember—<strong className="text-white">greatness
+                    isn't given, it's earned</strong>.
+                </p>
+                <p className="text-[#FF5252] font-semibold text-lg mb-2">— Jon Andersen</p>
+
+                {/* Email Notice Box */}
+                <div className="mt-8 p-5 bg-zinc-800/50 rounded-xl border border-zinc-700">
+                    <p className="text-white font-medium mb-2 flex items-center justify-center gap-2">
+                        <i className="fa-solid fa-envelope text-[#FF5252]"></i>
+                        Your personalized protocol should be in your inbox shortly
+                    </p>
+                    <p className="text-zinc-400 text-sm">
+                        Check your email for your customized peptide recommendations and next steps
+                    </p>
+                    <p className="text-zinc-500 text-xs mt-3">
+                        Can't find it? Check your spam or junk folder.
+                    </p>
+                    {userEmail && (
+                        <p className="text-zinc-600 text-xs mt-2">
+                            Sent to: {userEmail}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// --- Welcome Setup Page Component (shown after clicking magic link) ---
+const WelcomeSetupPage = ({
+    assessmentId,
+    email,
+    onComplete
+}: {
+    assessmentId: string;
+    email: string;
+    onComplete: (user: User) => void;
+}) => {
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // Get email from localStorage if not provided as prop
+    const userEmail = email || window.localStorage.getItem('emailForSignIn') || '';
+
+    const handleSetPassword = async () => {
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+        if (!userEmail) {
+            setError('Email not found. Please try the link again.');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            // Create new Firebase account with email and password
+            const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
+            const newUser = userCredential.user;
+
+            // Create user document in jpc_users
+            await setDoc(doc(db, 'jpc_users', newUser.uid), {
+                uid: newUser.uid,
+                email: userEmail,
+                hasAssessment: true,
+                assessmentId: assessmentId,
+                isAdmin: false,
+                isAcademyMember: false,
+                createdAt: serverTimestamp()
+            });
+
+            // Mark assessment as claimed
+            await updateDoc(doc(db, 'jpc_assessments', assessmentId), {
+                claimed: true,
+                userId: newUser.uid,
+                claimedAt: serverTimestamp()
+            });
+
+            // Trigger personalized protocol generation (async - don't wait)
+            try {
+                const generateProtocol = httpsCallable(functions, 'generatePersonalizedProtocol');
+                generateProtocol({ assessmentId, userId: newUser.uid })
+                    .then(() => console.log('Protocol generation triggered'))
+                    .catch(err => console.error('Protocol generation error:', err));
+            } catch (e) {
+                console.error('Failed to trigger protocol generation:', e);
+            }
+
+            // Store assessmentId for protocol retrieval
+            window.localStorage.setItem('protocolAssessmentId', assessmentId);
+
+            // Clear sign-in localStorage
+            window.localStorage.removeItem('emailForSignIn');
+            window.localStorage.removeItem('assessmentIdForSignIn');
+
+            // Complete setup - navigate to calculator
+            onComplete({
+                email: userEmail,
+                hasAssessment: true,
+                isAdmin: false,
+                isAcademyMember: false,
+                uid: newUser.uid,
+                assessmentId: assessmentId
+            });
+
+        } catch (err: any) {
+            console.error('Account creation error:', err);
+            if (err.code === 'auth/email-already-in-use') {
+                setError('An account with this email already exists. Please sign in instead.');
+            } else {
+                setError(err.message || 'Failed to create account. Please try again.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
+            <div className="max-w-lg w-full">
+                {/* Jon's Welcome Image */}
+                <div className="text-center mb-8">
+                    <div className="relative inline-block">
+                        <img
+                            src="/Images/Main-HD.jpeg"
+                            alt="Jon Andersen"
+                            className="w-32 h-32 rounded-full mx-auto object-cover object-top border-4 border-[#FF5252]"
+                        />
+                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#FF5252] rounded-full flex items-center justify-center">
+                            <i className="fa-solid fa-check text-white text-lg"></i>
+                        </div>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white mt-6">Welcome to the Team!</h1>
+                    <p className="text-zinc-400 mt-2">Set up your password to access your personalized protocol</p>
+                </div>
+
+                {/* Password Setup Form */}
+                <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-zinc-400 text-sm block mb-2">Create Password</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:border-[#FF5252] focus:outline-none transition-colors"
+                                placeholder="Minimum 6 characters"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-zinc-400 text-sm block mb-2">Confirm Password</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:border-[#FF5252] focus:outline-none transition-colors"
+                                placeholder="Re-enter your password"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-900/30 border border-red-800 rounded-lg">
+                                <p className="text-red-400 text-sm flex items-center gap-2">
+                                    <i className="fa-solid fa-circle-exclamation"></i>
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleSetPassword}
+                            disabled={loading || !password || !confirmPassword}
+                            className="w-full bg-[#FF5252] hover:bg-[#ff3333] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <i className="fa-solid fa-spinner animate-spin"></i>
+                                    Setting up...
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fa-solid fa-unlock"></i>
+                                    Access My Protocol
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                <p className="text-zinc-600 text-xs text-center mt-4">
+                    By setting up your account, you agree to our Terms of Service and Privacy Policy
+                </p>
             </div>
         </div>
     );
@@ -5066,6 +5304,220 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
     );
 };
 
+// --- Personalized Protocol Component ---
+interface PeptideRecommendation {
+    peptideName: string;
+    relevanceScore: number;
+    rationale: string;
+    suggestedDosing: {
+        doseMcg: number;
+        frequency: string;
+        duration: string;
+    };
+    priority: 'primary' | 'secondary';
+}
+
+interface StackSuggestion {
+    name: string;
+    peptides: string[];
+    timing: string;
+    notes: string;
+}
+
+interface UserProtocolData {
+    primaryRecommendations: PeptideRecommendation[];
+    secondaryRecommendations: PeptideRecommendation[];
+    stackSuggestions: StackSuggestion[];
+    generalGuidance: string;
+    disclaimer: string;
+}
+
+const PersonalizedProtocol = ({
+    user,
+    onSelectPeptide
+}: {
+    user: User | null;
+    onSelectPeptide: (peptide: PeptideEntry) => void;
+}) => {
+    const [protocol, setProtocol] = useState<UserProtocolData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [expanded, setExpanded] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchProtocol = async () => {
+            // Get assessmentId from localStorage or user object
+            const assessmentId = window.localStorage.getItem('protocolAssessmentId') ||
+                                 (user as any)?.assessmentId;
+
+            if (!user?.uid && !assessmentId) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // First try to get existing protocol
+                const getUserProtocol = httpsCallable(functions, 'getUserProtocol');
+                const result = await getUserProtocol({
+                    userId: user?.uid || null,
+                    assessmentId: assessmentId || null
+                });
+
+                const data = result.data as { success: boolean; protocol: UserProtocolData | null };
+                if (data.success && data.protocol) {
+                    setProtocol(data.protocol);
+                }
+            } catch (err: any) {
+                console.error('Error fetching protocol:', err);
+                setError('Unable to load protocol');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProtocol();
+    }, [user?.uid]);
+
+    if (loading) {
+        return (
+            <div className="bg-gradient-to-r from-[#FF5252]/10 to-transparent border border-[#FF5252]/20 rounded-2xl p-6 mb-8">
+                <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-spinner animate-spin text-[#FF5252]"></i>
+                    <span className="text-zinc-400">Loading your personalized protocol...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (!protocol) {
+        return null;
+    }
+
+    return (
+        <div className="bg-gradient-to-br from-[#0a0a0a] to-[#111111] border border-[#FF5252]/30 rounded-2xl overflow-hidden mb-8 shadow-xl shadow-red-900/10">
+            {/* Header */}
+            <button
+                onClick={() => setExpanded(!expanded)}
+                className="w-full px-6 py-4 flex items-center justify-between bg-[#FF5252]/5 border-b border-[#FF5252]/20 hover:bg-[#FF5252]/10 transition-colors"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF5252] flex items-center justify-center">
+                        <i className="fa-solid fa-flask-vial text-white"></i>
+                    </div>
+                    <div className="text-left">
+                        <h3 className="text-white font-bold">Your Personalized Protocol</h3>
+                        <p className="text-zinc-500 text-xs">AI-generated recommendations based on your assessment</p>
+                    </div>
+                </div>
+                <i className={`fa-solid fa-chevron-${expanded ? 'up' : 'down'} text-zinc-500`}></i>
+            </button>
+
+            {expanded && (
+                <div className="p-6 space-y-6">
+                    {/* Primary Recommendations */}
+                    <div>
+                        <h4 className="text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-4">
+                            <i className="fa-solid fa-star mr-2"></i>Primary Recommendations
+                        </h4>
+                        <div className="grid gap-4">
+                            {protocol.primaryRecommendations?.map((rec, idx) => (
+                                <div
+                                    key={idx}
+                                    className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-[#FF5252]/50 transition-colors cursor-pointer group"
+                                    onClick={() => {
+                                        const peptide = PEPTIDE_DB.find(p =>
+                                            p.name.toLowerCase().includes(rec.peptideName.toLowerCase()) ||
+                                            rec.peptideName.toLowerCase().includes(p.name.toLowerCase())
+                                        );
+                                        if (peptide) onSelectPeptide(peptide);
+                                    }}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <h5 className="text-white font-bold group-hover:text-[#FF5252] transition-colors">
+                                            {rec.peptideName}
+                                        </h5>
+                                        <span className="text-xs bg-[#FF5252]/20 text-[#FF5252] px-2 py-1 rounded-full">
+                                            {rec.relevanceScore}% match
+                                        </span>
+                                    </div>
+                                    <p className="text-zinc-400 text-sm mb-3">{rec.rationale}</p>
+                                    <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
+                                        <span><i className="fa-solid fa-syringe mr-1"></i>{rec.suggestedDosing?.doseMcg}mcg</span>
+                                        <span><i className="fa-solid fa-clock mr-1"></i>{rec.suggestedDosing?.frequency}</span>
+                                        <span><i className="fa-solid fa-calendar mr-1"></i>{rec.suggestedDosing?.duration}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Secondary Recommendations */}
+                    {protocol.secondaryRecommendations?.length > 0 && (
+                        <div>
+                            <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4">
+                                <i className="fa-solid fa-plus mr-2"></i>Additional Considerations
+                            </h4>
+                            <div className="grid gap-3">
+                                {protocol.secondaryRecommendations.map((rec, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="bg-zinc-900/30 border border-zinc-800/50 rounded-lg p-3 hover:border-zinc-700 transition-colors cursor-pointer"
+                                        onClick={() => {
+                                            const peptide = PEPTIDE_DB.find(p =>
+                                                p.name.toLowerCase().includes(rec.peptideName.toLowerCase()) ||
+                                                rec.peptideName.toLowerCase().includes(p.name.toLowerCase())
+                                            );
+                                            if (peptide) onSelectPeptide(peptide);
+                                        }}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-zinc-300 font-medium">{rec.peptideName}</span>
+                                            <span className="text-xs text-zinc-500">{rec.relevanceScore}% match</span>
+                                        </div>
+                                        <p className="text-zinc-500 text-xs mt-1">{rec.rationale}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Stack Suggestions */}
+                    {protocol.stackSuggestions?.length > 0 && (
+                        <div className="bg-zinc-900/30 rounded-xl p-4 border border-zinc-800/50">
+                            <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-3">
+                                <i className="fa-solid fa-layer-group mr-2"></i>Suggested Stacks
+                            </h4>
+                            {protocol.stackSuggestions.map((stack, idx) => (
+                                <div key={idx} className="mb-3 last:mb-0">
+                                    <span className="text-white font-medium">{stack.name}:</span>
+                                    <span className="text-zinc-400 ml-2">{stack.peptides?.join(' + ')}</span>
+                                    <p className="text-zinc-500 text-xs mt-1">{stack.timing} - {stack.notes}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* General Guidance */}
+                    {protocol.generalGuidance && (
+                        <div
+                            className="prose prose-invert prose-sm max-w-none text-zinc-400"
+                            dangerouslySetInnerHTML={{ __html: protocol.generalGuidance }}
+                        />
+                    )}
+
+                    {/* Disclaimer */}
+                    {protocol.disclaimer && (
+                        <div
+                            className="text-xs"
+                            dangerouslySetInnerHTML={{ __html: protocol.disclaimer }}
+                        />
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- Calculator View Component ---
 
 const CalculatorView = ({
@@ -5301,7 +5753,17 @@ const CalculatorView = ({
           currentPage="calculator"
       />
 
-      <div className="w-full max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start p-6 lg:p-12 pt-28">
+      <div className="w-full max-w-[90rem] mx-auto p-6 lg:p-12 pt-28">
+        {/* Personalized Protocol - Full Width Above Calculator */}
+        {user?.hasAssessment && (
+          <PersonalizedProtocol
+            user={user}
+            onSelectPeptide={handleSelectPeptide}
+          />
+        )}
+
+        {/* Calculator Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
         {/* Left Column: Peptide List */}
         <div className="lg:col-span-3 flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:sticky lg:top-24">
@@ -5493,6 +5955,7 @@ const CalculatorView = ({
                  </div>
             </div>
         </div>
+        </div> {/* Close Calculator Grid */}
       </div>
 
       <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
@@ -9588,11 +10051,13 @@ const AdminDashboard = ({
 
 const App = () => {
     // App Flow State
-    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms'>('landing');
+    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms' | 'thankYou' | 'welcomeSetup'>('landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [mainPageVideos, setMainPageVideos] = useState<VideoContent[]>([]);
+    const [pendingEmail, setPendingEmail] = useState('');
+    const [assessmentIdForSetup, setAssessmentIdForSetup] = useState('');
 
     // Listen for auth state changes (persist login across refreshes)
     useEffect(() => {
@@ -9622,17 +10087,83 @@ const App = () => {
                         isAcademyMember: true,
                         isAdmin: isAdmin
                     });
+
+                    // Expose user context for chat widget (so it doesn't ask for user details)
+                    (window as any).jpcUserContext = {
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        name: firebaseUser.email?.split('@')[0] || 'User',
+                        isLoggedIn: true
+                    };
+
+                    // Notify chat widget if available
+                    if (typeof (window as any).peptideChat === 'function') {
+                        (window as any).peptideChat('identify', {
+                            userId: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            name: firebaseUser.email?.split('@')[0] || 'User'
+                        });
+                    }
                 } catch (err) {
                     console.error('Error fetching user data:', err);
                     setUser(null);
+                    (window as any).jpcUserContext = null;
                 }
             } else {
                 setUser(null);
+
+                // Clear user context when logged out
+                (window as any).jpcUserContext = null;
+
+                // Reset chat widget identity
+                if (typeof (window as any).peptideChat === 'function') {
+                    (window as any).peptideChat('reset');
+                }
             }
             setAuthLoading(false);
         });
 
         return () => unsubscribe();
+    }, []);
+
+    // Handle magic link from Resend email
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const assessmentId = urlParams.get('assessmentId');
+
+        if (token && assessmentId) {
+            // Verify the magic link token via Cloud Function
+            const verifyLink = async () => {
+                try {
+                    const verifyMagicLink = httpsCallable(functions, 'verifyMagicLink');
+                    const result = await verifyMagicLink({ token, assessmentId });
+                    const data = result.data as { success: boolean; email: string; assessmentId: string };
+
+                    if (data.success) {
+                        // Store for password setup
+                        window.localStorage.setItem('emailForSignIn', data.email);
+                        window.localStorage.setItem('assessmentIdForSignIn', data.assessmentId);
+
+                        // Clear URL params
+                        window.history.replaceState({}, document.title, window.location.pathname);
+
+                        // Show password setup page
+                        setAssessmentIdForSetup(data.assessmentId);
+                        setPendingEmail(data.email);
+                        setView('welcomeSetup');
+                    }
+                } catch (error: any) {
+                    console.error('Magic link verification error:', error);
+                    alert(error.message || 'Invalid or expired link. Please request a new one.');
+                    // Clear URL params
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    setView('landing');
+                }
+            };
+
+            verifyLink();
+        }
     }, []);
 
     // Fetch main page videos on load
@@ -9905,6 +10436,25 @@ const App = () => {
                 <AssessmentWizard
                     onComplete={handleAssessmentComplete}
                     onCancel={() => setView('landing')}
+                    onShowThankYou={(email) => {
+                        setPendingEmail(email);
+                        setView('thankYou');
+                    }}
+                />
+            )}
+
+            {view === 'thankYou' && (
+                <ThankYouPage userEmail={pendingEmail} />
+            )}
+
+            {view === 'welcomeSetup' && assessmentIdForSetup && (
+                <WelcomeSetupPage
+                    assessmentId={assessmentIdForSetup}
+                    email={pendingEmail}
+                    onComplete={(newUser) => {
+                        setUser(newUser);
+                        setView('calculator');
+                    }}
                 />
             )}
 

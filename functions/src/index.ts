@@ -8,6 +8,10 @@ admin.initializeApp();
 
 // Export additional cloud functions
 export { fixAllArticlesFormatting } from './fixAllArticles';
+export { sendProtocolMagicLink, verifyMagicLink } from './sendMagicLink';
+export { seedPeptideReference } from './seedPeptideReference';
+export { generatePersonalizedProtocol, getUserProtocol } from './generateProtocol';
+export { askJonAI, getCompoundOverview } from './jonAI';
 
 interface ProductData {
   name: string;
@@ -191,7 +195,7 @@ async function extractWithAI(html: string, url: string): Promise<Partial<Product
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   // Truncate HTML to avoid token limits
   const truncatedHtml = html.substring(0, 50000);
