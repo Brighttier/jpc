@@ -5184,7 +5184,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                 }}
                                 className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:shadow-[0_0_40px_-10px_rgba(255,82,82,0.6)] hover:scale-105 active:scale-95 flex items-center gap-3"
                             >
-                                Get Free Protocol
+                                Sign-up To Get Free Protocol
                                 <ArrowRightIcon />
                             </button>
                              <button onClick={() => {
@@ -5196,9 +5196,50 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         </div>
                     </div>
 
-                    {/* Hero Visual / Image Gallery - Replaces Calculator Tease */}
+                    {/* Hero Visual / Image Gallery - Mobile Version */}
+                    <div className="lg:hidden w-full mt-8 animate-fadeIn delay-200">
+                        <div className="grid grid-cols-3 gap-3 px-2">
+                            {/* Main Image */}
+                            <div className="col-span-2 row-span-2 rounded-2xl overflow-hidden border border-zinc-800/50 shadow-xl relative">
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-10"></div>
+                                <img
+                                    src="/Images/Main-HD.jpeg"
+                                    alt="Jon Andersen"
+                                    className="w-full h-full object-cover object-top aspect-[3/4]"
+                                />
+                                <div className="absolute bottom-4 left-4 z-20">
+                                    <h2 className="text-2xl font-black text-white italic tracking-tighter leading-none">THE MAN</h2>
+                                    <p className="text-zinc-400 font-mono text-xs uppercase tracking-widest">Jon Andersen</p>
+                                </div>
+                            </div>
+                            {/* IFBB Pro */}
+                            <div className="rounded-xl overflow-hidden border border-zinc-800 shadow-lg relative bg-black">
+                                <img
+                                    src="/Images/IFBB Pro.jpg"
+                                    alt="IFBB Pro"
+                                    className="w-full h-full object-cover aspect-square"
+                                />
+                                <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black to-transparent">
+                                    <span className="text-[#FF5252] font-black italic text-xs">IFBB PRO</span>
+                                </div>
+                            </div>
+                            {/* IFSA Pro */}
+                            <div className="rounded-xl overflow-hidden border border-zinc-800 shadow-lg relative bg-black">
+                                <img
+                                    src="/Images/IFSA Pro.jpg"
+                                    alt="IFSA Pro Strongman"
+                                    className="w-full h-full object-cover aspect-square"
+                                />
+                                <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black to-transparent">
+                                    <span className="text-white font-black italic text-xs">IFSA PRO</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Hero Visual / Image Gallery - Desktop Version */}
                     <div className="relative h-[600px] w-full hidden lg:block animate-fadeIn delay-200 perspective-1000">
-                        
+
                         {/* Abstract Glows */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF5252] rounded-full blur-[150px] opacity-10"></div>
 
