@@ -262,28 +262,47 @@ export const getUserProtocol = functions
     .https.onCall(async (data: { assessmentId?: string; userId?: string }, context) => {
         const { assessmentId, userId } = data;
 
+        console.log('[getUserProtocol] Called with:', { assessmentId, userId });
+
         if (!assessmentId && !userId) {
             throw new functions.https.HttpsError('invalid-argument', 'Assessment ID or User ID required');
         }
 
         const db = admin.firestore();
 
-        let query: FirebaseFirestore.Query = db.collection('user_protocols')
-            .where('status', '==', 'ready');
+        // Try userId first, then assessmentId
+        let snapshot: FirebaseFirestore.QuerySnapshot;
 
         if (userId) {
-            query = query.where('userId', '==', userId);
-        } else if (assessmentId) {
-            query = query.where('assessmentId', '==', assessmentId);
+            console.log('[getUserProtocol] Querying by userId:', userId);
+            const query = db.collection('user_protocols')
+                .where('status', '==', 'ready')
+                .where('userId', '==', userId)
+                .orderBy('generatedAt', 'desc')
+                .limit(1);
+            snapshot = await query.get();
+            console.log('[getUserProtocol] userId query result:', snapshot.size, 'docs found');
         }
 
-        const snapshot = await query.orderBy('generatedAt', 'desc').limit(1).get();
+        // If no result by userId, try assessmentId
+        if ((!snapshot! || snapshot!.empty) && assessmentId) {
+            console.log('[getUserProtocol] Querying by assessmentId:', assessmentId);
+            const query = db.collection('user_protocols')
+                .where('status', '==', 'ready')
+                .where('assessmentId', '==', assessmentId)
+                .orderBy('generatedAt', 'desc')
+                .limit(1);
+            snapshot = await query.get();
+            console.log('[getUserProtocol] assessmentId query result:', snapshot.size, 'docs found');
+        }
 
-        if (snapshot.empty) {
+        if (!snapshot! || snapshot!.empty) {
+            console.log('[getUserProtocol] No protocol found');
             return { success: false, protocol: null };
         }
 
-        const doc = snapshot.docs[0];
+        const doc = snapshot!.docs[0];
+        console.log('[getUserProtocol] Found protocol:', doc.id);
         return {
             success: true,
             protocolId: doc.id,

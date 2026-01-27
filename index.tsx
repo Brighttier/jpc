@@ -5399,7 +5399,10 @@ const PersonalizedProtocol = ({
             const assessmentId = window.localStorage.getItem('protocolAssessmentId') ||
                                  (user as any)?.assessmentId;
 
+            console.log('[JPC Protocol] Fetching protocol:', { userId: user?.uid, assessmentId });
+
             if (!user?.uid && !assessmentId) {
+                console.log('[JPC Protocol] No userId or assessmentId, skipping fetch');
                 setLoading(false);
                 return;
             }
@@ -5413,11 +5416,12 @@ const PersonalizedProtocol = ({
                 });
 
                 const data = result.data as { success: boolean; protocol: UserProtocolData | null };
+                console.log('[JPC Protocol] Result:', { success: data.success, hasProtocol: !!data.protocol });
                 if (data.success && data.protocol) {
                     setProtocol(data.protocol);
                 }
             } catch (err: any) {
-                console.error('Error fetching protocol:', err);
+                console.error('[JPC Protocol] Error fetching protocol:', err);
                 setError('Unable to load protocol');
             } finally {
                 setLoading(false);
@@ -5609,9 +5613,19 @@ const CalculatorView = ({
   // Tab State - 'protocol' is the first tab for logged-in users with assessment
   const [activeTab, setActiveTab] = useState<'protocol' | 'calculator' | 'profile'>('calculator');
 
+  // Debug: Log user state in CalculatorView
+  console.log('[JPC CalculatorView] User state:', {
+    uid: user?.uid,
+    hasAssessment: user?.hasAssessment,
+    assessmentId: (user as any)?.assessmentId,
+    activeTab
+  });
+
   // Switch to protocol tab when user with assessment loads
   useEffect(() => {
+    console.log('[JPC CalculatorView] useEffect triggered:', { hasAssessment: user?.hasAssessment, activeTab });
     if (user?.hasAssessment && activeTab === 'calculator') {
+      console.log('[JPC CalculatorView] Switching to protocol tab');
       setActiveTab('protocol');
     }
   }, [user?.hasAssessment]);
@@ -5894,6 +5908,8 @@ const CalculatorView = ({
                  <div className="bg-zinc-900/20 rounded-[22px] h-full flex-1 flex flex-col p-6 sm:p-10 relative z-10">
                      
                      {/* Tab Switcher - Floating Island Style */}
+                     {/* Debug: Show hasAssessment status */}
+                     {console.log('[JPC Render] Tab switcher - user?.hasAssessment:', user?.hasAssessment)}
                      <div className="flex justify-center mb-10">
                         <div className="bg-black/50 backdrop-blur-xl p-1.5 rounded-2xl border border-zinc-800 inline-flex shadow-xl">
                             {user?.hasAssessment && (
@@ -10149,6 +10165,9 @@ const App = () => {
                         hasAssessment = userData.hasAssessment || false;
                         assessmentId = userData.assessmentId;
                         isAcademyMember = userData.isAcademyMember || false;
+                        console.log('[JPC Auth] User data from Firestore:', { uid: firebaseUser.uid, hasAssessment, assessmentId, isAcademyMember });
+                    } else {
+                        console.log('[JPC Auth] No user document found for uid:', firebaseUser.uid);
                     }
 
                     // Hardcoded admin emails (fallback)
