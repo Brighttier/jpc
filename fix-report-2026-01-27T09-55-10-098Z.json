@@ -1,0 +1,354 @@
+{
+  "timestamp": "2026-01-27T09:55:10.098Z",
+  "mode": "apply",
+  "articlesProcessed": 24,
+  "articlesChanged": 22,
+  "successCount": 0,
+  "errorCount": 22,
+  "statistics": {
+    "markdownLinks": 274,
+    "excessiveBr": 0,
+    "emptyParagraphs": 49,
+    "markdownBullets": 0,
+    "boldKeyTerms": 0,
+    "headings": 16
+  },
+  "articles": [
+    {
+      "id": "8lnwBNmTDcmN5nQwNyPU",
+      "title": "BPC-157 Research",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 16,
+        "excessiveBr": 0,
+        "emptyParagraphs": 6,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 3
+      }
+    },
+    {
+      "id": "xxysJaO6YNY4RQ1ubB4J",
+      "title": "Dihexa: The Synapse-Building Peptide",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 6,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "8oybzTmlhXFP3cNqtRyh",
+      "title": "Retatrutide Research Summary",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 8,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "WICulPObdarq7op4NiL2",
+      "title": "NAD+ (Nicotinamide Adenine Dinucleotide) — Scientific Summary + Top Research Papers",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 16,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "eDcDWnNftar75AOdGKAJ",
+      "title": "Selank Peptide – Research Summary",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 5,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "ed61SEmkdo1IWvmDCEUU",
+      "title": "Tesofensine — General Overview",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 16,
+        "excessiveBr": 0,
+        "emptyParagraphs": 4,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "fBmhtkfdiPXGX7Hm0Jeg",
+      "title": "SLU-PP-332 research summary (what the published science actually suggests)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 16,
+        "excessiveBr": 0,
+        "emptyParagraphs": 9,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "fjsH7G9RlhqDG8yqRYMW",
+      "title": "CJC-1295: What It Is & How It Works",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 15,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "kGGCEi8yJ2syGBWxgnej",
+      "title": "Semaglutide Peptide — Quick Summary",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 19,
+        "excessiveBr": 0,
+        "emptyParagraphs": 4,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "mrSKIWsGywlhr5FgC4YM",
+      "title": "Research Summary — SS-31 (Elamipretid)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 7,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "0fT5NheCuEBcW7SoCgHU",
+      "title": "Research Summary (TB-500 / Thymosin Beta-4 Fragment)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 15,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "27Myl9nCOpL4590LAdPH",
+      "title": "VIP: The Peptide Powerhouse for Healing, Inflammation Control, and Cognitive Balance",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 15,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "2CDFgA5iX9TBsqOtaosj",
+      "title": "Tirzepatide (Trizepatide) Research Summary (What the Evidence Shows)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 7,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "2eiVG6zMnPJ8NBrIzbWV",
+      "title": "Human Growth Hormone (HGH) – Research Summary Overview",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 6
+      }
+    },
+    {
+      "id": "EBOEcTd9h2maQFRJpeOv",
+      "title": "Semax Peptide Summary (Research-oriented)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 14,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 3
+      }
+    },
+    {
+      "id": "GSubaUXrlNY8ezzVB8mY",
+      "title": "Cartalax (AED) — Research Summary (What the science actually suggests)",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 3,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "PzvLk3hnX8RsyNZwrYNi",
+      "title": "Tesamorelin Research Summary",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 14,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "eI9mysnthdDnnkhuezTV",
+      "title": "Exploring the Science of IGF-1 LR3: Top 3 Research Studies on Growth, Recovery, and Metabolic Effects",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 3,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 3
+      }
+    },
+    {
+      "id": "lPIZ32fMgMBJqYskuvuJ",
+      "title": "GHK-Cu Research",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 32,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "lxApUU60M6SIfz0MVCJm",
+      "title": "Epitalon Explained: The Peptide That Targets Aging at the Cellular Level",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 18,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 1
+      }
+    },
+    {
+      "id": "tsQl0dKyJ0yAR1jre2D7",
+      "title": "5-Amino-1MQ — Summary & Top Research",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 19,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "w2NdleRb5wGObWbiYSne",
+      "title": "FOXO4-DRI (FoxO4) — Research Summary",
+      "collection": "jpc_articles",
+      "changed": true,
+      "fixes": {
+        "markdownLinks": 6,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "Fdf5rdKOlriK5FHI0KB6",
+      "title": "SS-31 Protocol: The Mitochondrial Upgrade",
+      "collection": "jpc_articles",
+      "changed": false,
+      "fixes": {
+        "markdownLinks": 0,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    },
+    {
+      "id": "OAiDJmTiZFNQKJSeY3id",
+      "title": "Retatrutide – Dosage Format",
+      "collection": "jpc_articles",
+      "changed": false,
+      "fixes": {
+        "markdownLinks": 0,
+        "excessiveBr": 0,
+        "emptyParagraphs": 0,
+        "markdownBullets": 0,
+        "boldKeyTerms": 0,
+        "headings": 0
+      }
+    }
+  ]
+}

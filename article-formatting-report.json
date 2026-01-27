@@ -1,0 +1,763 @@
+{
+  "timestamp": "2026-01-27T00:09:10.089Z",
+  "totalArticles": 116,
+  "articlesWithIssues": 24,
+  "totalIssues": 58,
+  "issuesByType": {
+    "MARKDOWN_LINKS": 22,
+    "MISSING_HEADINGS": 23,
+    "EXCESSIVE_BR_USAGE": 4,
+    "EMPTY_PARAGRAPHS": 8,
+    "MARKDOWN_BULLETS": 1
+  },
+  "issuesBySeverity": {
+    "critical": 0,
+    "high": 1,
+    "medium": 49,
+    "low": 8
+  },
+  "articles": [
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "8lnwBNmTDcmN5nQwNyPU",
+      "title": "BPC-157 Research",
+      "slug": "bpc-157-research",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 4,
+      "issues": [
+        {
+          "type": "EXCESSIVE_BR_USAGE",
+          "severity": "medium",
+          "description": "Found 15 <br> tags (consider using paragraphs)",
+          "snippet": "Multiple <br> tags throughout content",
+          "suggestion": "Replace <br> with proper <p> paragraph tags"
+        },
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 6 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 16 markdown-style links",
+          "snippet": "[https://en.wikipedia.org/wiki/BPC-157?utm_source=chatgpt.com](https://en.wikipedia.org/wiki/BPC-157",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "xxysJaO6YNY4RQ1ubB4J",
+      "title": "Dihexa: The Synapse-Building Peptide",
+      "slug": "dihexa-the-synapse-building-peptide",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 4,
+      "issues": [
+        {
+          "type": "EXCESSIVE_BR_USAGE",
+          "severity": "medium",
+          "description": "Found 11 <br> tags (consider using paragraphs)",
+          "snippet": "Multiple <br> tags throughout content",
+          "suggestion": "Replace <br> with proper <p> paragraph tags"
+        },
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 6 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/23219573/](https://pubmed.ncbi.nlm.nih.gov/23219573/)",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "8oybzTmlhXFP3cNqtRyh",
+      "title": "Retatrutide Research Summary",
+      "slug": "retatrutide-research-summary",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 8 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://www.nejm.org/doi/full/10.1056/NEJMoa2301972](https://www.nejm.org/doi/full/10.1056/NEJMoa23",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "WICulPObdarq7op4NiL2",
+      "title": "NAD+ (Nicotinamide Adenine Dinucleotide) — Scientific Summary + Top Research Papers",
+      "slug": "nad-nicotinamide-adenine-dinucleotide-scientific-summary-top-research-papers",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EXCESSIVE_BR_USAGE",
+          "severity": "medium",
+          "description": "Found 12 <br> tags (consider using paragraphs)",
+          "snippet": "Multiple <br> tags throughout content",
+          "suggestion": "Replace <br> with proper <p> paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 16 markdown-style links",
+          "snippet": "[https://pmc.ncbi.nlm.nih.gov/articles/PMC7963035/?utm_source=chatgpt.com](https://pmc.ncbi.nlm.nih.",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "eDcDWnNftar75AOdGKAJ",
+      "title": "Selank Peptide – Research Summary",
+      "slug": "selank-peptide-research-summary",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 5 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/18454096/](https://pubmed.ncbi.nlm.nih.gov/18454096/)",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "ed61SEmkdo1IWvmDCEUU",
+      "title": "Tesofensine — General Overview",
+      "slug": "tesofensine-general-overview",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 4 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 16 markdown-style links",
+          "snippet": "[https://en.wikipedia.org/wiki/Tesofensine?utm_source=chatgpt.com](https://en.wikipedia.org/wiki/Tes",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "fBmhtkfdiPXGX7Hm0Jeg",
+      "title": "SLU-PP-332 research summary (what the published science actually suggests)",
+      "slug": "slu-pp-332-research-summary-what-the-published-science-actually-suggests",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 9 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 16 markdown-style links",
+          "snippet": "[https://pubs.acs.org/doi/abs/10.1021/acschembio.2c00720?utm_source=chatgpt.com](https://pubs.acs.or",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "fjsH7G9RlhqDG8yqRYMW",
+      "title": "CJC-1295: What It Is & How It Works",
+      "slug": "cjc-1295-what-it-is-how-it-works",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EXCESSIVE_BR_USAGE",
+          "severity": "medium",
+          "description": "Found 11 <br> tags (consider using paragraphs)",
+          "snippet": "Multiple <br> tags throughout content",
+          "suggestion": "Replace <br> with proper <p> paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 15 markdown-style links",
+          "snippet": "[https://en.wikipedia.org/wiki/CJC-1295?utm_source=chatgpt.com](https://en.wikipedia.org/wiki/CJC-12",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "kGGCEi8yJ2syGBWxgnej",
+      "title": "Semaglutide Peptide — Quick Summary",
+      "slug": "semaglutide-peptide-quick-summary",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 4 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 19 markdown-style links",
+          "snippet": "[https://en.wikipedia.org/wiki/Semaglutide?utm_source=chatgpt.com](https://en.wikipedia.org/wiki/Sem",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "mrSKIWsGywlhr5FgC4YM",
+      "title": "Research Summary — SS-31 (Elamipretid)",
+      "slug": "research-summary-ss-31-elamipretid",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 3,
+      "issues": [
+        {
+          "type": "EMPTY_PARAGRAPHS",
+          "severity": "low",
+          "description": "Found 7 empty <p> tags",
+          "snippet": "<p></p>",
+          "suggestion": "Remove empty paragraph tags"
+        },
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6588449/](https://www.ncbi.nlm.nih.gov/pmc/articles/PM",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "0fT5NheCuEBcW7SoCgHU",
+      "title": "Research Summary (TB-500 / Thymosin Beta-4 Fragment)",
+      "slug": "research-summary-tb-500-thymosin-beta-4-fragment",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 15 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/10469335/](https://pubmed.ncbi.nlm.nih.gov/10469335/)",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "27Myl9nCOpL4590LAdPH",
+      "title": "VIP: The Peptide Powerhouse for Healing, Inflammation Control, and Cognitive Balance",
+      "slug": "vip-the-peptide-powerhouse-for-healing-inflammation-control-and-cognitive-balance",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 15 markdown-style links",
+          "snippet": "[https://en.wikipedia.org/wiki/Vasoactive_intestinal_peptide?utm_source=chatgpt.com](https://en.wiki",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "2CDFgA5iX9TBsqOtaosj",
+      "title": "Tirzepatide (Trizepatide) Research Summary (What the Evidence Shows)",
+      "slug": "tirzepatide-trizepatide-research-summary-what-the-evidence-shows",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 7 markdown-style links",
+          "snippet": "[https://www.nejm.org/doi/full/10.1056/NEJMoa2107519?utm_source=chatgpt.com](https://www.nejm.org/do",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "2eiVG6zMnPJ8NBrIzbWV",
+      "title": "Human Growth Hormone (HGH) – Research Summary Overview",
+      "slug": "human-growth-hormone-hgh-research-summary-overview",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://pmc.ncbi.nlm.nih.gov/articles/PMC12009952/](https://pmc.ncbi.nlm.nih.gov/articles/PMC120099",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "EBOEcTd9h2maQFRJpeOv",
+      "title": "Semax Peptide Summary (Research-oriented)",
+      "slug": "semax-peptide-summary-research-oriented",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 14 markdown-style links",
+          "snippet": "[https://pmc.ncbi.nlm.nih.gov/articles/PMC3987924/?utm_source=chatgpt.com](https://pmc.ncbi.nlm.nih.",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "GSubaUXrlNY8ezzVB8mY",
+      "title": "Cartalax (AED) — Research Summary (What the science actually suggests)",
+      "slug": "cartalax-aed-research-summary-what-the-science-actually-suggests",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 3 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/27259496/?utm_source=chatgpt.com](https://pubmed.ncbi.nlm.nih.gov/2",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "PzvLk3hnX8RsyNZwrYNi",
+      "title": "Tesamorelin Research Summary",
+      "slug": "tesamorelin-research-summary",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 14 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/22050344/?utm_source=chatgpt.com](https://pubmed.ncbi.nlm.nih.gov/2",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "eI9mysnthdDnnkhuezTV",
+      "title": "Exploring the Science of IGF-1 LR3: Top 3 Research Studies on Growth, Recovery, and Metabolic Effects",
+      "slug": "exploring-the-science-of-igf-1-lr3-top-3-research-studies-on-growth-recovery-and-metabolic-effects",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 3 markdown-style links",
+          "snippet": "[https://pmc.ncbi.nlm.nih.gov/articles/PMC10205682/?utm_source=chatgpt.com](https://pmc.ncbi.nlm.nih",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "lPIZ32fMgMBJqYskuvuJ",
+      "title": "GHK-Cu Research",
+      "slug": "ghk-cu-research",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 32 markdown-style links",
+          "snippet": "[https://pubmed.ncbi.nlm.nih.gov/29986520/](https://pubmed.ncbi.nlm.nih.gov/29986520/)",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "lxApUU60M6SIfz0MVCJm",
+      "title": "Epitalon Explained: The Peptide That Targets Aging at the Cellular Level",
+      "slug": "epitalon-explained-the-peptide-that-targets-aging-at-the-cellular-level",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 18 markdown-style links",
+          "snippet": "[https://pmc.ncbi.nlm.nih.gov/articles/PMC11943447/?utm_source=chatgpt.com](https://pmc.ncbi.nlm.nih",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "tsQl0dKyJ0yAR1jre2D7",
+      "title": "5-Amino-1MQ — Summary & Top Research",
+      "slug": "5-amino-1mq-summary-top-research",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 19 markdown-style links",
+          "snippet": "[https://www.nature.com/articles/s41598-021-03670-5?utm_source=chatgpt.com](https://www.nature.com/a",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "w2NdleRb5wGObWbiYSne",
+      "title": "FOXO4-DRI (FoxO4) — Research Summary",
+      "slug": "foxo4-dri-foxo4-research-summary",
+      "author": "JA Protocols",
+      "category": "advanced",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 2,
+      "issues": [
+        {
+          "type": "MARKDOWN_LINKS",
+          "severity": "medium",
+          "description": "Found 6 markdown-style links",
+          "snippet": "[https://www.cell.com/cell/fulltext/s0092-8674%2817%2930246-5?utm_source=chatgpt.com](https://www.ce",
+          "suggestion": "Convert [text](url) to <a href=\"url\">text</a>"
+        },
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "Fdf5rdKOlriK5FHI0KB6",
+      "title": "SS-31 Protocol: The Mitochondrial Upgrade",
+      "slug": "ss-31-protocol-the-mitochondrial-upgrade",
+      "author": "Jon Andersen & Travis Ortmayer",
+      "category": "jon-travis-doses",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 1,
+      "issues": [
+        {
+          "type": "MISSING_HEADINGS",
+          "severity": "medium",
+          "description": "Long article without any headings",
+          "snippet": "N/A",
+          "suggestion": "Add h2, h3, or h4 headings to structure the content"
+        }
+      ]
+    },
+    {
+      "collection": "jpc_articles",
+      "type": "Academy",
+      "id": "OAiDJmTiZFNQKJSeY3id",
+      "title": "Retatrutide – Dosage Format",
+      "slug": "retatrutide-dosage-format",
+      "author": "JA Protocols",
+      "category": "gen-protocols",
+      "status": "published",
+      "isAcademy": true,
+      "issueCount": 1,
+      "issues": [
+        {
+          "type": "MARKDOWN_BULLETS",
+          "severity": "high",
+          "description": "Found 7 markdown-style bullet points",
+          "snippet": "- 250 mcg (0.25 mg) once per week\n- 500 mcg (0.5 mg) once per week</p>\n- 1 mg once per week</p>",
+          "suggestion": "Convert to <ul><li> or <ol><li> format"
+        }
+      ]
+    }
+  ]
+}

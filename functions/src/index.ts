@@ -6,6 +6,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 admin.initializeApp();
 
+// Export additional cloud functions
+export { fixAllArticlesFormatting } from './fixAllArticles';
+
 interface ProductData {
   name: string;
   price: string;

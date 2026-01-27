@@ -36,13 +36,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fixArticleSpacing = exports.fetchProduct = void 0;
+exports.fixArticleSpacing = exports.fetchProduct = exports.fixAllArticlesFormatting = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
 const cheerio = __importStar(require("cheerio"));
 const generative_ai_1 = require("@google/generative-ai");
 admin.initializeApp();
+// Export additional cloud functions
+var fixAllArticles_1 = require("./fixAllArticles");
+Object.defineProperty(exports, "fixAllArticlesFormatting", { enumerable: true, get: function () { return fixAllArticles_1.fixAllArticlesFormatting; } });
 // Helper functions
 function formatPrice(price) {
     if (!price)
