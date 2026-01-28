@@ -2259,119 +2259,28 @@ const ShopView = ({
     onPrivacy: () => void;
     onTerms: () => void;
 }) => {
-    const affiliateId = "japrotocols"; // Affiliate ID for tracking
+    const [shopProducts, setShopProducts] = useState<AffiliateProduct[]>([]);
+    const [shopLoading, setShopLoading] = useState(true);
 
-    // Premium products from maxperformance4you.com
-    const premiumProducts = [
-        {
-            id: 'gold3',
-            name: "Gold 3 (Retatrutide)",
-            dosage: "10mg / 20mg / 30mg",
-            price: "$249.00 - $509.00",
-            image: "https://www.maxperformance4you.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-17-at-3.28.51-AM.jpeg",
-            url: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/?ref=${affiliateId}`,
-            desc: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
-            features: ["Fat Loss", "Metabolic Boost"],
-            badge: "Premium"
-        }
-    ];
+    // Fetch products from Firestore
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const snapshot = await getDocs(collection(db, 'jpc_products'));
+                const allProducts = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AffiliateProduct));
+                // Only show active products on public shop
+                setShopProducts(allProducts.filter(p => p.status === 'active'));
+            } catch (err) {
+                console.error('Error loading shop products:', err);
+            } finally {
+                setShopLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
-    // Wholesale products from maxperformance4youwholesale.com
-    const wholesaleProducts = [
-        {
-            id: 'bpc-3pack',
-            name: "BPC-157 (3-Pack)",
-            dosage: "5mg per vial",
-            price: "$129.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC157-1.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/bpc157-3pack/?ref=${affiliateId}`,
-            desc: "Systemic healing peptide for gut health and injury repair. CAS: 137525-51-0",
-            features: ["Gut Health", "Injury Repair"],
-            badge: "Best Seller"
-        },
-        {
-            id: 'bpc-tb-blend',
-            name: "BPC-157 + TB-500 (3-Pack)",
-            dosage: "5mg Blend per vial",
-            price: "$179.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC-157-1-600x600.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/?ref=${affiliateId}`,
-            desc: "Ultimate recovery stack combining BPC-157 and TB-500 for joints and tissues.",
-            features: ["Rapid Healing", "Joint Support"],
-            badge: "Top Pick"
-        },
-        {
-            id: 'aod-3pack',
-            name: "AOD-9604 (3-Pack)",
-            dosage: "5mg per vial",
-            price: "$229.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/AOD.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/?ref=${affiliateId}`,
-            desc: "Fat loss fragment of HGH with no blood sugar impact. CAS: 221231-10-3",
-            features: ["Targeted Fat Loss", "Non-Hormonal"],
-            badge: null
-        },
-        {
-            id: 'cjc-ipa-blend',
-            name: "CJC-1295 + Ipamorelin Blend",
-            dosage: "5mg + 5mg (10mg total)",
-            price: "$279.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-30-at-2.37.54-AM.jpeg",
-            url: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/?ref=${affiliateId}`,
-            desc: "Potent GH secretagogue stack for muscle growth, improved sleep, and recovery.",
-            features: ["Muscle Growth", "Deep Sleep"],
-            badge: "Popular"
-        },
-        {
-            id: 'cjc-3pack',
-            name: "CJC-1295 No DAC (3-Pack)",
-            dosage: "5mg per vial",
-            price: "$269.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/CJC.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/?ref=${affiliateId}`,
-            desc: "Growth hormone releasing hormone for natural GH stimulation.",
-            features: ["GH Release", "Recovery"],
-            badge: null
-        },
-        {
-            id: 'ghk-3pack',
-            name: "GHK-Cu (3-Pack)",
-            dosage: "100mg per vial",
-            price: "$179.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/GHK-Cu-1.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/?ref=${affiliateId}`,
-            desc: "Copper peptide for skin elasticity, wound healing, and tissue repair. CAS: 89030-95-5",
-            features: ["Skin Health", "Tissue Repair"],
-            badge: null
-        },
-        {
-            id: '5amino-3pack',
-            name: "5-Amino-1MQ (3-Pack)",
-            dosage: "5mg per unit",
-            price: "$179.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/5-AMINO-1MQ-1.jpg",
-            url: `https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/?ref=${affiliateId}`,
-            desc: "NNMT inhibitor to increase NAD+ levels and promote fat metabolism. CAS: 42464-96-0",
-            features: ["Fat Loss", "Muscle Retention"],
-            badge: null
-        },
-        {
-            id: 'ara290-3pack',
-            name: "ARA-290 (3-Pack)",
-            dosage: "10mg per vial",
-            price: "$139.00",
-            image: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-13-at-1.21.29-AM.jpeg",
-            url: `https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/?ref=${affiliateId}`,
-            desc: "Innate repair receptor agonist for tissue protection and neuroprotection.",
-            features: ["Neuroprotection", "Tissue Repair"],
-            badge: null
-        }
-    ];
-
-    const products = [...premiumProducts, ...wholesaleProducts];
-
-    // Track product click with Firebase Analytics
-    const handleProductClick = async (product: typeof products[0]) => {
+    // Track product click with Firebase Analytics + increment Firestore clicks
+    const handleProductClick = async (product: AffiliateProduct) => {
         // Log to Firebase Analytics - select_item event
         logEvent(analytics, 'select_item', {
             item_list_id: 'shop_products',
@@ -2388,11 +2297,20 @@ const ShopView = ({
         logEvent(analytics, 'outbound_click', {
             product_id: product.id,
             product_name: product.name,
-            destination_url: product.url
+            destination_url: product.affiliateUrl
         });
 
+        // Increment clicks counter in Firestore
+        try {
+            await updateDoc(doc(db, 'jpc_products', product.id), {
+                clicks: increment(1)
+            });
+        } catch (err) {
+            console.error('Error incrementing clicks:', err);
+        }
+
         // Open affiliate link
-        window.open(product.url, '_blank');
+        window.open(product.affiliateUrl, '_blank');
     };
 
     return (
@@ -2423,10 +2341,25 @@ const ShopView = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {products.map((product) => (
+                    {shopLoading ? (
+                        // Skeleton loading cards
+                        Array.from({ length: 6 }).map((_, idx) => (
+                            <div key={idx} className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl overflow-hidden animate-pulse">
+                                <div className="h-64 bg-zinc-800"></div>
+                                <div className="p-8 space-y-4">
+                                    <div className="h-5 bg-zinc-800 rounded w-3/4"></div>
+                                    <div className="h-3 bg-zinc-800 rounded w-1/3"></div>
+                                    <div className="h-5 bg-zinc-800 rounded w-1/4"></div>
+                                    <div className="h-3 bg-zinc-800 rounded w-full"></div>
+                                    <div className="h-3 bg-zinc-800 rounded w-2/3"></div>
+                                    <div className="h-12 bg-zinc-800 rounded-xl mt-6"></div>
+                                </div>
+                            </div>
+                        ))
+                    ) : shopProducts.length > 0 ? shopProducts.map((product) => (
                          <div key={product.id} className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl overflow-hidden group hover:border-[#FF5252]/50 transition-all duration-300 flex flex-col">
                              <div className="h-64 overflow-hidden relative bg-zinc-900">
-                                 <img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
+                                 <img src={product.imageUrl} alt={product.name} loading="lazy" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
                                  {product.badge && (
                                      <div className={`absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${product.badge === 'Premium' ? 'bg-amber-500 text-black' : 'bg-[#FF5252] text-white'}`}>
                                          {product.badge}
@@ -2435,37 +2368,36 @@ const ShopView = ({
                              </div>
                              <div className="p-8 flex-1 flex flex-col">
                                  <h3 className="text-xl font-bold text-white mb-1">{product.name}</h3>
-                                 <p className="text-zinc-500 text-xs mb-3">{product.dosage}</p>
+                                 {product.dosage && <p className="text-zinc-500 text-xs mb-3">{product.dosage}</p>}
                                  <p className="text-[#FF5252] font-mono text-lg mb-4">{product.price}</p>
-                                 <p className="text-zinc-400 text-sm leading-relaxed mb-6">{product.desc}</p>
+                                 {product.description && <p className="text-zinc-400 text-sm leading-relaxed mb-6">{product.description}</p>}
 
-                                 <ul className="space-y-2 mb-8 flex-1">
-                                     {product.features.map((feat, i) => (
-                                         <li key={i} className="flex items-center gap-2 text-xs text-zinc-300 font-bold uppercase tracking-wide">
-                                             <i className="fa-solid fa-check text-[#FF5252]"></i>
-                                             {feat}
-                                         </li>
-                                     ))}
-                                 </ul>
+                                 {product.features && product.features.length > 0 && (
+                                     <ul className="space-y-2 mb-8 flex-1">
+                                         {product.features.map((feat, i) => (
+                                             <li key={i} className="flex items-center gap-2 text-xs text-zinc-300 font-bold uppercase tracking-wide">
+                                                 <i className="fa-solid fa-check text-[#FF5252]"></i>
+                                                 {feat}
+                                             </li>
+                                         ))}
+                                     </ul>
+                                 )}
 
                                  <button
                                      onClick={() => handleProductClick(product)}
-                                     className="cursor-pointer w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2"
+                                     className="cursor-pointer w-full bg-white text-black hover:bg-[#FF5252] hover:text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all text-center flex items-center justify-center gap-2 mt-auto"
                                  >
                                      View Product <i className="fa-solid fa-external-link-alt"></i>
                                  </button>
                              </div>
                          </div>
-                    ))}
-                    
-                    {/* Placeholder for future products */}
-                    <div className="bg-[#0a0a0a]/30 border border-zinc-800/50 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-center gap-4 min-h-[400px]">
-                        <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-600 text-2xl">
-                            <i className="fa-solid fa-box-open"></i>
+                    )) : (
+                        <div className="col-span-full text-center py-20">
+                            <i className="fa-solid fa-box-open text-4xl text-zinc-600 mb-4 block"></i>
+                            <h3 className="text-xl font-bold text-zinc-500">Products Coming Soon</h3>
+                            <p className="text-zinc-600 text-sm mt-2">We are currently setting up our recommended sources.</p>
                         </div>
-                        <h3 className="text-xl font-bold text-zinc-500">More Coming Soon</h3>
-                        <p className="text-zinc-600 text-sm max-w-xs">We are currently vetting additional sources for longevity compounds.</p>
-                    </div>
+                    )}
                 </div>
             </section>
 
@@ -8455,124 +8387,112 @@ const CRMView = ({ contacts, onRefresh }: { contacts: any[]; onRefresh: () => vo
 
     return (
         <div className="space-y-6">
-            {/* Academy Launch Toggle Card */}
-            <div className="bg-gradient-to-r from-purple-900/20 to-zinc-900/50 border border-purple-500/20 rounded-2xl p-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
-                            <i className="fa-solid fa-rocket text-purple-400 text-lg"></i>
+            {/* Academy Settings Row — Launch Toggle + Pricing side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Launch Toggle */}
+                <div className="bg-gradient-to-r from-purple-900/20 to-zinc-900/50 border border-purple-500/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                                <i className="fa-solid fa-rocket text-purple-400 text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-white">Launch Status</h3>
+                                <p className="text-xs text-zinc-500">{academyLaunched ? 'Live' : 'Coming Soon'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                academyLaunched
+                                    ? 'bg-green-500/10 text-green-400 border border-green-500/30'
+                                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                            }`}>
+                                {academyLaunched ? 'Live' : 'Soon'}
+                            </span>
+                            <button
+                                onClick={toggleAcademyLaunch}
+                                disabled={launchToggleLoading}
+                                className={`relative w-11 h-6 rounded-full transition-all duration-300 ${
+                                    academyLaunched ? 'bg-green-500' : 'bg-zinc-700'
+                                } ${launchToggleLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
+                                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
+                                    academyLaunched ? 'left-5' : 'left-0.5'
+                                }`}></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pricing — compact */}
+                <div className="bg-gradient-to-r from-emerald-900/20 to-zinc-900/50 border border-emerald-500/20 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                                <i className="fa-solid fa-tag text-emerald-400 text-sm"></i>
+                            </div>
+                            <h3 className="text-sm font-bold text-white">Pricing</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {pricingSaved && (
+                                <span className="text-emerald-400 text-xs font-medium">
+                                    <i className="fa-solid fa-check mr-1"></i>Saved!
+                                </span>
+                            )}
+                            <button
+                                onClick={savePricing}
+                                disabled={pricingSaving}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-lg transition-all text-xs"
+                            >
+                                {pricingSaving ? '...' : 'Save'}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Original</label>
+                            <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 text-xs">$</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={pricingForm.originalPrice}
+                                    onChange={(e) => setPricingForm(prev => ({ ...prev, originalPrice: Number(e.target.value) }))}
+                                    className="w-full pl-6 pr-2 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm font-bold focus:border-emerald-500 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Current</label>
+                            <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 text-xs">$</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={pricingForm.currentPrice}
+                                    onChange={(e) => setPricingForm(prev => ({ ...prev, currentPrice: Number(e.target.value) }))}
+                                    className="w-full pl-6 pr-2 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white text-sm font-bold focus:border-emerald-500 focus:outline-none"
+                                />
+                            </div>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-white">Academy Launch Status</h3>
-                            <p className="text-sm text-zinc-400 mt-0.5">
-                                {academyLaunched
-                                    ? 'Academy is live — Subscribe buttons open the subscription modal'
-                                    : 'Coming Soon mode — Subscribe buttons open the waitlist popup'}
-                            </p>
+                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Discount</label>
+                            <button
+                                onClick={() => setPricingForm(prev => ({ ...prev, showDiscount: !prev.showDiscount }))}
+                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all whitespace-nowrap ${
+                                    pricingForm.showDiscount
+                                        ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                                        : 'bg-zinc-800 border border-zinc-700 text-zinc-500'
+                                }`}
+                            >
+                                {pricingForm.showDiscount ? 'ON' : 'OFF'}
+                            </button>
+                        </div>
+                        <div className="border-l border-zinc-700 pl-3">
+                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Preview</label>
+                            <PricingDisplay pricing={pricingForm} size="small" />
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                            academyLaunched
-                                ? 'bg-green-500/10 text-green-400 border border-green-500/30'
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        }`}>
-                            {academyLaunched ? 'Live' : 'Coming Soon'}
-                        </span>
-                        <button
-                            onClick={toggleAcademyLaunch}
-                            disabled={launchToggleLoading}
-                            className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
-                                academyLaunched ? 'bg-green-500' : 'bg-zinc-700'
-                            } ${launchToggleLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
-                                academyLaunched ? 'left-7' : 'left-0.5'
-                            }`}></div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Academy Pricing Configuration Card */}
-            <div className="bg-gradient-to-r from-emerald-900/20 to-zinc-900/50 border border-emerald-500/20 rounded-2xl p-6">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                        <i className="fa-solid fa-tag text-emerald-400 text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-white">Academy Pricing</h3>
-                        <p className="text-sm text-zinc-400 mt-0.5">Configure subscription pricing and discount display</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {/* Original Price */}
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Original Price ($/mo)</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
-                            <input
-                                type="number"
-                                min="1"
-                                value={pricingForm.originalPrice}
-                                onChange={(e) => setPricingForm(prev => ({ ...prev, originalPrice: Number(e.target.value) }))}
-                                className="w-full pl-8 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white text-lg font-bold focus:border-emerald-500 focus:outline-none transition-colors"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Current Price */}
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Current Price ($/mo)</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
-                            <input
-                                type="number"
-                                min="1"
-                                value={pricingForm.currentPrice}
-                                onChange={(e) => setPricingForm(prev => ({ ...prev, currentPrice: Number(e.target.value) }))}
-                                className="w-full pl-8 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white text-lg font-bold focus:border-emerald-500 focus:outline-none transition-colors"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Show Discount Toggle */}
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Show Discount</label>
-                        <button
-                            onClick={() => setPricingForm(prev => ({ ...prev, showDiscount: !prev.showDiscount }))}
-                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
-                                pricingForm.showDiscount
-                                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
-                                    : 'bg-zinc-800 border border-zinc-700 text-zinc-500'
-                            }`}
-                        >
-                            {pricingForm.showDiscount ? 'Strikethrough ON' : 'Strikethrough OFF'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Live Preview */}
-                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 mb-4">
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Live Preview</p>
-                    <PricingDisplay pricing={pricingForm} size="large" />
-                </div>
-
-                {/* Save Button */}
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={savePricing}
-                        disabled={pricingSaving}
-                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm"
-                    >
-                        {pricingSaving ? 'Saving...' : 'Save Pricing'}
-                    </button>
-                    {pricingSaved && (
-                        <span className="text-emerald-400 text-sm font-medium">
-                            <i className="fa-solid fa-check mr-1"></i>Saved!
-                        </span>
-                    )}
                 </div>
             </div>
 
@@ -8986,146 +8906,75 @@ const AdminDashboard = ({
         alert(`Import complete!\n\nSuccessfully imported: ${success}\nFailed/not found: ${failed}`);
     };
 
-    // Seed default products if none exist
+    // Seed default products from Cellular Advantage Solutions
     const seedDefaultProducts = async () => {
         const affiliateId = "japrotocols";
+        const baseUrl = "https://cellularadvantagesolutions.com";
         const defaultProducts = [
-            {
-                name: "Gold 3 (Retatrutide)",
-                dosage: "10mg / 20mg / 30mg",
-                price: "$249.00 - $509.00",
-                imageUrl: "https://www.maxperformance4you.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-17-at-3.28.51-AM.jpeg",
-                sourceUrl: "https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/",
-                affiliateUrl: `https://www.maxperformance4you.com/product/ret-glp-3-10mg-20mg-30mg/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Triple agonist (GLP-1, GIP, Glucagon) for ultimate metabolic efficiency.",
-                features: ["Fat Loss", "Metabolic Boost"],
-                badge: "Premium",
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "BPC-157 (3-Pack)",
-                dosage: "5mg per vial",
-                price: "$129.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC157-1.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/bpc157-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/bpc157-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Systemic healing peptide for gut health and injury repair.",
-                features: ["Gut Health", "Injury Repair"],
-                badge: "Best Seller",
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "BPC-157 + TB-500 (3-Pack)",
-                dosage: "5mg Blend per vial",
-                price: "$179.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/BPC-157-1-600x600.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/bpc-157-tb-500-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Ultimate recovery stack combining BPC-157 and TB-500 for joints and tissues.",
-                features: ["Rapid Healing", "Joint Support"],
-                badge: "Top Pick",
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "AOD-9604 (3-Pack)",
-                dosage: "5mg per vial",
-                price: "$229.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/AOD.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/aod-9604-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Fat loss fragment of HGH with no blood sugar impact.",
-                features: ["Targeted Fat Loss", "Non-Hormonal"],
-                badge: null,
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "CJC-1295 + Ipamorelin Blend",
-                dosage: "5mg + 5mg (10mg total)",
-                price: "$279.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-30-at-2.37.54-AM.jpeg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-5mg-ipamorelin-5mg-blend/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Potent GH secretagogue stack for muscle growth, improved sleep, and recovery.",
-                features: ["Muscle Growth", "Deep Sleep"],
-                badge: "Popular",
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "CJC-1295 No DAC (3-Pack)",
-                dosage: "5mg per vial",
-                price: "$269.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/08/CJC.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/cjc-1295-no-dac-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Growth hormone releasing hormone for natural GH stimulation.",
-                features: ["GH Release", "Recovery"],
-                badge: null,
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "GHK-Cu (3-Pack)",
-                dosage: "100mg per vial",
-                price: "$179.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/GHK-Cu-1.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/ghk-cu-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Copper peptide for skin elasticity, wound healing, and tissue repair.",
-                features: ["Skin Health", "Tissue Repair"],
-                badge: null,
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "5-Amino-1MQ (3-Pack)",
-                dosage: "5mg per unit",
-                price: "$179.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/07/5-AMINO-1MQ-1.jpg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/5-amino-1mq-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "NNMT inhibitor to increase NAD+ levels and promote fat metabolism.",
-                features: ["Fat Loss", "Muscle Retention"],
-                badge: null,
-                clicks: 0,
-                status: 'active' as const
-            },
-            {
-                name: "ARA-290 (3-Pack)",
-                dosage: "10mg per vial",
-                price: "$139.00",
-                imageUrl: "https://www.maxperformance4youwholesale.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-13-at-1.21.29-AM.jpeg",
-                sourceUrl: "https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/",
-                affiliateUrl: `https://www.maxperformance4youwholesale.com/product/ara-290-10mg-3pack/?ref=${affiliateId}`,
-                affiliateId,
-                description: "Innate repair receptor agonist for tissue protection and neuroprotection.",
-                features: ["Neuroprotection", "Tissue Repair"],
-                badge: null,
-                clicks: 0,
-                status: 'active' as const
-            }
+            { name: "5-AMINO-1MQ 5mg", price: "$79.00", image: "/products/1769448502_0106061b0cc01a96f9b0.jpeg", path: "/product/6", status: 'active' as const },
+            { name: "5-AMINO-1MQ 5mg (3-pack)", price: "$179.00", image: "/products/1768305741_ebba804c7989402578ca.jpeg", path: "/product/7", status: 'active' as const },
+            { name: "MOTS-c 40mg", price: "$179.00", image: "/products/1765262578_34dd325088989e2bcccf.jpeg", path: "/product/8", status: 'active' as const },
+            { name: "MOTS-C (3-pack)", price: "$429.00", image: "/products/1767370313_639b2d0c26331ec8da8e.jpeg", path: "/product/9", status: 'active' as const },
+            { name: "TB 500/BPC-157 Combo", price: "$89.00", image: "/products/1769448478_899141c2b9a49c7cbab6.jpeg", path: "/product/10", status: 'active' as const, badge: "Best Seller" },
+            { name: "TB-500/BPC-157 (3-pack)", price: "$179.00", image: "/products/1767370350_c194c1828990ea1b8ba8.jpeg", path: "/product/11", status: 'active' as const },
+            { name: "GHK-Cu 100mg", price: "$89.00", image: "/products/1765263216_21a23cc855933509d1da.jpeg", path: "/product/12", status: 'active' as const },
+            { name: "GHK-Cu (3-pack)", price: "$179.00", image: "/products/1767370301_a7118bb530f787baba15.jpeg", path: "/product/13", status: 'active' as const },
+            { name: "Bacteriostatic Water", price: "$17.00", image: "/products/1765361282_3a517722a57b19ef43d5.jpeg", path: "/product/14", status: 'active' as const },
+            { name: "Bacteriostatic Water (3-pack)", price: "$29.00", image: "/products/1767370373_8c60a8b693b9d7d0f5f9.jpeg", path: "/product/15", status: 'active' as const },
+            { name: "GLOW 70mg", price: "$189.00", image: "/products/1765361823_52f7864433624fc6a4a5.jpeg", path: "/product/16", status: 'active' as const },
+            { name: "GLOW 70mg (3-pack)", price: "$449.00", image: "/products/1767370801_87398fb4b1d04597f0b2.jpeg", path: "/product/17", status: 'active' as const },
+            { name: "Tesamorelin 10mg", price: "$149.00", image: "/products/1765362305_337a4635531f572e5f94.jpeg", path: "/product/19", status: 'active' as const },
+            { name: "Tesamorelin (3-pack)", price: "$339.00", image: "/products/1767621655_f7ed23fd23c4aa088571.jpeg", path: "/product/20", status: 'active' as const },
+            { name: "Silver 2", price: "$179.00", image: "/products/1766476311_aea15be3ca25322678b6.jpg", path: "/product/21", status: 'active' as const },
+            { name: "Silver 2 (3-pack)", price: "$449.00", image: "/products/1767370251_06a6c40fd2695f06ea23.jpeg", path: "/product/22", status: 'active' as const },
+            { name: "Bronze 1", price: "$129.00", image: "/products/1766476327_6e64051e026a0b2e1605.jpg", path: "/product/23", status: 'active' as const },
+            { name: "Bronze 1 (3-pack)", price: "$219.00", image: "/products/1767370733_90bd9df19d1b7dbfc4e2.jpeg", path: "/product/24", status: 'active' as const },
+            { name: "Gold 3", price: "$219.00", image: "/products/1766481132_dcef9104ae024ce4a80b.jpg", path: "/product/25", status: 'active' as const, badge: "Premium" },
+            { name: "Gold 3 (3-pack)", price: "$499.00", image: "/products/1767370234_694fa1e5f32b772925ed.jpeg", path: "/product/26", status: 'active' as const },
+            { name: "AOD-9604 (3-pack)", price: "$229.00", image: "/products/1767370266_68f883fb26bb72b712c3.jpeg", path: "/product/27", status: 'active' as const },
+            { name: "PT-141 (3-pack)", price: "$159.00", image: "/products/1767370285_5cc8e21ba39fe21246ab.jpeg", path: "/product/28", status: 'active' as const },
+            { name: "Hexarelin (3-pack)", price: "$149.00", image: "/products/1767370215_c074cccf6d390f7a4bde.jpeg", path: "/product/29", status: 'active' as const },
+            { name: "CJC 1295 No DAC (3-pack)", price: "$269.00", image: "/products/1767370844_89a30934ae1f21f416e3.jpeg", path: "/product/30", status: 'active' as const, badge: "Popular" },
+            { name: "NAD+ (3-pack)", price: "$319.00", image: "/products/1767370586_dbf65c66be4c6566f43e.jpeg", path: "/product/31", status: 'active' as const },
+            { name: "DSIP (3-pack)", price: "$159.00", image: "/products/1767621718_98272133821f205438cb.jpeg", path: "/product/32", status: 'active' as const },
+            { name: "Mazdutide (3-pack)", price: "$409.00", image: "/products/1767370513_5402cd7d3707c5cea95c.jpeg", path: "/product/33", status: 'active' as const },
+            { name: "Epitalon (3-pack)", price: "$309.00", image: "/products/1767370707_eacd7d0956ea73c2591f.jpeg", path: "/product/34", status: 'active' as const },
+            { name: "SS-31 (3-pack)", price: "$229.00", image: "/products/1767370753_248811b19f22ac819fe6.jpeg", path: "/product/35", status: 'active' as const },
+            { name: "HCG 5000 IU (3-pack)", price: "$139.00", image: "/products/1767370430_1124a0f9f720b1add7fe.jpeg", path: "/product/36", status: 'active' as const },
+            { name: "BPC-157 (3-pack)", price: "$129.00", image: "/products/1767370665_630f9aea64601030ce7c.jpeg", path: "/product/37", status: 'active' as const, badge: "Top Pick" },
+            { name: "IGF-1 LR3 1mg (3-pack)", price: "$299.00", image: "/products/1767370639_f23751aef8705dda127d.jpeg", path: "/product/38", status: 'active' as const },
+            { name: "Semax (3-pack)", price: "$179.00", image: "/products/1767370537_fe14097e2077c9b5db59.jpeg", path: "/product/39", status: 'active' as const },
+            { name: "TB-500 (3-pack)", price: "$139.00", image: "/products/1767370563_699c8f48d463eca63612.jpeg", path: "/product/40", status: 'active' as const },
+            { name: "Sermorelin (3-pack)", price: "$189.00", image: "/products/1767370460_9f7fd5865748a90685b4.jpeg", path: "/product/41", status: 'active' as const },
+            { name: "Ipamorelin (3-pack)", price: "$259.00", image: "/products/1767370782_57d6465af1dc8043f3dd.jpeg", path: "/product/42", status: 'inactive' as const },
+            { name: "SLU-PP-332 (3-pack)", price: "$359.00", image: "/products/1765363290_23a434f7c118e338fcbb.jpeg", path: "/product/43", status: 'inactive' as const },
+            { name: "Tadalafil (3-pack)", price: "$259.00", image: "/products/1766146039_b42fba5b2cfb9c28d451.jpeg", path: "/product/44", status: 'inactive' as const },
+            { name: "ARA-290 10mg (3-pack)", price: "$139.00", image: "/products/1767370486_86606f838041bcc55dd3.jpeg", path: "/product/45", status: 'active' as const },
+            { name: "Selank (3-pack)", price: "$149.00", image: "/products/1767621674_fe0f78a55dd69b9e912e.jpeg", path: "/product/46", status: 'inactive' as const },
+            { name: "MK-677 (3-pack)", price: "$299.00", image: "/products/1766481389_16ff9bc81d2094a5f470.jpg", path: "/product/47", status: 'inactive' as const }
         ];
 
         const seededProducts: AffiliateProduct[] = [];
         for (const product of defaultProducts) {
             try {
+                const sourceUrl = `${baseUrl}${product.path}`;
+                const affiliateUrl = `${sourceUrl}?ref=${affiliateId}`;
                 const docRef = await addDoc(collection(db, 'jpc_products'), {
-                    ...product,
+                    name: product.name,
+                    dosage: '',
+                    price: product.price,
+                    description: '',
+                    imageUrl: `${baseUrl}${product.image}`,
+                    sourceUrl,
+                    affiliateUrl,
+                    affiliateId,
+                    features: [],
+                    badge: (product as any).badge || null,
+                    clicks: 0,
+                    status: product.status,
                     createdAt: serverTimestamp()
                 });
-                seededProducts.push({ id: docRef.id, ...product, createdAt: Timestamp.now() } as AffiliateProduct);
+                seededProducts.push({ id: docRef.id, name: product.name, dosage: '', price: product.price, description: '', imageUrl: `${baseUrl}${product.image}`, sourceUrl, affiliateUrl, affiliateId, features: [], badge: (product as any).badge || null, clicks: 0, status: product.status, createdAt: Timestamp.now() } as AffiliateProduct);
             } catch (err) {
                 console.error('Error seeding product:', err);
             }
@@ -10879,13 +10728,38 @@ const AdminDashboard = ({
                                     {/* Header */}
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm text-zinc-400">Manage affiliate products and track performance</p>
-                                        <button
-                                            onClick={() => setIsProductModalOpen(true)}
-                                            className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
-                                        >
-                                            <i className="fa-solid fa-download"></i>
-                                            Import Product
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm(`This will DELETE all ${products.length} existing products and seed ${41} Cellular Advantage products. Continue?`)) return;
+                                                    try {
+                                                        // Delete all existing products
+                                                        for (const p of products) {
+                                                            await deleteDoc(doc(db, 'jpc_products', p.id));
+                                                        }
+                                                        setProducts([]);
+                                                        // Seed new products
+                                                        const seeded = await seedDefaultProducts();
+                                                        setProducts(seeded);
+                                                        alert(`Successfully imported ${seeded.length} Cellular Advantage products!`);
+                                                    } catch (err) {
+                                                        console.error('Error seeding products:', err);
+                                                        alert('Error seeding products: ' + (err as Error).message);
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium flex items-center gap-2"
+                                            >
+                                                <i className="fa-solid fa-rotate"></i>
+                                                Seed Cellular Advantage
+                                            </button>
+                                            <button
+                                                onClick={() => setIsProductModalOpen(true)}
+                                                className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
+                                            >
+                                                <i className="fa-solid fa-download"></i>
+                                                Import Product
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Products Table */}
