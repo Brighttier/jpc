@@ -5284,15 +5284,12 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         {/* Floating Card 3: Animated Video Circle */}
                         <div className="absolute bottom-0 right-10 w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] z-40 hover:scale-110 transition-transform duration-300 bg-black">
                             <video
-                                src="/Images/jon-andersen-animated-BJEEdMtL.mov"
+                                src="/Images/jon-andersen-animated.webm"
+                                autoPlay
                                 loop
                                 muted
                                 playsInline
-                                preload="none"
-                                poster="/Images/Main.jpg"
                                 className="w-full h-full object-contain"
-                                onMouseEnter={(e) => e.currentTarget.play()}
-                                onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
                             />
                         </div>
 
