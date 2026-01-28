@@ -138,22 +138,22 @@ const trackNavigation = (from: string, to: string, method: 'nav' | 'button' | 'l
 };
 
 // Subscription tracking
-const trackSubscriptionIntent = (trigger: string) => {
+const trackSubscriptionIntent = (trigger: string, price: number = 27) => {
     trackEvent('begin_checkout', {
         item_name: 'Academy Subscription',
         item_category: 'subscription',
-        price: 27.00,
+        price,
         currency: 'USD',
         trigger_location: trigger,
     });
 };
 
-const trackSubscriptionComplete = (subscriptionId: string) => {
+const trackSubscriptionComplete = (subscriptionId: string, price: number = 27) => {
     trackEvent('purchase', {
         transaction_id: subscriptionId,
         item_name: 'Academy Subscription',
         item_category: 'subscription',
-        price: 27.00,
+        price,
         currency: 'USD',
     });
 };
@@ -285,6 +285,19 @@ interface Subscription {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
+
+// Academy pricing configuration (stored in jpc_settings/academy)
+interface AcademyPricing {
+    originalPrice: number;  // Display dollar amount (e.g., 49)
+    currentPrice: number;   // Display dollar amount (e.g., 27)
+    showDiscount: boolean;  // Whether to show strikethrough original price
+}
+
+const DEFAULT_ACADEMY_PRICING: AcademyPricing = {
+    originalPrice: 49,
+    currentPrice: 27,
+    showDiscount: true,
+};
 
 // --- Supabase Configuration (for importing old content) ---
 const SUPABASE_CONFIG = {
@@ -1614,7 +1627,9 @@ const AssessmentWizard = ({
         goals: [] as string[],
         injuries: [] as string[],
         email: '',
-        password: ''
+        password: '',
+        newsletterOptIn: false,
+        newsletterFrequency: 'monthly' as 'weekly' | 'biweekly' | 'monthly'
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -1651,6 +1666,28 @@ const AssessmentWizard = ({
                 // Store assessment ID in localStorage for magic link handling
                 window.localStorage.setItem('assessmentIdForSignIn', data.assessmentId);
                 window.localStorage.setItem('emailForSignIn', formData.email);
+
+                // Save to CRM collection
+                try {
+                    const crmDocId = formData.email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    await setDoc(doc(db, 'jpc_crm', crmDocId), {
+                        email: formData.email.toLowerCase(),
+                        name: formData.email.split('@')[0],
+                        phone: '',
+                        instagram: '',
+                        uid: null,
+                        waitlist: false,
+                        waitlistJoinedAt: null,
+                        newsletterSubscribed: formData.newsletterOptIn,
+                        newsletterFrequency: formData.newsletterOptIn ? formData.newsletterFrequency : null,
+                        newsletterOptedInAt: formData.newsletterOptIn ? serverTimestamp() : null,
+                        source: 'assessment',
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                } catch (crmErr) {
+                    console.error('CRM save error (non-blocking):', crmErr);
+                }
 
                 // Show Thank You page
                 if (onShowThankYou) {
@@ -1878,6 +1915,44 @@ const AssessmentWizard = ({
                                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                                     />
                                     <p className="text-[10px] text-zinc-500">Secure your account to save your personalized protocol.</p>
+                                </div>
+
+                                {/* Newsletter Opt-in */}
+                                <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-5 mt-4">
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.newsletterOptIn}
+                                            onChange={(e) => setFormData({...formData, newsletterOptIn: e.target.checked})}
+                                            className="mt-1 w-4 h-4 accent-[#FF5252] rounded"
+                                        />
+                                        <div>
+                                            <span className="text-sm font-bold text-white">Subscribe to our newsletter</span>
+                                            <p className="text-xs text-zinc-500 mt-0.5">Get updates on new products, exclusive discounts, and peptide research news</p>
+                                        </div>
+                                    </label>
+
+                                    {formData.newsletterOptIn && (
+                                        <div className="mt-4 ml-7 animate-fadeIn">
+                                            <label className="text-xs font-bold text-zinc-400 uppercase mb-2 block">How often would you like to hear from us?</label>
+                                            <div className="flex gap-3">
+                                                {(['weekly', 'biweekly', 'monthly'] as const).map(freq => (
+                                                    <button
+                                                        key={freq}
+                                                        type="button"
+                                                        onClick={() => setFormData({...formData, newsletterFrequency: freq})}
+                                                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
+                                                            formData.newsletterFrequency === freq
+                                                                ? 'bg-[#FF5252] text-white'
+                                                                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-zinc-600'
+                                                        }`}
+                                                    >
+                                                        {freq === 'biweekly' ? 'Bi-Weekly' : freq.charAt(0).toUpperCase() + freq.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                              </div>
                          </div>
@@ -2423,12 +2498,14 @@ const SubscriptionModal = ({
     isOpen,
     onClose,
     onSuccess,
-    userId
+    userId,
+    pricing = DEFAULT_ACADEMY_PRICING
 }: {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (subscriptionId: string) => void;
     userId: string;
+    pricing?: AcademyPricing;
 }) => {
     const [cardNumber, setCardNumber] = useState('');
     const [expiryMonth, setExpiryMonth] = useState('');
@@ -2485,7 +2562,7 @@ const SubscriptionModal = ({
                 userId,
                 status: 'active',
                 plan: 'monthly',
-                priceAmount: 2700, // $27.00
+                priceAmount: pricing.currentPrice * 100,
                 startDate: serverTimestamp(),
                 currentPeriodEnd: Timestamp.fromDate(expiresAt),
                 authorizeNetSubscriptionId: `sandbox_${Date.now()}`,
@@ -2527,7 +2604,7 @@ const SubscriptionModal = ({
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-xl font-bold text-white">Subscribe to Academy</h3>
-                            <p className="text-white/70 text-sm">$27/month • Cancel anytime</p>
+                            <p className="text-white/70 text-sm"><PricingDisplay pricing={pricing} size="small" /> • Cancel anytime</p>
                         </div>
                         <button
                             onClick={onClose}
@@ -2644,7 +2721,7 @@ const SubscriptionModal = ({
                         ) : (
                             <>
                                 <i className="fa-solid fa-credit-card"></i>
-                                Subscribe Now - $27/month
+                                Subscribe Now - ${pricing.currentPrice}/month
                             </>
                         )}
                     </button>
@@ -3276,6 +3353,212 @@ const BlogView = ({
     );
 };
 
+// --- Academy Waitlist Modal (Coming Soon) ---
+const AcademyWaitlistModal = ({ isOpen, onClose, user }: { isOpen: boolean; onClose: () => void; user: User | null }) => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        instagram: ''
+    });
+    const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // Pre-fill if user is logged in
+    useEffect(() => {
+        if (user?.email) {
+            setFormData(prev => ({
+                ...prev,
+                name: user.email?.split('@')[0] || '',
+                email: user.email || ''
+            }));
+        }
+    }, [user]);
+
+    // Reset on close
+    useEffect(() => {
+        if (!isOpen) {
+            setSubmitted(false);
+            setError('');
+        }
+    }, [isOpen]);
+
+    const handleSubmit = async () => {
+        if (!formData.email) {
+            setError('Email is required');
+            return;
+        }
+        setLoading(true);
+        setError('');
+        try {
+            const crmDocId = formData.email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            await setDoc(doc(db, 'jpc_crm', crmDocId), {
+                email: formData.email.toLowerCase(),
+                name: formData.name || formData.email.split('@')[0],
+                phone: formData.phone || '',
+                instagram: formData.instagram || '',
+                uid: user?.uid || null,
+                waitlist: true,
+                waitlistJoinedAt: serverTimestamp(),
+                source: 'waitlist',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            setSubmitted(true);
+        } catch (err: any) {
+            console.error('Waitlist submit error:', err);
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div className="relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                {/* Close button */}
+                <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors z-10">
+                    <i className="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                {/* Purple gradient top bar */}
+                <div className="h-1 bg-gradient-to-r from-[#9d4edd] via-[#c77dff] to-[#9d4edd] rounded-t-2xl"></div>
+
+                <div className="p-8">
+                    {submitted ? (
+                        /* Success State */
+                        <div className="text-center py-6 animate-fadeIn">
+                            <div className="w-16 h-16 bg-[#9d4edd]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i className="fa-solid fa-check text-3xl text-[#9d4edd]"></i>
+                            </div>
+                            <h3 className="text-2xl font-black text-white mb-2">You're on the List!</h3>
+                            <p className="text-zinc-400 text-sm mb-6">We'll notify you as soon as the Cellular Advantage Academy launches with your exclusive early bird discount.</p>
+                            <button onClick={onClose} className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-widest transition-all">
+                                Got It
+                            </button>
+                        </div>
+                    ) : (
+                        /* Form State */
+                        <>
+                            <div className="text-center mb-6">
+                                <div className="inline-block px-3 py-1 rounded-full bg-[#9d4edd]/10 border border-[#9d4edd]/30 text-[#c77dff] text-[10px] font-bold uppercase tracking-widest mb-3">
+                                    Coming Soon
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-2">Cellular Advantage Academy</h3>
+                                <p className="text-zinc-400 text-sm">Join the waitlist for early bird access & an exclusive launch discount.</p>
+                            </div>
+
+                            {/* Early Bird Promo */}
+                            <div className="bg-[#9d4edd]/5 border border-[#9d4edd]/20 rounded-xl p-4 mb-6">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <i className="fa-solid fa-gift text-[#c77dff]"></i>
+                                    <span className="text-sm font-bold text-[#c77dff]">Early Bird Benefits</span>
+                                </div>
+                                <ul className="space-y-1.5">
+                                    {['Exclusive launch discount', 'First access to premium content', 'Direct messaging with Jon Andersen'].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-xs text-zinc-400">
+                                            <div className="w-1 h-1 rounded-full bg-[#9d4edd]"></div>
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            {/* Form */}
+                            <div className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Your Name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-[#9d4edd] focus:outline-none text-white placeholder-zinc-600"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Email Address *"
+                                    value={formData.email}
+                                    readOnly={!!user?.email}
+                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-[#9d4edd] focus:outline-none text-white placeholder-zinc-600 ${user?.email ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="tel"
+                                        placeholder="Phone (Optional)"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-[#9d4edd] focus:outline-none text-white placeholder-zinc-600"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="@ Instagram (Optional)"
+                                        value={formData.instagram}
+                                        onChange={(e) => setFormData({...formData, instagram: e.target.value})}
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:border-[#9d4edd] focus:outline-none text-white placeholder-zinc-600"
+                                    />
+                                </div>
+                            </div>
+
+                            {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+
+                            <button
+                                onClick={handleSubmit}
+                                disabled={loading || !formData.email}
+                                className="w-full mt-5 bg-gradient-to-r from-[#9d4edd] to-[#7b2cbf] hover:from-[#7b2cbf] hover:to-[#6a24a8] text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20"
+                            >
+                                {loading ? <i className="fa-solid fa-spinner animate-spin"></i> : (
+                                    <>
+                                        <i className="fa-solid fa-rocket"></i>
+                                        Join the Waitlist
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Reusable pricing display with strikethrough discount
+const PricingDisplay = ({ pricing, size = 'large' }: { pricing: AcademyPricing; size?: 'large' | 'small' }) => {
+    const showStrike = pricing.showDiscount && pricing.originalPrice > pricing.currentPrice;
+    const discountPercent = showStrike ? Math.round((1 - pricing.currentPrice / pricing.originalPrice) * 100) : 0;
+
+    if (size === 'large') {
+        return (
+            <div className="flex items-center justify-center gap-3 mb-1">
+                {showStrike && (
+                    <span className="text-2xl text-zinc-500 line-through font-medium">${pricing.originalPrice}</span>
+                )}
+                <span className="text-4xl font-black text-[#c77dff]">
+                    ${pricing.currentPrice}<span className="text-lg text-zinc-500 font-medium">/month</span>
+                </span>
+                {discountPercent > 0 && (
+                    <span className="px-2.5 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-green-400 text-xs font-bold uppercase">
+                        Save {discountPercent}%
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    // Small variant for button text, modal headers
+    return (
+        <span>
+            {showStrike && (
+                <span className="line-through text-white/40 mr-1">${pricing.originalPrice}</span>
+            )}
+            ${pricing.currentPrice}/month
+        </span>
+    );
+};
+
 // ExploreAcademyView - Promotional page for non-subscribers (Explore Academy)
 const ExploreAcademyView = ({
     user,
@@ -3311,8 +3594,30 @@ const ExploreAcademyView = ({
     onTerms: () => void
 }) => {
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+    const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
+    const [academyLaunched, setAcademyLaunched] = useState(false);
+    const [academyPricing, setAcademyPricing] = useState<AcademyPricing>(DEFAULT_ACADEMY_PRICING);
     const [academyVideosCount, setAcademyVideosCount] = useState(0);
     const [academyArticlesCount, setAcademyArticlesCount] = useState(0);
+
+    // Fetch academy launch status + pricing + counts
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const settingsDoc = await getDoc(doc(db, 'jpc_settings', 'academy'));
+                if (settingsDoc.exists()) {
+                    const data = settingsDoc.data();
+                    setAcademyLaunched(data.isLaunched === true);
+                    if (data.pricing) {
+                        setAcademyPricing(data.pricing);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching academy settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     // Fetch counts for preview
     useEffect(() => {
@@ -3430,7 +3735,7 @@ const ExploreAcademyView = ({
                     <div className="mt-10 bg-[#0f0a14] border border-[#9d4edd]/30 rounded-3xl p-8 md:p-10 text-center relative overflow-hidden shadow-2xl max-w-xl mx-auto">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
                         <h3 className="text-2xl font-bold text-white mb-2">Ready to Get Started?</h3>
-                        <div className="text-4xl font-black text-[#c77dff] mb-1">$27<span className="text-lg text-zinc-500 font-medium">/month</span></div>
+                        <PricingDisplay pricing={academyPricing} size="large" />
                         <p className="text-sm text-zinc-500 mb-8">Full access to all premium content</p>
 
                         {user?.isAcademyMember ? (
@@ -3447,15 +3752,22 @@ const ExploreAcademyView = ({
                         ) : (
                             <button
                                 onClick={() => {
-                                    trackCTAClick('subscribe_now', 'explore_academy_hero', 'subscription_modal');
-                                    user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe');
+                                    if (academyLaunched) {
+                                        trackCTAClick('subscribe_now', 'explore_academy_hero', 'subscription_modal');
+                                        user ? setIsSubscriptionModalOpen(true) : alert('Please log in first to subscribe');
+                                    } else {
+                                        trackCTAClick('join_waitlist', 'explore_academy_hero', 'waitlist_modal');
+                                        setIsWaitlistModalOpen(true);
+                                    }
                                 }}
                                 className="bg-[#9d4edd] hover:bg-[#7b2cbf] text-white px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all shadow-lg shadow-purple-900/30 w-full md:w-auto"
                             >
-                                Subscribe Now - $27/mo
+                                {academyLaunched ? `Subscribe Now - $${academyPricing.currentPrice}/mo` : (
+                                    <><i className="fa-solid fa-rocket mr-2"></i>Join Waitlist - Coming Soon</>
+                                )}
                             </button>
                         )}
-                        <p className="text-[10px] text-zinc-600 mt-4 uppercase tracking-wider">Cancel anytime. No long-term commitments.</p>
+                        <p className="text-[10px] text-zinc-600 mt-4 uppercase tracking-wider">{academyLaunched ? 'Cancel anytime. No long-term commitments.' : 'Get early bird access & exclusive launch discount'}</p>
                     </div>
                 </div>
             </section>
@@ -3543,8 +3855,16 @@ const ExploreAcademyView = ({
                     onClose={() => setIsSubscriptionModalOpen(false)}
                     onSuccess={handleSubscriptionSuccess}
                     userId={user.uid || ''}
+                    pricing={academyPricing}
                 />
             )}
+
+            {/* Waitlist Modal */}
+            <AcademyWaitlistModal
+                isOpen={isWaitlistModalOpen}
+                onClose={() => setIsWaitlistModalOpen(false)}
+                user={user}
+            />
         </div>
     );
 };
@@ -7949,6 +8269,545 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
     );
 };
 
+// CRM View Component
+const CRMView = ({ contacts, onRefresh }: { contacts: any[]; onRefresh: () => void }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [waitlistFilter, setWaitlistFilter] = useState<'all' | 'yes' | 'no'>('all');
+    const [newsletterFilter, setNewsletterFilter] = useState<'all' | 'subscribed' | 'not_subscribed'>('all');
+    const [frequencyFilter, setFrequencyFilter] = useState<'all' | 'weekly' | 'biweekly' | 'monthly'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [academyLaunched, setAcademyLaunched] = useState(false);
+    const [launchToggleLoading, setLaunchToggleLoading] = useState(false);
+    const [pricingForm, setPricingForm] = useState<AcademyPricing>(DEFAULT_ACADEMY_PRICING);
+    const [pricingSaving, setPricingSaving] = useState(false);
+    const [pricingSaved, setPricingSaved] = useState(false);
+    const CONTACTS_PER_PAGE = 25;
+
+    // Fetch academy launch status + pricing
+    useEffect(() => {
+        const fetchLaunchStatus = async () => {
+            try {
+                const settingsDoc = await getDoc(doc(db, 'jpc_settings', 'academy'));
+                if (settingsDoc.exists()) {
+                    const data = settingsDoc.data();
+                    setAcademyLaunched(data.isLaunched === true);
+                    if (data.pricing) {
+                        setPricingForm(data.pricing);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching academy settings:', err);
+            }
+        };
+        fetchLaunchStatus();
+    }, []);
+
+    // Save pricing to Firestore
+    const savePricing = async () => {
+        if (pricingForm.currentPrice <= 0 || pricingForm.originalPrice <= 0) {
+            alert('Prices must be greater than $0');
+            return;
+        }
+        if (pricingForm.currentPrice > pricingForm.originalPrice) {
+            alert('Current price cannot exceed original price');
+            return;
+        }
+        setPricingSaving(true);
+        try {
+            await setDoc(doc(db, 'jpc_settings', 'academy'), {
+                pricing: {
+                    originalPrice: pricingForm.originalPrice,
+                    currentPrice: pricingForm.currentPrice,
+                    showDiscount: pricingForm.showDiscount
+                },
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            setPricingSaved(true);
+            setTimeout(() => setPricingSaved(false), 3000);
+        } catch (err) {
+            console.error('Error saving pricing:', err);
+            alert('Failed to save pricing. Please try again.');
+        } finally {
+            setPricingSaving(false);
+        }
+    };
+
+    // Toggle academy launch status
+    const toggleAcademyLaunch = async () => {
+        setLaunchToggleLoading(true);
+        try {
+            const newStatus = !academyLaunched;
+            await setDoc(doc(db, 'jpc_settings', 'academy'), {
+                isLaunched: newStatus,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            setAcademyLaunched(newStatus);
+        } catch (err) {
+            console.error('Error toggling academy launch:', err);
+        } finally {
+            setLaunchToggleLoading(false);
+        }
+    };
+
+    // Filter contacts
+    const filteredContacts = contacts.filter(c => {
+        // Search filter
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            const matchesSearch = (c.name || '').toLowerCase().includes(q) ||
+                (c.email || '').toLowerCase().includes(q) ||
+                (c.instagram || '').toLowerCase().includes(q) ||
+                (c.phone || '').toLowerCase().includes(q);
+            if (!matchesSearch) return false;
+        }
+        // Waitlist filter
+        if (waitlistFilter === 'yes' && !c.waitlist) return false;
+        if (waitlistFilter === 'no' && c.waitlist) return false;
+        // Newsletter filter
+        if (newsletterFilter === 'subscribed' && !c.newsletterSubscribed) return false;
+        if (newsletterFilter === 'not_subscribed' && c.newsletterSubscribed) return false;
+        // Frequency filter
+        if (frequencyFilter !== 'all' && c.newsletterFrequency !== frequencyFilter) return false;
+        return true;
+    });
+
+    // Sort by newest first
+    const sortedContacts = [...filteredContacts].sort((a, b) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        return bTime - aTime;
+    });
+
+    // Pagination
+    const totalPages = Math.ceil(sortedContacts.length / CONTACTS_PER_PAGE);
+    const paginatedContacts = sortedContacts.slice(
+        (currentPage - 1) * CONTACTS_PER_PAGE,
+        currentPage * CONTACTS_PER_PAGE
+    );
+
+    // Reset page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, waitlistFilter, newsletterFilter, frequencyFilter]);
+
+    // CSV Export
+    const exportToCSV = () => {
+        const headers = ['Name', 'Email', 'Phone', 'Instagram', 'Waitlist', 'Newsletter', 'Frequency', 'Source', 'Joined'];
+        const rows = sortedContacts.map(c => [
+            c.name || '',
+            c.email || '',
+            c.phone || '',
+            c.instagram || '',
+            c.waitlist ? 'Yes' : 'No',
+            c.newsletterSubscribed ? 'Yes' : 'No',
+            c.newsletterFrequency || 'N/A',
+            c.source || '',
+            c.createdAt?.toDate?.()?.toLocaleDateString() || ''
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `jpc-crm-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const formatDate = (timestamp: any) => {
+        if (!timestamp?.toDate && !timestamp?.seconds) return '—';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+        return date.toLocaleDateString();
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Academy Launch Toggle Card */}
+            <div className="bg-gradient-to-r from-purple-900/20 to-zinc-900/50 border border-purple-500/20 rounded-2xl p-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                            <i className="fa-solid fa-rocket text-purple-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">Academy Launch Status</h3>
+                            <p className="text-sm text-zinc-400 mt-0.5">
+                                {academyLaunched
+                                    ? 'Academy is live — Subscribe buttons open the subscription modal'
+                                    : 'Coming Soon mode — Subscribe buttons open the waitlist popup'}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                            academyLaunched
+                                ? 'bg-green-500/10 text-green-400 border border-green-500/30'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                        }`}>
+                            {academyLaunched ? 'Live' : 'Coming Soon'}
+                        </span>
+                        <button
+                            onClick={toggleAcademyLaunch}
+                            disabled={launchToggleLoading}
+                            className={`relative w-14 h-7 rounded-full transition-all duration-300 ${
+                                academyLaunched ? 'bg-green-500' : 'bg-zinc-700'
+                            } ${launchToggleLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${
+                                academyLaunched ? 'left-7' : 'left-0.5'
+                            }`}></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Academy Pricing Configuration Card */}
+            <div className="bg-gradient-to-r from-emerald-900/20 to-zinc-900/50 border border-emerald-500/20 rounded-2xl p-6">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                        <i className="fa-solid fa-tag text-emerald-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Academy Pricing</h3>
+                        <p className="text-sm text-zinc-400 mt-0.5">Configure subscription pricing and discount display</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {/* Original Price */}
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Original Price ($/mo)</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                            <input
+                                type="number"
+                                min="1"
+                                value={pricingForm.originalPrice}
+                                onChange={(e) => setPricingForm(prev => ({ ...prev, originalPrice: Number(e.target.value) }))}
+                                className="w-full pl-8 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white text-lg font-bold focus:border-emerald-500 focus:outline-none transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Current Price */}
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Current Price ($/mo)</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                            <input
+                                type="number"
+                                min="1"
+                                value={pricingForm.currentPrice}
+                                onChange={(e) => setPricingForm(prev => ({ ...prev, currentPrice: Number(e.target.value) }))}
+                                className="w-full pl-8 pr-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-white text-lg font-bold focus:border-emerald-500 focus:outline-none transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Show Discount Toggle */}
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Show Discount</label>
+                        <button
+                            onClick={() => setPricingForm(prev => ({ ...prev, showDiscount: !prev.showDiscount }))}
+                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
+                                pricingForm.showDiscount
+                                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                                    : 'bg-zinc-800 border border-zinc-700 text-zinc-500'
+                            }`}
+                        >
+                            {pricingForm.showDiscount ? 'Strikethrough ON' : 'Strikethrough OFF'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Live Preview */}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 mb-4">
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Live Preview</p>
+                    <PricingDisplay pricing={pricingForm} size="large" />
+                </div>
+
+                {/* Save Button */}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={savePricing}
+                        disabled={pricingSaving}
+                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all text-sm"
+                    >
+                        {pricingSaving ? 'Saving...' : 'Save Pricing'}
+                    </button>
+                    {pricingSaved && (
+                        <span className="text-emerald-400 text-sm font-medium">
+                            <i className="fa-solid fa-check mr-1"></i>Saved!
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                            <i className="fa-solid fa-users text-blue-400"></i>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-white">{contacts.length}</p>
+                            <p className="text-xs text-zinc-500">Total Contacts</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                            <i className="fa-solid fa-clock text-purple-400"></i>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-white">{contacts.filter(c => c.waitlist).length}</p>
+                            <p className="text-xs text-zinc-500">On Waitlist</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                            <i className="fa-solid fa-envelope text-green-400"></i>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-white">{contacts.filter(c => c.newsletterSubscribed).length}</p>
+                            <p className="text-xs text-zinc-500">Newsletter Subs</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                            <i className="fa-solid fa-file-alt text-amber-400"></i>
+                        </div>
+                        <div>
+                            <p className="text-2xl font-bold text-white">{contacts.filter(c => c.source === 'assessment').length}</p>
+                            <p className="text-xs text-zinc-500">From Assessments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters & Actions Bar */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[200px]">
+                        <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                        <input
+                            type="text"
+                            placeholder="Search name, email, instagram..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
+                        />
+                    </div>
+
+                    {/* Waitlist Filter */}
+                    <select
+                        value={waitlistFilter}
+                        onChange={(e) => setWaitlistFilter(e.target.value as any)}
+                        className="px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:border-zinc-500 cursor-pointer"
+                    >
+                        <option value="all">All Waitlist</option>
+                        <option value="yes">Waitlist: Yes</option>
+                        <option value="no">Waitlist: No</option>
+                    </select>
+
+                    {/* Newsletter Filter */}
+                    <select
+                        value={newsletterFilter}
+                        onChange={(e) => setNewsletterFilter(e.target.value as any)}
+                        className="px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:border-zinc-500 cursor-pointer"
+                    >
+                        <option value="all">All Newsletter</option>
+                        <option value="subscribed">Subscribed</option>
+                        <option value="not_subscribed">Not Subscribed</option>
+                    </select>
+
+                    {/* Frequency Filter */}
+                    <select
+                        value={frequencyFilter}
+                        onChange={(e) => setFrequencyFilter(e.target.value as any)}
+                        className="px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:border-zinc-500 cursor-pointer"
+                    >
+                        <option value="all">All Frequencies</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+
+                    {/* Export CSV */}
+                    <button
+                        onClick={exportToCSV}
+                        disabled={sortedContacts.length === 0}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#FF5252] hover:bg-[#ff3333] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-colors"
+                    >
+                        <i className="fa-solid fa-download"></i>
+                        Export CSV
+                    </button>
+
+                    {/* Refresh */}
+                    <button
+                        onClick={onRefresh}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm transition-colors"
+                    >
+                        <i className="fa-solid fa-refresh"></i>
+                    </button>
+                </div>
+
+                {/* Result count */}
+                <div className="mt-3 text-xs text-zinc-500">
+                    Showing {sortedContacts.length} of {contacts.length} contacts
+                    {searchQuery && <> matching "<span className="text-zinc-300">{searchQuery}</span>"</>}
+                </div>
+            </div>
+
+            {/* Contacts Table */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden">
+                {sortedContacts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 px-8">
+                        <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
+                            <i className="fa-solid fa-users text-zinc-600 text-3xl"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-zinc-400 mb-1">No contacts yet</h3>
+                        <p className="text-sm text-zinc-600 text-center max-w-md">
+                            Contacts will appear here when users join the academy waitlist or submit assessments with newsletter opt-in.
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-zinc-800">
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Name</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Email</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Phone</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Instagram</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Waitlist</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Newsletter</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Frequency</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Source</th>
+                                        <th className="text-left px-5 py-4 text-xs font-bold text-zinc-400 uppercase tracking-wider">Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedContacts.map((contact, idx) => (
+                                        <tr key={contact.id || idx} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                                            <td className="px-5 py-4">
+                                                <span className="font-medium text-white">{contact.name || '—'}</span>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <span className="text-zinc-300">{contact.email || '—'}</span>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <span className="text-zinc-400">{contact.phone || '—'}</span>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {contact.instagram ? (
+                                                    <span className="text-purple-400">@{contact.instagram.replace('@', '')}</span>
+                                                ) : (
+                                                    <span className="text-zinc-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {contact.waitlist ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-bold">
+                                                        <i className="fa-solid fa-check text-[10px]"></i> Yes
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-1 bg-zinc-800 text-zinc-500 border border-zinc-700 rounded-full text-xs">No</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {contact.newsletterSubscribed ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-bold">
+                                                        <i className="fa-solid fa-envelope text-[10px]"></i> Subscribed
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-1 bg-zinc-800 text-zinc-500 border border-zinc-700 rounded-full text-xs">No</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                {contact.newsletterFrequency ? (
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                                                        contact.newsletterFrequency === 'weekly'
+                                                            ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                                            : contact.newsletterFrequency === 'biweekly'
+                                                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                                            : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                                    }`}>
+                                                        {contact.newsletterFrequency === 'biweekly' ? 'Bi-Weekly' : contact.newsletterFrequency.charAt(0).toUpperCase() + contact.newsletterFrequency.slice(1)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-zinc-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                                                    contact.source === 'waitlist'
+                                                        ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                                        : contact.source === 'assessment'
+                                                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                                        : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                                                }`}>
+                                                    {contact.source === 'waitlist' ? 'Waitlist' : contact.source === 'assessment' ? 'Assessment' : contact.source || 'Manual'}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <span className="text-zinc-500 text-xs">{formatDate(contact.createdAt)}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-5 py-4 border-t border-zinc-800">
+                                <p className="text-xs text-zinc-500">
+                                    Page {currentPage} of {totalPages} ({sortedContacts.length} contacts)
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage <= 1}
+                                        className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs transition-colors"
+                                    >
+                                        <i className="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <span className="px-4 py-2 bg-zinc-900 text-white rounded-lg text-xs">
+                                        {currentPage}
+                                    </span>
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage >= totalPages}
+                                        className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs transition-colors"
+                                    >
+                                        <i className="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // Main Admin Dashboard Component
 const AdminDashboard = ({
     user,
@@ -7957,11 +8816,12 @@ const AdminDashboard = ({
     user: User;
     onBack: () => void;
 }) => {
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'videos' | 'articles' | 'categories' | 'shop'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'videos' | 'articles' | 'categories' | 'shop' | 'crm'>('dashboard');
     const [videos, setVideos] = useState<VideoContent[]>([]);
     const [articles, setArticles] = useState<ArticleContent[]>([]);
     const [categories, setCategories] = useState<ContentCategory[]>([]);
     const [products, setProducts] = useState<AffiliateProduct[]>([]);
+    const [crmContacts, setCrmContacts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Modal states
@@ -8921,11 +9781,12 @@ const AdminDashboard = ({
         const loadData = async () => {
             try {
                 // Load all collections in PARALLEL for faster loading
-                const [videosSnap, articlesSnap, categoriesSnap, productsSnap] = await Promise.all([
+                const [videosSnap, articlesSnap, categoriesSnap, productsSnap, crmSnap] = await Promise.all([
                     getDocs(collection(db, 'jpc_videos')),
                     getDocs(collection(db, 'jpc_articles')),
                     getDocs(query(collection(db, 'jpc_categories'), orderBy('displayOrder'))),
-                    getDocs(collection(db, 'jpc_products'))
+                    getDocs(collection(db, 'jpc_products')),
+                    getDocs(collection(db, 'jpc_crm'))
                 ]);
 
                 // Process videos
@@ -8951,6 +9812,9 @@ const AdminDashboard = ({
                 } else {
                     setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as AffiliateProduct)));
                 }
+
+                // Process CRM contacts
+                setCrmContacts(crmSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -9262,6 +10126,13 @@ const AdminDashboard = ({
                         onClick={() => setActiveTab('shop')}
                         badge={products.length}
                     />
+                    <AdminNavItem
+                        icon="fa-users"
+                        label="CRM"
+                        active={activeTab === 'crm'}
+                        onClick={() => setActiveTab('crm')}
+                        badge={crmContacts.length}
+                    />
                 </nav>
 
                 <div className="p-4 border-t border-zinc-800">
@@ -9287,6 +10158,7 @@ const AdminDashboard = ({
                                 {activeTab === 'articles' && 'Article Management'}
                                 {activeTab === 'categories' && 'Category Management'}
                                 {activeTab === 'shop' && 'Product Management'}
+                                {activeTab === 'crm' && 'CRM & Contacts'}
                             </h1>
                             <p className="text-sm text-zinc-500 mt-1">
                                 {activeTab === 'dashboard' && 'Overview of your content and analytics'}
@@ -9294,6 +10166,7 @@ const AdminDashboard = ({
                                 {activeTab === 'articles' && 'Create and manage learning articles'}
                                 {activeTab === 'categories' && 'Organize content with categories'}
                                 {activeTab === 'shop' && 'Manage affiliate products and track performance'}
+                                {activeTab === 'crm' && 'Manage contacts, waitlist, and newsletter subscribers'}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -10107,6 +10980,17 @@ const AdminDashboard = ({
                                         </div>
                                     )}
                                 </div>
+                            )}
+
+                            {activeTab === 'crm' && (
+                                <CRMView contacts={crmContacts} onRefresh={async () => {
+                                    try {
+                                        const crmSnap = await getDocs(collection(db, 'jpc_crm'));
+                                        setCrmContacts(crmSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                                    } catch (err) {
+                                        console.error('Error refreshing CRM:', err);
+                                    }
+                                }} />
                             )}
                         </>
                     )}
