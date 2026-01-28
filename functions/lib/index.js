@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fixArticleSpacing = exports.fetchProduct = exports.getCompoundOverview = exports.askJonAI = exports.getUserProtocol = exports.generatePersonalizedProtocol = exports.seedPeptideReference = exports.verifyMagicLink = exports.sendProtocolMagicLink = exports.fixAllArticlesFormatting = void 0;
+exports.fixArticleSpacing = exports.fetchProductListing = exports.fetchProduct = exports.getCompoundOverview = exports.askJonAI = exports.getUserProtocol = exports.generatePersonalizedProtocol = exports.seedPeptideReference = exports.verifyMagicLink = exports.sendProtocolMagicLink = exports.fixAllArticlesFormatting = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
@@ -327,6 +327,137 @@ exports.fetchProduct = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('not-found', 'Product page not found');
         }
         throw new functions.https.HttpsError('internal', 'Failed to fetch product data');
+    }
+});
+/**
+ * Cloud Function to extract all products from an e-commerce listing page.
+ * Uses Gemini AI to parse the repeated product card structure on listing pages.
+ * Works for any site — no platform-specific selectors needed.
+ */
+exports.fetchProductListing = functions
+    .runWith({ timeoutSeconds: 120, memory: '512MB' })
+    .https.onCall(async (data, context) => {
+    var _a, _b, _c;
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated');
+    }
+    const { url } = data;
+    if (!url) {
+        throw new functions.https.HttpsError('invalid-argument', 'URL is required');
+    }
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    }
+    catch (_d) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid URL format');
+    }
+    try {
+        // Fetch the listing page HTML
+        const response = await axios_1.default.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            },
+            timeout: 30000,
+            maxRedirects: 5
+        });
+        const html = response.data;
+        const $ = cheerio.load(html);
+        // Extract page title before cleanup
+        const pageTitle = $('title').text().trim();
+        // Clean HTML: remove non-product content to reduce noise for AI
+        $('script, style, nav, footer, header, noscript, iframe').remove();
+        const cleanedHtml = $.html();
+        // Truncate to fit Gemini context window (listing pages are larger)
+        const truncatedHtml = cleanedHtml.substring(0, 100000);
+        const baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
+        // Get Gemini API key
+        const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.api_key);
+        if (!apiKey) {
+            throw new functions.https.HttpsError('failed-precondition', 'AI service not configured');
+        }
+        const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const prompt = `You are a product data extraction specialist. Extract ALL products from this e-commerce product listing page.
+
+PAGE URL: ${url}
+BASE URL: ${baseUrl}
+
+INSTRUCTIONS:
+1. Find ALL product items on this page. They are typically in a repeated card/grid/list structure.
+2. For each product, extract: name, price, image URL, and product detail page URL.
+3. Image URLs may be relative paths (starting with /) - return them as-is, I will resolve them.
+4. Product URLs may be relative paths (like /product/6) - return them as-is.
+5. Prices should include the dollar sign (e.g., "$79.00").
+6. If a product has no visible price, use an empty string.
+7. Do NOT invent or fabricate any data. Only extract what is present in the HTML.
+8. Extract EVERY product on the page, do not skip any.
+
+Return ONLY a valid JSON array (no markdown, no explanation, no code fences):
+[
+  {
+    "name": "Product Name",
+    "price": "$XX.XX",
+    "imageUrl": "/path/to/image.jpg",
+    "productUrl": "/product/123",
+    "description": "brief description if available, otherwise empty string"
+  }
+]
+
+HTML CONTENT:
+${truncatedHtml}`;
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
+                maxOutputTokens: 8192,
+                temperature: 0.1,
+            }
+        });
+        const text = result.response.text();
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) {
+            throw new functions.https.HttpsError('internal', 'AI could not extract products from this page. Try a different listing URL.');
+        }
+        let products = JSON.parse(jsonMatch[0]);
+        // Post-process: resolve relative URLs to absolute
+        products = products.map(p => ({
+            name: p.name || '',
+            price: p.price || '',
+            description: p.description || '',
+            imageUrl: p.imageUrl && !p.imageUrl.startsWith('http')
+                ? `${baseUrl}${p.imageUrl.startsWith('/') ? '' : '/'}${p.imageUrl}` : (p.imageUrl || ''),
+            productUrl: p.productUrl && !p.productUrl.startsWith('http')
+                ? `${baseUrl}${p.productUrl.startsWith('/') ? '' : '/'}${p.productUrl}` : (p.productUrl || ''),
+        }));
+        // Filter out invalid entries (no name)
+        products = products.filter(p => p.name && p.name.trim().length > 0);
+        const confidence = products.length > 5 ? 'high' : products.length > 0 ? 'medium' : 'low';
+        console.log(`fetchProductListing: Extracted ${products.length} products from ${url}`);
+        return {
+            products,
+            sourceUrl: url,
+            totalFound: products.length,
+            confidence,
+            siteName: pageTitle || parsedUrl.hostname
+        };
+    }
+    catch (error) {
+        console.error('Listing fetch error:', error.message);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+            throw new functions.https.HttpsError('unavailable', 'Could not connect to the website');
+        }
+        if (((_b = error.response) === null || _b === void 0 ? void 0 : _b.status) === 403) {
+            throw new functions.https.HttpsError('permission-denied', 'Website blocked the request. Try a different URL.');
+        }
+        if (((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) === 404) {
+            throw new functions.https.HttpsError('not-found', 'Page not found');
+        }
+        throw new functions.https.HttpsError('internal', `Failed to fetch product listing: ${error.message}`);
     }
 });
 // ==================== ARTICLE SPACING FIX FUNCTION ====================

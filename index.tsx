@@ -7345,6 +7345,394 @@ const ImportProductModal = ({
     );
 };
 
+// Bulk Import Products Modal
+const BulkImportModal = ({
+    isOpen,
+    onClose,
+    onImport,
+    existingProducts
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onImport: (products: Partial<AffiliateProduct>[]) => void;
+    existingProducts: AffiliateProduct[];
+}) => {
+    const [listingUrl, setListingUrl] = useState('');
+    const [affiliateId, setAffiliateId] = useState('japrotocols');
+    const [isFetching, setIsFetching] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+    const [extractedProducts, setExtractedProducts] = useState<Array<{
+        name: string;
+        price: string;
+        imageUrl: string;
+        productUrl: string;
+        description: string;
+        selected: boolean;
+        isDuplicate: boolean;
+    }>>([]);
+    const [siteName, setSiteName] = useState('');
+    const [confidence, setConfidence] = useState<'high' | 'medium' | 'low' | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
+    const [step, setStep] = useState<'input' | 'preview' | 'importing' | 'done'>('input');
+    const [importedCount, setImportedCount] = useState(0);
+
+    // Reset state when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            setListingUrl('');
+            setFetchError(null);
+            setExtractedProducts([]);
+            setSiteName('');
+            setConfidence(null);
+            setIsImporting(false);
+            setImportProgress({ done: 0, total: 0 });
+            setStep('input');
+            setImportedCount(0);
+        }
+    }, [isOpen]);
+
+    const handleFetchListing = async () => {
+        if (!listingUrl.trim()) return;
+        setIsFetching(true);
+        setFetchError(null);
+
+        try {
+            const fetchListingFn = httpsCallable(functions, 'fetchProductListing');
+            const result = await fetchListingFn({ url: listingUrl.trim() });
+            const data = result.data as {
+                products: Array<{ name: string; price: string; imageUrl: string; productUrl: string; description?: string }>;
+                totalFound: number;
+                confidence: 'high' | 'medium' | 'low';
+                siteName: string;
+            };
+
+            if (data.products.length === 0) {
+                setFetchError('No products found on this page. Try a different URL or use single product import.');
+                return;
+            }
+
+            // Mark duplicates based on name match with existing products
+            const existingNames = new Set(existingProducts.map(p => p.name.toLowerCase().trim()));
+
+            setExtractedProducts(data.products.map(p => ({
+                ...p,
+                description: p.description || '',
+                selected: !existingNames.has(p.name.toLowerCase().trim()),
+                isDuplicate: existingNames.has(p.name.toLowerCase().trim())
+            })));
+
+            setSiteName(data.siteName);
+            setConfidence(data.confidence);
+            setStep('preview');
+        } catch (error: any) {
+            const msg = error.message || 'Failed to fetch product listing.';
+            setFetchError(`${msg} Try a different listing page URL.`);
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
+    const handleImportSelected = async () => {
+        const selected = extractedProducts.filter(p => p.selected);
+        if (selected.length === 0) return;
+
+        setIsImporting(true);
+        setStep('importing');
+        setImportProgress({ done: 0, total: selected.length });
+
+        const productsToImport: Partial<AffiliateProduct>[] = selected.map(p => {
+            const sourceUrl = p.productUrl;
+            const affiliateUrl = sourceUrl.includes('?')
+                ? `${sourceUrl}&ref=${affiliateId}`
+                : `${sourceUrl}?ref=${affiliateId}`;
+
+            return {
+                name: p.name,
+                dosage: '',
+                price: p.price,
+                description: p.description,
+                imageUrl: p.imageUrl,
+                sourceUrl,
+                affiliateUrl,
+                affiliateId,
+                features: [],
+                badge: null,
+                clicks: 0,
+                status: 'active' as const
+            };
+        });
+
+        onImport(productsToImport);
+        setImportedCount(productsToImport.length);
+        setStep('done');
+        setIsImporting(false);
+    };
+
+    const selectedCount = extractedProducts.filter(p => p.selected).length;
+    const allSelected = extractedProducts.length > 0 && extractedProducts.every(p => p.selected);
+
+    const toggleSelectAll = () => {
+        const newVal = !allSelected;
+        setExtractedProducts(prev => prev.map(p => ({ ...p, selected: newVal })));
+    };
+
+    const toggleProduct = (index: number) => {
+        setExtractedProducts(prev => prev.map((p, i) => i === index ? { ...p, selected: !p.selected } : p));
+    };
+
+    const updateProductField = (index: number, field: 'name' | 'price', value: string) => {
+        setExtractedProducts(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-zinc-800 p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                <i className="fa-solid fa-layer-group text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white">Bulk Import Products</h2>
+                                <p className="text-xs text-zinc-500">
+                                    {step === 'input' && 'Enter a product listing page URL to extract all products'}
+                                    {step === 'preview' && `${siteName} — ${extractedProducts.length} products found`}
+                                    {step === 'importing' && `Importing ${importProgress.done} of ${importProgress.total}...`}
+                                    {step === 'done' && `Successfully imported ${importedCount} products!`}
+                                </p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                            <i className="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                    {confidence && step === 'preview' && (
+                        <div className="mt-3 flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
+                                confidence === 'high' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                                confidence === 'medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                                'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                                {confidence} confidence
+                            </span>
+                            <span className="text-xs text-zinc-500">
+                                {selectedCount} of {extractedProducts.length} selected
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    {/* Step 1: Input */}
+                    {step === 'input' && (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Listing Page URL</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        value={listingUrl}
+                                        onChange={(e) => setListingUrl(e.target.value)}
+                                        placeholder="https://example.com/shop or /product/all"
+                                        className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-sm"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleFetchListing()}
+                                    />
+                                    <button
+                                        onClick={handleFetchListing}
+                                        disabled={isFetching || !listingUrl.trim()}
+                                        className="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                                    >
+                                        {isFetching ? (
+                                            <>
+                                                <i className="fa-solid fa-spinner animate-spin"></i>
+                                                Extracting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fa-solid fa-magnifying-glass"></i>
+                                                Fetch Products
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Affiliate ID</label>
+                                <input
+                                    type="text"
+                                    value={affiliateId}
+                                    onChange={(e) => setAffiliateId(e.target.value)}
+                                    placeholder="japrotocols"
+                                    className="w-48 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 text-sm font-mono"
+                                />
+                                <p className="text-xs text-zinc-600 mt-1">Appended as ?ref={affiliateId} to all product URLs</p>
+                            </div>
+
+                            {fetchError && (
+                                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <p className="text-sm text-red-400"><i className="fa-solid fa-triangle-exclamation mr-2"></i>{fetchError}</p>
+                                </div>
+                            )}
+
+                            <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                                <p className="text-xs text-zinc-500">
+                                    <i className="fa-solid fa-lightbulb text-amber-500 mr-2"></i>
+                                    Enter a product listing page URL (e.g., /shop, /products, /product/all). The system uses AI to extract all products from the page. Works with any e-commerce site.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2: Preview */}
+                    {step === 'preview' && (
+                        <div className="space-y-3">
+                            {/* Select All Toggle */}
+                            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={allSelected}
+                                        onChange={toggleSelectAll}
+                                        className="accent-blue-500"
+                                    />
+                                    <span className="text-sm font-medium text-zinc-300">Select All</span>
+                                </label>
+                                <button
+                                    onClick={() => { setStep('input'); setExtractedProducts([]); setConfidence(null); }}
+                                    className="text-xs text-zinc-500 hover:text-white transition-colors"
+                                >
+                                    <i className="fa-solid fa-arrow-left mr-1"></i> Back to URL
+                                </button>
+                            </div>
+
+                            {/* Products List */}
+                            {extractedProducts.map((product, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                                        product.selected
+                                            ? 'bg-zinc-900/50 border-zinc-700'
+                                            : 'bg-zinc-900/20 border-zinc-800/50 opacity-60'
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={product.selected}
+                                        onChange={() => toggleProduct(index)}
+                                        className="accent-blue-500 flex-shrink-0"
+                                    />
+                                    {/* Thumbnail */}
+                                    {product.imageUrl && (
+                                        <img
+                                            src={product.imageUrl}
+                                            alt=""
+                                            className="w-10 h-10 rounded-lg object-cover bg-zinc-800 flex-shrink-0"
+                                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                        />
+                                    )}
+                                    {/* Name (editable) */}
+                                    <input
+                                        type="text"
+                                        value={product.name}
+                                        onChange={(e) => updateProductField(index, 'name', e.target.value)}
+                                        className="flex-1 min-w-0 px-2 py-1 bg-transparent border border-transparent hover:border-zinc-700 focus:border-zinc-600 rounded text-sm text-white focus:outline-none"
+                                    />
+                                    {/* Price (editable) */}
+                                    <input
+                                        type="text"
+                                        value={product.price}
+                                        onChange={(e) => updateProductField(index, 'price', e.target.value)}
+                                        className="w-24 px-2 py-1 bg-transparent border border-transparent hover:border-zinc-700 focus:border-zinc-600 rounded text-sm text-[#FF5252] font-medium focus:outline-none text-right"
+                                    />
+                                    {/* Duplicate badge */}
+                                    {product.isDuplicate && (
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap flex-shrink-0">
+                                            Exists
+                                        </span>
+                                    )}
+                                    {/* Link */}
+                                    {product.productUrl && (
+                                        <a
+                                            href={product.productUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-zinc-500 hover:text-blue-400 transition-colors flex-shrink-0"
+                                        >
+                                            <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                        </a>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Step 3: Importing */}
+                    {step === 'importing' && (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                            <i className="fa-solid fa-spinner animate-spin text-3xl text-blue-400"></i>
+                            <p className="text-white font-medium">Importing products...</p>
+                            <div className="w-64 bg-zinc-800 rounded-full h-2">
+                                <div
+                                    className="bg-blue-500 h-2 rounded-full transition-all"
+                                    style={{ width: `${importProgress.total > 0 ? (importProgress.done / importProgress.total) * 100 : 0}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-sm text-zinc-500">{importProgress.done} of {importProgress.total}</p>
+                        </div>
+                    )}
+
+                    {/* Step 4: Done */}
+                    {step === 'done' && (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                                <i className="fa-solid fa-check text-2xl text-green-400"></i>
+                            </div>
+                            <p className="text-white font-bold text-lg">Import Complete!</p>
+                            <p className="text-sm text-zinc-400">Successfully imported {importedCount} products to the shop.</p>
+                            <button
+                                onClick={onClose}
+                                className="mt-4 px-6 py-3 rounded-xl bg-zinc-800 text-white hover:bg-zinc-700 transition-colors font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer (only on preview step) */}
+                {step === 'preview' && (
+                    <div className="sticky bottom-0 bg-[#0a0a0a] border-t border-zinc-800 p-4 flex items-center justify-between">
+                        <p className="text-sm text-zinc-500">
+                            {selectedCount} product{selectedCount !== 1 ? 's' : ''} selected
+                            {extractedProducts.filter(p => p.isDuplicate && p.selected).length > 0 && (
+                                <span className="text-amber-400 ml-2">
+                                    ({extractedProducts.filter(p => p.isDuplicate && p.selected).length} duplicates)
+                                </span>
+                            )}
+                        </p>
+                        <button
+                            onClick={handleImportSelected}
+                            disabled={selectedCount === 0 || isImporting}
+                            className="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            <i className="fa-solid fa-download"></i>
+                            Import {selectedCount} Product{selectedCount !== 1 ? 's' : ''}
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // Rich Text Editor Component
 // Helper to parse HTML to BlockNote blocks
 const parseHTMLToBlocks = (html: string): Block[] => {
@@ -8774,6 +9162,7 @@ const AdminDashboard = ({
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
     const [editingVideo, setEditingVideo] = useState<VideoContent | null>(null);
     const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
     const [editingArticle, setEditingArticle] = useState<ArticleContent | null>(null);
@@ -9901,6 +10290,23 @@ const AdminDashboard = ({
         }
     };
 
+    const handleBulkImportProducts = async (productsToImport: Partial<AffiliateProduct>[]) => {
+        const imported: AffiliateProduct[] = [];
+        for (const productData of productsToImport) {
+            try {
+                const docRef = await addDoc(collection(db, 'jpc_products'), {
+                    ...productData,
+                    createdAt: serverTimestamp()
+                });
+                imported.push({ id: docRef.id, ...productData } as AffiliateProduct);
+            } catch (error) {
+                console.error('Error importing product:', error);
+            }
+        }
+        setProducts(prev => [...prev, ...imported]);
+        setIsBulkImportOpen(false);
+    };
+
     const handleToggleProductStock = async (product: AffiliateProduct) => {
         const newStatus = product.status === 'active' ? 'inactive' : 'active';
         try {
@@ -10753,6 +11159,13 @@ const AdminDashboard = ({
                                                 Seed Cellular Advantage
                                             </button>
                                             <button
+                                                onClick={() => setIsBulkImportOpen(true)}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium flex items-center gap-2"
+                                            >
+                                                <i className="fa-solid fa-layer-group"></i>
+                                                Bulk Import
+                                            </button>
+                                            <button
                                                 onClick={() => setIsProductModalOpen(true)}
                                                 className="px-4 py-2 bg-[#FF5252] hover:bg-[#ff3333] text-white rounded-lg font-medium flex items-center gap-2"
                                             >
@@ -10916,6 +11329,12 @@ const AdminDashboard = ({
                 onClose={() => { setIsProductModalOpen(false); setEditingProduct(null); }}
                 onSave={handleSaveProduct}
                 editingProduct={editingProduct}
+            />
+            <BulkImportModal
+                isOpen={isBulkImportOpen}
+                onClose={() => setIsBulkImportOpen(false)}
+                onImport={handleBulkImportProducts}
+                existingProducts={products}
             />
         </div>
     );
