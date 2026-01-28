@@ -5093,7 +5093,7 @@ const VideoCard = ({
     );
 };
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[] }) => {
+const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos, videosLoading }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[], videosLoading: boolean }) => {
     // Track which video is currently playing (only one at a time)
     const [currentlyPlayingVideoId, setCurrentlyPlayingVideoId] = useState<string | null>(null);
 
@@ -5317,7 +5317,18 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {mainPageVideos.length > 0 ? mainPageVideos.map((video) => (
+                        {videosLoading ? (
+                            Array.from({ length: 6 }).map((_, idx) => (
+                                <div key={idx} className="bg-zinc-900/50 rounded-2xl overflow-hidden animate-pulse">
+                                    <div className="aspect-video bg-zinc-800"></div>
+                                    <div className="p-5 space-y-3">
+                                        <div className="h-4 bg-zinc-800 rounded w-3/4"></div>
+                                        <div className="h-3 bg-zinc-800 rounded w-full"></div>
+                                        <div className="h-3 bg-zinc-800 rounded w-1/2"></div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : mainPageVideos.length > 0 ? mainPageVideos.map((video) => (
                             <VideoCard
                                 key={video.id}
                                 videoId={video.id}
@@ -10142,6 +10153,7 @@ const App = () => {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
     const [mainPageVideos, setMainPageVideos] = useState<VideoContent[]>([]);
+    const [videosLoading, setVideosLoading] = useState(true);
     const [pendingEmail, setPendingEmail] = useState('');
     const [assessmentIdForSetup, setAssessmentIdForSetup] = useState('');
     const [magicLinkLoading, setMagicLinkLoading] = useState(!!hasMagicLink);
@@ -10335,6 +10347,7 @@ const App = () => {
                         }
                     }
                     setMainPageVideos(seededVideos);
+                    setVideosLoading(false);
                 } else {
                     // Filter for main page videos client-side
                     const allVideos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VideoContent));
@@ -10361,9 +10374,11 @@ const App = () => {
                     } else {
                         setMainPageVideos(mainPageVids);
                     }
+                    setVideosLoading(false);
                 }
             } catch (err) {
                 console.error('Error fetching main page videos:', err);
+                setVideosLoading(false);
             }
         };
         fetchMainPageVideos();
@@ -10442,6 +10457,7 @@ const App = () => {
                     onTerms={() => setView('terms')}
                     user={user}
                     mainPageVideos={mainPageVideos}
+                    videosLoading={videosLoading}
                 />
             )}
             
