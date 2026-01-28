@@ -4,9 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Max Performance Peptides Engine | AI-Powered Research Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Fonts - reduced to 3 essential weights -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome - deferred loading (non-blocking) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -310,16 +315,19 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 
-    <!-- Peptide Chat Widget - Human Support -->
+    <!-- Peptide Chat Widget - Human Support (deferred for faster page load) -->
     <script>
-      (function(w,d,s,o,f,js,fjs){
-        w['PeptideChat']=o;w[o]=w[o]||function(){
-          (w[o].q=w[o].q||[]).push(arguments)
-        };
-        js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
-        js.src=f;js.async=1;fjs.parentNode.insertBefore(js,fjs);
-      })(window,document,'script','peptideChat','https://support.japrotocols.com/widget.js');
-      peptideChat('init', { repId: 'jon-cl' });
+      // Defer chat widget loading until page is interactive (3 second delay)
+      setTimeout(function() {
+        (function(w,d,s,o,f,js,fjs){
+          w['PeptideChat']=o;w[o]=w[o]||function(){
+            (w[o].q=w[o].q||[]).push(arguments)
+          };
+          js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+          js.src=f;js.async=1;fjs.parentNode.insertBefore(js,fjs);
+        })(window,document,'script','peptideChat','https://support.japrotocols.com/widget.js');
+        peptideChat('init', { repId: 'jon-cl' });
+      }, 3000);
     </script>
   </body>
 </html>

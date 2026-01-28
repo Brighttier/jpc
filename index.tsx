@@ -2351,7 +2351,7 @@ const ShopView = ({
                     {products.map((product) => (
                          <div key={product.id} className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl overflow-hidden group hover:border-[#FF5252]/50 transition-all duration-300 flex flex-col">
                              <div className="h-64 overflow-hidden relative bg-zinc-900">
-                                 <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
+                                 <img src={product.image} alt={product.name} loading="lazy" className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
                                  {product.badge && (
                                      <div className={`absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${product.badge === 'Premium' ? 'bg-amber-500 text-black' : 'bg-[#FF5252] text-white'}`}>
                                          {product.badge}
@@ -3163,7 +3163,7 @@ const BlogView = ({
                 </div>
                 <article className="max-w-3xl mx-auto px-6 pt-36 pb-16">
                     {selectedArticle.thumbnailUrl && (
-                        <img src={selectedArticle.thumbnailUrl} alt="" className="w-full h-64 object-cover rounded-xl mb-8" />
+                        <img src={selectedArticle.thumbnailUrl} alt="" loading="lazy" className="w-full h-64 object-cover rounded-xl mb-8" />
                     )}
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-6">{selectedArticle.title}</h1>
                     <div className="flex items-center gap-4 text-sm text-zinc-500 mb-8 pb-8 border-b border-zinc-800">
@@ -3240,7 +3240,7 @@ const BlogView = ({
                                 >
                                     {article.thumbnailUrl ? (
                                         <div className="relative h-48 overflow-hidden">
-                                            <img src={article.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <img src={article.thumbnailUrl} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                         </div>
                                     ) : (
@@ -5285,11 +5285,14 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         <div className="absolute bottom-0 right-10 w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] z-40 hover:scale-110 transition-transform duration-300 bg-black">
                             <video
                                 src="/Images/jon-andersen-animated-BJEEdMtL.mov"
-                                autoPlay
                                 loop
                                 muted
                                 playsInline
+                                preload="none"
+                                poster="/Images/Main.jpg"
                                 className="w-full h-full object-contain"
+                                onMouseEnter={(e) => e.currentTarget.play()}
+                                onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
                             />
                         </div>
 
@@ -6183,7 +6186,7 @@ const VideoPreviewCell = ({ video }: { video: VideoContent }) => {
                     onMouseLeave={handleMouseLeave}
                 >
                     {video.thumbnailUrl ? (
-                        <img src={video.thumbnailUrl} alt="" className="w-20 h-12 object-cover rounded cursor-pointer" />
+                        <img src={video.thumbnailUrl} alt="" loading="lazy" className="w-20 h-12 object-cover rounded cursor-pointer" />
                     ) : (
                         <div className={`w-20 h-12 bg-zinc-800 rounded flex items-center justify-center cursor-pointer ${isHovered ? 'ring-2 ring-[#FF5252]' : ''}`}>
                             <i className={`fa-solid fa-video ${isHovered ? 'text-[#FF5252]' : 'text-zinc-600'} transition-colors`}></i>
@@ -9453,7 +9456,7 @@ const AdminDashboard = ({
                                                 {videos.slice(0, 5).map(video => (
                                                     <div key={video.id} className="px-6 py-3 flex items-center gap-4 hover:bg-zinc-900/50">
                                                         {video.thumbnailUrl ? (
-                                                            <img src={video.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                            <img src={video.thumbnailUrl} alt="" loading="lazy" className="w-16 h-10 object-cover rounded" />
                                                         ) : (
                                                             <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
                                                                 <i className="fa-solid fa-video text-zinc-600"></i>
@@ -9490,7 +9493,7 @@ const AdminDashboard = ({
                                                 {articles.slice(0, 5).map(article => (
                                                     <div key={article.id} className="px-6 py-3 flex items-center gap-4 hover:bg-zinc-900/50">
                                                         {article.thumbnailUrl ? (
-                                                            <img src={article.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                            <img src={article.thumbnailUrl} alt="" loading="lazy" className="w-16 h-10 object-cover rounded" />
                                                         ) : (
                                                             <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
                                                                 <i className="fa-solid fa-file-alt text-zinc-600"></i>
@@ -9724,7 +9727,7 @@ const AdminDashboard = ({
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-4">
                                                                 {article.thumbnailUrl ? (
-                                                                    <img src={article.thumbnailUrl} alt="" className="w-16 h-10 object-cover rounded" />
+                                                                    <img src={article.thumbnailUrl} alt="" loading="lazy" className="w-16 h-10 object-cover rounded" />
                                                                 ) : (
                                                                     <div className="w-16 h-10 bg-zinc-800 rounded flex items-center justify-center">
                                                                         <i className="fa-solid fa-file-alt text-zinc-600"></i>
@@ -9998,7 +10001,7 @@ const AdminDashboard = ({
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center gap-4">
                                                                 {product.imageUrl ? (
-                                                                    <img src={product.imageUrl} alt="" className="w-16 h-16 object-contain rounded bg-zinc-800" />
+                                                                    <img src={product.imageUrl} alt="" loading="lazy" className="w-16 h-16 object-contain rounded bg-zinc-800" />
                                                                 ) : (
                                                                     <div className="w-16 h-16 bg-zinc-800 rounded flex items-center justify-center">
                                                                         <i className="fa-solid fa-box text-zinc-600"></i>
