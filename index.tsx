@@ -4202,29 +4202,12 @@ const AcademyContentView = ({
                         )}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {categories.map((category, index) => {
+                        {categories.map((category) => {
                             const articleCount = getArticleCountByCategory(category.slug);
                             const isSelected = selectedCategory === category.slug;
-                            // Define gradient colors for each card
-                            const gradients = [
-                                'from-[#FF6B6B] to-[#FF8E53]',
-                                'from-[#4158D0] to-[#C850C0]',
-                                'from-[#0093E9] to-[#80D0C7]',
-                                'from-[#8EC5FC] to-[#E0C3FC]',
-                                'from-[#FA8BFF] to-[#2BD2FF]',
-                                'from-[#667eea] to-[#764ba2]',
-                            ];
-                            // Icons related to books/learning
-                            const icons = [
-                                'fa-solid fa-book-open',
-                                'fa-solid fa-graduation-cap',
-                                'fa-solid fa-flask',
-                                'fa-solid fa-star',
-                                'fa-solid fa-bookmark',
-                                'fa-solid fa-lightbulb',
-                            ];
-                            const gradient = gradients[index % gradients.length];
-                            const icon = icons[index % icons.length];
+                            const catColorFrom = category.colorFrom || '#8B5CF6';
+                            const catColorTo = category.colorTo || '#A855F7';
+                            const catIcon = category.icon || 'folder';
 
                             return (
                                 <button
@@ -4236,15 +4219,15 @@ const AcademyContentView = ({
                                             : 'hover:scale-[1.02]'
                                     }`}
                                 >
-                                    {/* Background gradient */}
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
+                                    {/* Background gradient from category settings */}
+                                    <div className="absolute inset-0 opacity-80 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(135deg, ${catColorFrom}, ${catColorTo})` }}></div>
                                     {/* Dark overlay for readability */}
                                     <div className="absolute inset-0 bg-black/30"></div>
                                     {/* Content */}
                                     <div className="relative z-10 flex items-start gap-4">
                                         {/* Glassmorphism icon */}
                                         <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0 shadow-lg">
-                                            <i className={`${icon} text-white text-xl`}></i>
+                                            <i className={`fa-solid fa-${catIcon} text-white text-xl`}></i>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-sm font-bold text-white mb-1 line-clamp-2">{category.name}</h3>
@@ -6846,14 +6829,27 @@ const AddCategoryModal = ({
     const [name, setName] = useState('');
     const [slug, setSlug] = useState('');
     const [description, setDescription] = useState('');
-    const [icon, setIcon] = useState('fa-beaker');
+    const [icon, setIcon] = useState('beaker');
     const [displayOrder, setDisplayOrder] = useState(0);
-    const [colorFrom, setColorFrom] = useState('violet');
-    const [colorTo, setColorTo] = useState('purple');
+    const [colorFrom, setColorFrom] = useState('#8B5CF6');
+    const [colorTo, setColorTo] = useState('#A855F7');
     const [isActive, setIsActive] = useState(true);
 
-    const icons = ['fa-beaker', 'fa-flask', 'fa-shield', 'fa-zap', 'fa-book', 'fa-dna', 'fa-heart', 'fa-brain'];
-    const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'pink'];
+    const icons = ['beaker', 'flask', 'flask-conical', 'shield', 'zap', 'book', 'book-open', 'dna', 'heart', 'brain', 'newspaper', 'folder'];
+    const colorOptions: { name: string; hex: string }[] = [
+        { name: 'Red', hex: '#EF4444' },
+        { name: 'Orange', hex: '#F97316' },
+        { name: 'Amber', hex: '#F59E0B' },
+        { name: 'Green', hex: '#22C55E' },
+        { name: 'Emerald', hex: '#10B981' },
+        { name: 'Cyan', hex: '#06B6D4' },
+        { name: 'Blue', hex: '#3B82F6' },
+        { name: 'Indigo', hex: '#6366F1' },
+        { name: 'Violet', hex: '#8B5CF6' },
+        { name: 'Purple', hex: '#A855F7' },
+        { name: 'Fuchsia', hex: '#D946EF' },
+        { name: 'Pink', hex: '#EC4899' },
+    ];
 
     useEffect(() => {
         if (editingCategory) {
@@ -6869,10 +6865,10 @@ const AddCategoryModal = ({
             setName('');
             setSlug('');
             setDescription('');
-            setIcon('fa-beaker');
+            setIcon('beaker');
             setDisplayOrder(0);
-            setColorFrom('violet');
-            setColorTo('purple');
+            setColorFrom('#8B5CF6');
+            setColorTo('#A855F7');
             setIsActive(true);
         }
     }, [editingCategory, isOpen]);
@@ -6950,6 +6946,20 @@ const AddCategoryModal = ({
                         />
                     </div>
 
+                    {/* Preview */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Preview</label>
+                        <div className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
+                            <div
+                                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                style={{ background: `linear-gradient(135deg, ${colorFrom}, ${colorTo})` }}
+                            >
+                                <i className={`fa-solid fa-${icon} text-white text-sm`}></i>
+                            </div>
+                            <span className="text-sm text-zinc-300">{name || 'Category Name'}</span>
+                        </div>
+                    </div>
+
                     {/* Icon & Order Row */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -6960,7 +6970,7 @@ const AddCategoryModal = ({
                                 className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
                             >
                                 {icons.map(i => (
-                                    <option key={i} value={i}>{i.replace('fa-', '')}</option>
+                                    <option key={i} value={i}>{i}</option>
                                 ))}
                             </select>
                         </div>
@@ -6979,27 +6989,43 @@ const AddCategoryModal = ({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Color From</label>
-                            <select
-                                value={colorFrom}
-                                onChange={(e) => setColorFrom(e.target.value)}
-                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
-                            >
-                                {colors.map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
+                            <div className="flex gap-2">
+                                <input
+                                    type="color"
+                                    value={colorFrom}
+                                    onChange={(e) => setColorFrom(e.target.value)}
+                                    className="w-12 h-12 rounded-lg border border-zinc-800 bg-zinc-900 cursor-pointer"
+                                />
+                                <select
+                                    value={colorFrom}
+                                    onChange={(e) => setColorFrom(e.target.value)}
+                                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                                >
+                                    {colorOptions.map(c => (
+                                        <option key={c.hex} value={c.hex}>{c.name} ({c.hex})</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Color To</label>
-                            <select
-                                value={colorTo}
-                                onChange={(e) => setColorTo(e.target.value)}
-                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
-                            >
-                                {colors.map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
+                            <div className="flex gap-2">
+                                <input
+                                    type="color"
+                                    value={colorTo}
+                                    onChange={(e) => setColorTo(e.target.value)}
+                                    className="w-12 h-12 rounded-lg border border-zinc-800 bg-zinc-900 cursor-pointer"
+                                />
+                                <select
+                                    value={colorTo}
+                                    onChange={(e) => setColorTo(e.target.value)}
+                                    className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#FF5252] transition-colors"
+                                >
+                                    {colorOptions.map(c => (
+                                        <option key={c.hex} value={c.hex}>{c.name} ({c.hex})</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
 
