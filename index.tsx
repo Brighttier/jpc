@@ -8318,7 +8318,7 @@ Return your response as valid JSON with this exact structure:
 Important: Return ONLY the JSON object, no markdown code blocks or other text. Make this content RANK on Google.`;
 
             const contentResponse = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-1.5-flash',
                 contents: contentPrompt
             });
 
