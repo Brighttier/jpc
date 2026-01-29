@@ -10730,23 +10730,33 @@ const AdminDashboard = ({
                 {/* Header */}
                 <div className="sticky top-0 z-30 bg-[#050505]/95 backdrop-blur-xl border-b border-zinc-800 px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold">
-                                {activeTab === 'dashboard' && 'Dashboard'}
-                                {activeTab === 'videos' && 'Video Management'}
-                                {activeTab === 'articles' && 'Article Management'}
-                                {activeTab === 'categories' && 'Category Management'}
-                                {activeTab === 'shop' && 'Product Management'}
-                                {activeTab === 'crm' && 'CRM & Contacts'}
-                            </h1>
-                            <p className="text-sm text-zinc-500 mt-1">
-                                {activeTab === 'dashboard' && 'Overview of your content and analytics'}
-                                {activeTab === 'videos' && 'Add and manage videos via YouTube/Rumble embeds'}
-                                {activeTab === 'articles' && 'Create and manage learning articles'}
-                                {activeTab === 'categories' && 'Organize content with categories'}
-                                {activeTab === 'shop' && 'Manage affiliate products and track performance'}
-                                {activeTab === 'crm' && 'Manage contacts, waitlist, and newsletter subscribers'}
-                            </p>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={onBack}
+                                className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-medium transition-colors"
+                            >
+                                <i className="fa-solid fa-arrow-left"></i>
+                                Back to Site
+                            </button>
+                            <div className="h-8 w-px bg-zinc-700"></div>
+                            <div>
+                                <h1 className="text-2xl font-bold">
+                                    {activeTab === 'dashboard' && 'Dashboard'}
+                                    {activeTab === 'videos' && 'Video Management'}
+                                    {activeTab === 'articles' && 'Article Management'}
+                                    {activeTab === 'categories' && 'Category Management'}
+                                    {activeTab === 'shop' && 'Product Management'}
+                                    {activeTab === 'crm' && 'CRM & Contacts'}
+                                </h1>
+                                <p className="text-sm text-zinc-500 mt-1">
+                                    {activeTab === 'dashboard' && 'Overview of your content and analytics'}
+                                    {activeTab === 'videos' && 'Add and manage videos via YouTube/Rumble embeds'}
+                                    {activeTab === 'articles' && 'Create and manage learning articles'}
+                                    {activeTab === 'categories' && 'Organize content with categories'}
+                                    {activeTab === 'shop' && 'Manage affiliate products and track performance'}
+                                    {activeTab === 'crm' && 'Manage contacts, waitlist, and newsletter subscribers'}
+                                </p>
+                            </div>
                         </div>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-zinc-400">{user.email}</span>
