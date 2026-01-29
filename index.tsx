@@ -814,10 +814,7 @@ const GlobalHeader = ({
                         <button onClick={() => handleNavClick('shop', onShop)} className={navItemClass('shop')}>SHOP</button>
                         {user && (
                             <>
-                                <button onClick={() => handleNavClick('calculator', onCalculator)} className={`${navItemClass('calculator')} relative flex items-center gap-2`}>
-                                    JON'S AI CALCULATOR
-                                    <span className="absolute -top-2 -right-8 px-1.5 py-0.5 text-[8px] font-black bg-green-500 text-white rounded-full animate-pulse shadow-lg shadow-green-500/50">FREE</span>
-                                </button>
+                                <button onClick={() => handleNavClick('calculator', onCalculator)} className={navItemClass('calculator')}>JON'S AI CALCULATOR</button>
                                 <button onClick={() => handleNavClick('blog', onBlog)} className={navItemClass('blog')}>BLOG</button>
                             </>
                         )}
@@ -4747,10 +4744,7 @@ const AboutView = ({
                         <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">COACHING</a>
                         {user && (
                             <>
-                                <button onClick={onCalculator} className="hover:text-white transition-colors relative flex items-center gap-2">
-                                    JON'S AI CALCULATOR
-                                    <span className="absolute -top-2 -right-8 px-1.5 py-0.5 text-[8px] font-black bg-green-500 text-white rounded-full animate-pulse shadow-lg shadow-green-500/50">FREE</span>
-                                </button>
+                                <button onClick={onCalculator} className="hover:text-white transition-colors">JON'S AI CALCULATOR</button>
                                 <button onClick={onBlog} className="hover:text-white transition-colors">BLOG</button>
                             </>
                         )}
@@ -5577,10 +5571,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className={navItemClass}>COACHING</a>
                         {user && (
                             <>
-                                <button onClick={onStartCalculator} className={`${navItemClass} relative flex items-center gap-2`}>
-                                    JON'S AI CALCULATOR
-                                    <span className="absolute -top-2 -right-8 px-1.5 py-0.5 text-[8px] font-black bg-green-500 text-white rounded-full animate-pulse shadow-lg shadow-green-500/50">FREE</span>
-                                </button>
+                                <button onClick={onStartCalculator} className={navItemClass}>JON'S AI CALCULATOR</button>
                                 <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
                             </>
                         )}
