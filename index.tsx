@@ -810,10 +810,11 @@ const GlobalHeader = ({
                         <button onClick={() => handleNavClick('home', onHome)} className={navItemClass('home')}>HOME</button>
                         <button onClick={() => handleNavClick('about', onAbout)} className={navItemClass('about')}>ABOUT</button>
                         <button onClick={() => handleNavClick('academy', onAcademy)} className={navItemClass('academy')}>ACADEMY</button>
+                        <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500">COACHING</a>
+                        <button onClick={() => handleNavClick('shop', onShop)} className={navItemClass('shop')}>SHOP</button>
                         {user && (
                             <>
-                                <button onClick={() => handleNavClick('shop', onShop)} className={navItemClass('shop')}>SHOP</button>
-                                <button onClick={() => handleNavClick('calculator', onCalculator)} className={navItemClass('calculator')}>AI CALCULATOR</button>
+                                <button onClick={() => handleNavClick('calculator', onCalculator)} className={navItemClass('calculator')}>JON'S AI CALCULATOR</button>
                                 <button onClick={() => handleNavClick('blog', onBlog)} className={navItemClass('blog')}>BLOG</button>
                             </>
                         )}
@@ -885,13 +886,22 @@ const GlobalHeader = ({
                     <button onClick={() => handleNavClick('academy', onAcademy)} className={mobileNavItemClass('academy')}>
                         <i className="fa-solid fa-graduation-cap w-6 mr-3"></i>ACADEMY
                     </button>
+                    <a
+                        href="https://www.jon-andersen.com/coaching/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        <i className="fa-solid fa-dumbbell w-6 mr-3"></i>COACHING
+                    </a>
+                    <button onClick={() => handleNavClick('shop', onShop)} className={mobileNavItemClass('shop')}>
+                        <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
+                    </button>
                     {user && (
                         <>
-                            <button onClick={() => handleNavClick('shop', onShop)} className={mobileNavItemClass('shop')}>
-                                <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
-                            </button>
                             <button onClick={() => handleNavClick('calculator', onCalculator)} className={mobileNavItemClass('calculator')}>
-                                <i className="fa-solid fa-calculator w-6 mr-3"></i>AI CALCULATOR
+                                <i className="fa-solid fa-calculator w-6 mr-3"></i>JON'S AI CALCULATOR
                             </button>
                             <button onClick={() => handleNavClick('blog', onBlog)} className={mobileNavItemClass('blog')}>
                                 <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
