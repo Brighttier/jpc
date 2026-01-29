@@ -8129,13 +8129,30 @@ const RichTextEditor = ({
     onChange: (content: string) => void;
     placeholder?: string;
 }) => {
+    // Parse initial content only once
+    const initialBlocks = React.useMemo(() => {
+        try {
+            return content ? parseHTMLToBlocks(content) : undefined;
+        } catch (e) {
+            console.error('Error parsing initial content:', e);
+            return undefined;
+        }
+    }, []);
+
     const editor = useCreateBlockNote({
-        onEditorContentChange: (editor) => {
-            const html = editor.topLevelBlocks.map(blockToHTML).join('\n');
-            onChange(html);
-        },
-        initialContent: content ? parseHTMLToBlocks(content) : undefined,
+        initialContent: initialBlocks,
     });
+
+    const handleChange = useCallback(() => {
+        if (editor) {
+            try {
+                const html = editor.topLevelBlocks.map(blockToHTML).join('\n');
+                onChange(html);
+            } catch (e) {
+                console.error('Error converting blocks to HTML:', e);
+            }
+        }
+    }, [editor, onChange]);
 
     return (
         <div className="border border-zinc-800 rounded-xl overflow-hidden bg-[#09090b]">
@@ -8146,6 +8163,7 @@ const RichTextEditor = ({
             <BlockNoteViewRaw
                 editor={editor}
                 theme="dark"
+                onChange={handleChange}
             />
         </div>
     );
