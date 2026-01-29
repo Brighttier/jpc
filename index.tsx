@@ -4,8 +4,10 @@ import { GoogleGenAI } from "@google/genai";
 
 // BlockNote Rich Text Editor imports
 import { BlockNoteEditor, Block } from "@blocknote/core";
-import { BlockNoteViewRaw, useCreateBlockNote } from "@blocknote/react";
+import { useCreateBlockNote } from "@blocknote/react";
+import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/style.css";
+import "@blocknote/mantine/style.css";
 import "./src/styles/blocknote-theme.css";
 
 // Firebase imports
@@ -8160,7 +8162,7 @@ const RichTextEditor = ({
                 <i className="fa-solid fa-circle-info mr-1"></i>
                 Type <strong className="text-[#FF5252]">/</strong> for commands • Select text for formatting • Drag blocks to reorder
             </div>
-            <BlockNoteViewRaw
+            <BlockNoteView
                 editor={editor}
                 theme="dark"
                 onChange={handleChange}
