@@ -788,56 +788,134 @@ const GlobalHeader = ({
     onLogout: () => void;
     currentPage?: 'home' | 'about' | 'academy' | 'shop' | 'calculator' | 'blog' | 'admin';
 }) => {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navItemClass = (page: string) => `hover:text-white transition-colors cursor-pointer uppercase font-bold tracking-widest text-sm bg-transparent border-none p-0 ${currentPage === page ? 'text-[#FF5252]' : 'text-zinc-500'}`;
+    const mobileNavItemClass = (page: string) => `block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors ${currentPage === page ? 'text-[#FF5252] bg-zinc-900/50' : 'text-zinc-400 hover:text-white hover:bg-zinc-900/30'}`;
 
     const handleNavClick = (destination: string, callback: () => void) => {
         trackNavigation(currentPage || 'unknown', destination, 'nav');
+        setMobileMenuOpen(false);
         callback();
     };
 
     return (
-        <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
-            <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                <div onClick={() => handleNavClick('home', onHome)} className="cursor-pointer">
-                    <Logo />
+        <>
+            <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div onClick={() => handleNavClick('home', onHome)} className="cursor-pointer">
+                        <Logo />
+                    </div>
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <button onClick={() => handleNavClick('home', onHome)} className={navItemClass('home')}>HOME</button>
+                        <button onClick={() => handleNavClick('about', onAbout)} className={navItemClass('about')}>ABOUT</button>
+                        <button onClick={() => handleNavClick('academy', onAcademy)} className={navItemClass('academy')}>ACADEMY</button>
+                        {user && (
+                            <>
+                                <button onClick={() => handleNavClick('shop', onShop)} className={navItemClass('shop')}>SHOP</button>
+                                <button onClick={() => handleNavClick('calculator', onCalculator)} className={navItemClass('calculator')}>AI CALCULATOR</button>
+                                <button onClick={() => handleNavClick('blog', onBlog)} className={navItemClass('blog')}>BLOG</button>
+                            </>
+                        )}
+                        {user ? (
+                             <div className="flex items-center gap-3 text-white pl-4 border-l border-zinc-800">
+                                <span className="text-xs text-zinc-400 hidden sm:inline-block">Hi, {user.email.split('@')[0]}</span>
+                                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                    <i className="fa-solid fa-user"></i>
+                                </div>
+                                <button
+                                    onClick={onLogout}
+                                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                                    title="Logout"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                             </div>
+                        ) : (
+                            <div
+                                onClick={onLogin}
+                                className="flex items-center gap-2 text-white cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 transition-all"
+                            >
+                                <i className="fa-regular fa-user"></i>
+                                <span>Login</span>
+                            </div>
+                        )}
+                    </div>
+                    {/* Mobile Menu Button */}
+                    <div className="flex md:hidden items-center gap-3">
+                        {user && (
+                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                <i className="fa-solid fa-user text-xs"></i>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="p-2 text-zinc-400 hover:text-white transition-colors"
+                            aria-label="Toggle mobile menu"
+                        >
+                            <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
+                        </button>
+                    </div>
                 </div>
-                <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
-                    <button onClick={() => handleNavClick('home', onHome)} className={`${navItemClass('home')} hidden md:block`}>HOME</button>
-                    <button onClick={() => handleNavClick('about', onAbout)} className={`${navItemClass('about')} hidden md:block`}>ABOUT</button>
-                    <button onClick={() => handleNavClick('academy', onAcademy)} className={`${navItemClass('academy')} hidden md:block`}>ACADEMY</button>
+            </nav>
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            {/* Mobile Menu Drawer */}
+            <div className={`fixed top-20 right-0 w-72 h-[calc(100vh-5rem)] bg-[#0a0a0a] border-l border-zinc-800 z-50 transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col py-4">
+                    <button onClick={() => handleNavClick('home', onHome)} className={mobileNavItemClass('home')}>
+                        <i className="fa-solid fa-house w-6 mr-3"></i>HOME
+                    </button>
+                    <button onClick={() => handleNavClick('about', onAbout)} className={mobileNavItemClass('about')}>
+                        <i className="fa-solid fa-user w-6 mr-3"></i>ABOUT
+                    </button>
+                    <button onClick={() => handleNavClick('academy', onAcademy)} className={mobileNavItemClass('academy')}>
+                        <i className="fa-solid fa-graduation-cap w-6 mr-3"></i>ACADEMY
+                    </button>
                     {user && (
                         <>
-                            <button onClick={() => handleNavClick('shop', onShop)} className={`${navItemClass('shop')} hidden md:block`}>SHOP</button>
-                            <button onClick={() => handleNavClick('calculator', onCalculator)} className={`${navItemClass('calculator')} hidden md:block`}>AI CALCULATOR</button>
-                            <button onClick={() => handleNavClick('blog', onBlog)} className={`${navItemClass('blog')} hidden md:block`}>BLOG</button>
+                            <button onClick={() => handleNavClick('shop', onShop)} className={mobileNavItemClass('shop')}>
+                                <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
+                            </button>
+                            <button onClick={() => handleNavClick('calculator', onCalculator)} className={mobileNavItemClass('calculator')}>
+                                <i className="fa-solid fa-calculator w-6 mr-3"></i>AI CALCULATOR
+                            </button>
+                            <button onClick={() => handleNavClick('blog', onBlog)} className={mobileNavItemClass('blog')}>
+                                <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
+                            </button>
                         </>
                     )}
-                    {user ? (
-                         <div className="flex items-center gap-3 text-white pl-4 border-l border-zinc-800">
-                            <span className="text-xs text-zinc-400 hidden sm:inline-block">Hi, {user.email.split('@')[0]}</span>
-                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
-                                <i className="fa-solid fa-user"></i>
+                    <div className="border-t border-zinc-800 mt-4 pt-4 px-4">
+                        {user ? (
+                            <div className="space-y-3">
+                                <div className="text-xs text-zinc-500">Logged in as</div>
+                                <div className="text-sm text-white font-medium truncate">{user.email}</div>
+                                <button
+                                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                                    className="w-full mt-2 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                    Logout
+                                </button>
                             </div>
+                        ) : (
                             <button
-                                onClick={onLogout}
-                                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                                title="Logout"
+                                onClick={() => handleNavClick('login', onLogin)}
+                                className="w-full py-3 px-4 bg-[#FF5252] hover:bg-[#ff6b6b] text-white rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
                             >
-                                <i className="fa-solid fa-right-from-bracket"></i>
+                                <i className="fa-regular fa-user"></i>
+                                Login
                             </button>
-                         </div>
-                    ) : (
-                        <div
-                            onClick={onLogin}
-                            className="flex items-center gap-2 text-white cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 transition-all"
-                        >
-                            <i className="fa-regular fa-user"></i>
-                            <span>Login</span>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
-        </nav>
+        </>
     );
 };
 
