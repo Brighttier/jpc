@@ -842,7 +842,7 @@ const GlobalHeader = ({
                             </div>
                         )}
                     </div>
-                    {/* Mobile Menu Button */}
+                    {/* Mobile Menu Button - Always visible */}
                     <div className="flex md:hidden items-center gap-3">
                         {user && (
                             <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
@@ -2908,16 +2908,18 @@ const ShopCTABanner = ({ onNavigateToShop }: { onNavigateToShop: () => void }) =
                                 Progress tracking
                             </li>
                         </ul>
-                        <button
+                        <a
+                            href="https://www.jon-andersen.com/coaching/"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-[#FF5252]/30 inline-flex items-center justify-center gap-2 w-full md:w-auto"
                             onClick={() => {
                                 trackCTAClick('get_coaching', 'shop_cta_banner', 'coaching');
-                                alert('Coaching sign-up coming soon!');
                             }}
                         >
                             <i className="fa-solid fa-user-graduate"></i>
                             Get Coaching
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -4699,6 +4701,9 @@ const AboutView = ({
     onPrivacy: () => void;
     onTerms: () => void;
 }) => {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const mobileNavItemClass = (isActive: boolean) => `block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors ${isActive ? 'text-[#FF5252] bg-zinc-900/50' : 'text-zinc-400 hover:text-white hover:bg-zinc-900/30'}`;
+
     // Timeline data for Jon's journey
     const timeline = [
         { year: '1972', title: 'The Beginning', desc: 'Born January 8th. A young boy with learning disabilities, weight problems, and low self-esteem—an easy target for bullies.' },
@@ -4730,15 +4735,17 @@ const AboutView = ({
                     <div onClick={onHome} className="cursor-pointer">
                         <Logo />
                     </div>
-                    <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
-                        <button onClick={onHome} className="hover:text-white transition-colors hidden md:block">HOME</button>
-                        <button onClick={onAbout} className="text-[#FF5252] hidden md:block">ABOUT</button>
-                        <button onClick={onAcademy} className="hover:text-white transition-colors hidden md:block">ACADEMY</button>
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <button onClick={onHome} className="hover:text-white transition-colors">HOME</button>
+                        <button onClick={onAbout} className="text-[#FF5252]">ABOUT</button>
+                        <button onClick={onAcademy} className="hover:text-white transition-colors">ACADEMY</button>
+                        <button onClick={onShop} className="hover:text-white transition-colors">SHOP</button>
+                        <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">COACHING</a>
                         {user && (
                             <>
-                                <button onClick={onShop} className="hover:text-white transition-colors hidden md:block">SHOP</button>
-                                <button onClick={onCalculator} className="hover:text-white transition-colors hidden md:block">AI CALCULATOR</button>
-                                <button onClick={onBlog} className="hover:text-white transition-colors hidden md:block">BLOG</button>
+                                <button onClick={onCalculator} className="hover:text-white transition-colors">JON'S AI CALCULATOR</button>
+                                <button onClick={onBlog} className="hover:text-white transition-colors">BLOG</button>
                             </>
                         )}
                         {user ? (
@@ -4758,8 +4765,97 @@ const AboutView = ({
                             </div>
                         )}
                     </div>
+                    {/* Mobile Menu Button - Always visible */}
+                    <div className="flex md:hidden items-center gap-3">
+                        {user && (
+                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                <i className="fa-solid fa-user text-xs"></i>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="p-2 text-zinc-400 hover:text-white transition-colors"
+                            aria-label="Toggle mobile menu"
+                        >
+                            {mobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </nav>
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            {/* Mobile Menu Drawer */}
+            <div className={`fixed top-20 right-0 w-72 h-[calc(100vh-5rem)] bg-[#0a0a0a] border-l border-zinc-800 z-50 transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col py-4">
+                    <button onClick={() => { setMobileMenuOpen(false); onHome(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-house w-6 mr-3"></i>HOME
+                    </button>
+                    <button onClick={() => setMobileMenuOpen(false)} className={mobileNavItemClass(true)}>
+                        <i className="fa-solid fa-user w-6 mr-3"></i>ABOUT
+                    </button>
+                    <button onClick={() => { setMobileMenuOpen(false); onAcademy(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-graduation-cap w-6 mr-3"></i>ACADEMY
+                    </button>
+                    <button onClick={() => { setMobileMenuOpen(false); onShop(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
+                    </button>
+                    <a
+                        href="https://www.jon-andersen.com/coaching/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        <i className="fa-solid fa-dumbbell w-6 mr-3"></i>COACHING
+                    </a>
+                    {user && (
+                        <>
+                            <button onClick={() => { setMobileMenuOpen(false); onCalculator(); }} className={mobileNavItemClass(false)}>
+                                <i className="fa-solid fa-calculator w-6 mr-3"></i>JON'S AI CALCULATOR
+                            </button>
+                            <button onClick={() => { setMobileMenuOpen(false); onBlog(); }} className={mobileNavItemClass(false)}>
+                                <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
+                            </button>
+                        </>
+                    )}
+                    <div className="border-t border-zinc-800 mt-4 pt-4 px-4">
+                        {user ? (
+                            <div className="space-y-3">
+                                <div className="text-xs text-zinc-500">Logged in as</div>
+                                <div className="text-sm text-white font-medium truncate">{user.email}</div>
+                                <button
+                                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                                    className="w-full mt-2 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { setMobileMenuOpen(false); onLogin(); }}
+                                className="w-full py-3 px-4 bg-[#FF5252] hover:bg-[#ff6b6b] text-white rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                            >
+                                <i className="fa-regular fa-user"></i>
+                                Login
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* Hero Section */}
             <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -5328,70 +5424,79 @@ const VideoCard = ({
     onPlay?: (id: string) => void;
     onStop?: (id: string) => void;
 }) => {
-    // Use local state as fallback for backwards compatibility
-    const [localIsPlaying, setLocalIsPlaying] = useState(false);
+    // Use controlled state from parent - only render iframe when active
+    const isActive = controlledIsPlaying === true;
 
-    // Use controlled state if provided, otherwise fall back to local state
-    const isPlaying = controlledIsPlaying !== undefined ? controlledIsPlaying : localIsPlaying;
-
-    const handleClick = () => {
-        if (embedUrl) {
-            // Track video play with Firebase Analytics
-            trackEvent('video_start', {
+    // Track video view on mount if embedUrl is present
+    useEffect(() => {
+        if (embedUrl && videoId) {
+            trackEvent('video_impression', {
                 content_type: 'video',
-                video_id: videoId || 'unknown',
+                video_id: videoId,
                 video_title: title,
                 content_source: 'landing',
             });
+        }
+    }, [embedUrl, videoId, title]);
 
-            if (onPlay && videoId) {
-                onPlay(videoId);  // Notify parent (controlled mode)
-            } else {
-                setLocalIsPlaying(true);  // Local mode fallback
-            }
+    const handleActivate = () => {
+        if (embedUrl && onPlay && videoId) {
+            // Track video play
+            trackEvent('video_start', {
+                content_type: 'video',
+                video_id: videoId,
+                video_title: title,
+                content_source: 'landing',
+            });
+            onPlay(videoId);
         } else if (onClick) {
             onClick();
         }
     };
 
-    const handleClose = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (onStop && videoId) {
-            onStop(videoId);
-        } else {
-            setLocalIsPlaying(false);
-        }
-    };
-
     return (
-        <div
-            onClick={!isPlaying ? handleClick : undefined}
-            className={`group relative bg-[#0a0a0a] border rounded-2xl overflow-hidden transition-all duration-300 shadow-lg ${isPlaying ? 'border-zinc-700' : 'border-[#FF5252]/40 hover:border-zinc-700 shadow-[#FF5252]/5 hover:shadow-none cursor-pointer'}`}
-        >
+        <div className="group relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:border-zinc-700">
             <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden">
-                {/* When playing: load iframe */}
-                {isPlaying && embedUrl ? (
+                {/* Always show iframe for video preview, but control interaction */}
+                {embedUrl ? (
                     <>
                         <iframe
+                            key={isActive ? 'active' : 'preview'}
                             src={embedUrl}
                             className="absolute inset-0 w-full h-full"
                             frameBorder="0"
-                            allowFullScreen
+                            allowFullScreen={isActive}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             referrerPolicy="no-referrer-when-downgrade"
                             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                            style={{ pointerEvents: isActive ? 'auto' : 'none' }}
                         />
-                        {/* Close button overlay */}
-                        <button
-                            onClick={handleClose}
-                            className="absolute top-3 right-3 w-8 h-8 bg-black/70 hover:bg-black rounded-full flex items-center justify-center text-white z-10 transition-colors"
-                        >
-                            <i className="fa-solid fa-xmark"></i>
-                        </button>
+
+                        {/* Transparent overlay when not active - blocks interaction and shows play button */}
+                        {!isActive && (
+                            <>
+                                <div
+                                    onClick={handleActivate}
+                                    className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-all duration-300 cursor-pointer z-10"
+                                ></div>
+
+                                {/* Play Button */}
+                                <div
+                                    onClick={handleActivate}
+                                    className="relative z-20 w-14 h-14 rounded-full bg-[#FF5252] border-2 border-[#FF5252] flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#ff3333] transition-all duration-300 shadow-xl shadow-[#FF5252]/40 cursor-pointer"
+                                >
+                                    <PlayIcon />
+                                </div>
+
+                                {duration && (
+                                    <span className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-[10px] font-bold text-zinc-300 z-20">{duration}</span>
+                                )}
+                            </>
+                        )}
                     </>
                 ) : (
                     <>
-                        {/* Thumbnail image or gradient fallback */}
+                        {/* Show thumbnail or gradient for non-video cards */}
                         {image ? (
                             <img
                                 src={image}
@@ -5402,11 +5507,15 @@ const VideoCard = ({
                             <div className="absolute inset-0 bg-gradient-to-br from-[#FF5252]/20 via-zinc-800/60 to-black"></div>
                         )}
 
-                        {/* Darker overlay on hover */}
-                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300"></div>
+                        <div
+                            onClick={handleActivate}
+                            className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300 cursor-pointer"
+                        ></div>
 
-                        {/* Play Button */}
-                        <div className="relative z-10 w-14 h-14 rounded-full bg-[#FF5252] border-2 border-[#FF5252] flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#ff3333] transition-all duration-300 shadow-xl shadow-[#FF5252]/40">
+                        <div
+                            onClick={handleActivate}
+                            className="relative z-10 w-14 h-14 rounded-full bg-[#FF5252] border-2 border-[#FF5252] flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#ff3333] transition-all duration-300 shadow-xl shadow-[#FF5252]/40 cursor-pointer"
+                        >
                             <PlayIcon />
                         </div>
 
@@ -5416,8 +5525,8 @@ const VideoCard = ({
                     </>
                 )}
             </div>
-            <div className="p-6">
-                <h4 className="text-base font-bold text-[#FF5252] mb-2 group-hover:text-white transition-colors line-clamp-1">{title}</h4>
+            <div className="p-5">
+                <h4 className="text-base font-bold text-white mb-2 line-clamp-1">{title}</h4>
                 <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{desc}</p>
             </div>
         </div>
@@ -5427,6 +5536,7 @@ const VideoCard = ({
 const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos, videosLoading }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[], videosLoading: boolean }) => {
     // Track which video is currently playing (only one at a time)
     const [currentlyPlayingVideoId, setCurrentlyPlayingVideoId] = useState<string | null>(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Handler to play a video (stops all others)
     const handleVideoPlay = (videoId: string) => {
@@ -5442,6 +5552,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
 
     // Shared styling for Nav Items
     const navItemClass = "hover:text-white transition-colors hidden md:block cursor-pointer uppercase font-bold tracking-widest text-sm text-zinc-500 bg-transparent border-none p-0";
+    const mobileNavItemClass = (isActive: boolean) => `block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors ${isActive ? 'text-[#FF5252] bg-zinc-900/50' : 'text-zinc-400 hover:text-white hover:bg-zinc-900/30'}`;
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-inter selection:bg-[#FF5252] selection:text-white">
@@ -5451,14 +5562,16 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
             <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Logo />
-                    <div className="flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
-                        <a href="#" className={navItemClass}>HOME</a>
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest text-zinc-500">
+                        <a href="#" className="text-[#FF5252] cursor-pointer uppercase font-bold tracking-widest text-sm bg-transparent border-none p-0">HOME</a>
                         <button onClick={onStartAbout} className={navItemClass}>ABOUT</button>
                         <button onClick={onStartAcademy} className={navItemClass}>ACADEMY</button>
+                        <button onClick={onStartShop} className={navItemClass}>SHOP</button>
+                        <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className={navItemClass}>COACHING</a>
                         {user && (
                             <>
-                                <button onClick={onStartShop} className={navItemClass}>SHOP</button>
-                                <button onClick={onStartCalculator} className={navItemClass}>AI CALCULATOR</button>
+                                <button onClick={onStartCalculator} className={navItemClass}>JON'S AI CALCULATOR</button>
                                 <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
                             </>
                         )}
@@ -5477,7 +5590,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                 </button>
                              </div>
                         ) : (
-                            <div 
+                            <div
                                 onClick={onLoginRequest}
                                 className="flex items-center gap-2 text-white cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/5 transition-all"
                             >
@@ -5486,8 +5599,97 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                             </div>
                         )}
                     </div>
+                    {/* Mobile Menu Button - Always visible */}
+                    <div className="flex md:hidden items-center gap-3">
+                        {user && (
+                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[#FF5252]">
+                                <i className="fa-solid fa-user text-xs"></i>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="p-2 text-zinc-400 hover:text-white transition-colors"
+                            aria-label="Toggle mobile menu"
+                        >
+                            {mobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </nav>
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            {/* Mobile Menu Drawer */}
+            <div className={`fixed top-20 right-0 w-72 h-[calc(100vh-5rem)] bg-[#0a0a0a] border-l border-zinc-800 z-50 transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="flex flex-col py-4">
+                    <button onClick={() => setMobileMenuOpen(false)} className={mobileNavItemClass(true)}>
+                        <i className="fa-solid fa-house w-6 mr-3"></i>HOME
+                    </button>
+                    <button onClick={() => { setMobileMenuOpen(false); onStartAbout(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-user w-6 mr-3"></i>ABOUT
+                    </button>
+                    <button onClick={() => { setMobileMenuOpen(false); onStartAcademy(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-graduation-cap w-6 mr-3"></i>ACADEMY
+                    </button>
+                    <button onClick={() => { setMobileMenuOpen(false); onStartShop(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
+                    </button>
+                    <a
+                        href="https://www.jon-andersen.com/coaching/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                        onClick={() => setMobileMenuOpen(false)}
+                    >
+                        <i className="fa-solid fa-dumbbell w-6 mr-3"></i>COACHING
+                    </a>
+                    {user && (
+                        <>
+                            <button onClick={() => { setMobileMenuOpen(false); onStartCalculator(); }} className={mobileNavItemClass(false)}>
+                                <i className="fa-solid fa-calculator w-6 mr-3"></i>JON'S AI CALCULATOR
+                            </button>
+                            <button onClick={() => { setMobileMenuOpen(false); onStartBlog(); }} className={mobileNavItemClass(false)}>
+                                <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
+                            </button>
+                        </>
+                    )}
+                    <div className="border-t border-zinc-800 mt-4 pt-4 px-4">
+                        {user ? (
+                            <div className="space-y-3">
+                                <div className="text-xs text-zinc-500">Logged in as</div>
+                                <div className="text-sm text-white font-medium truncate">{user.email}</div>
+                                <button
+                                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                                    className="w-full mt-2 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i>
+                                    Logout
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { setMobileMenuOpen(false); onLoginRequest(); }}
+                                className="w-full py-3 px-4 bg-[#FF5252] hover:bg-[#ff6b6b] text-white rounded-lg text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                            >
+                                <i className="fa-regular fa-user"></i>
+                                Login
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* Hero Section */}
             <section className="pt-40 pb-20 px-6 relative overflow-hidden">
@@ -5499,7 +5701,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                             Protocol Optimization
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[0.9]">
-                            PEPTIDE <br />
+                            PROVEN <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">STACKS</span> & <br />
                             PROTOCOLS
                         </h1>
