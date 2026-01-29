@@ -8325,13 +8325,45 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text. M
             let blogData;
             try {
                 const responseText = contentResponse.text?.trim() || '';
-                const cleanedText = responseText.replace(/```json\n?|\n?```/g, '').trim();
+                console.log('Raw AI Response:', responseText.substring(0, 500) + '...');
+
+                // Clean up the response - remove markdown code blocks and find JSON
+                let cleanedText = responseText
+                    .replace(/```json\n?/gi, '')
+                    .replace(/```\n?/gi, '')
+                    .trim();
+
+                // Try to find JSON object in the response
+                const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    cleanedText = jsonMatch[0];
+                }
+
                 blogData = JSON.parse(cleanedText);
             } catch (parseError) {
                 console.error('Failed to parse AI response:', parseError);
-                alert('Failed to parse AI response. Please try again.');
-                setAiGenerating(false);
-                return;
+                console.error('Response text:', contentResponse.text);
+
+                // Fallback: Try to extract content manually
+                const responseText = contentResponse.text || '';
+                const titleMatch = responseText.match(/"title"\s*:\s*"([^"]+)"/);
+                const excerptMatch = responseText.match(/"excerpt"\s*:\s*"([^"]+)"/);
+                const contentMatch = responseText.match(/"content"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"|"\s*\})/);
+
+                if (titleMatch && contentMatch) {
+                    blogData = {
+                        title: titleMatch[1],
+                        excerpt: excerptMatch ? excerptMatch[1] : '',
+                        content: contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+                        keywords: [],
+                        hashtags: ['#peptides', '#biohacking', '#health', '#wellness', '#performance']
+                    };
+                    console.log('Used fallback parsing');
+                } else {
+                    alert('Failed to parse AI response. Please try again with a simpler topic.');
+                    setAiGenerating(false);
+                    return;
+                }
             }
 
             // Generate image URL based on keywords
