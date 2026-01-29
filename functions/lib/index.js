@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fixArticleSpacing = exports.fetchProductListing = exports.fetchProduct = exports.getCompoundOverview = exports.askJonAI = exports.getUserProtocol = exports.generatePersonalizedProtocol = exports.seedPeptideReference = exports.verifyMagicLink = exports.sendProtocolMagicLink = exports.fixAllArticlesFormatting = void 0;
+exports.fixArticleSpacing = exports.generateBlogPost = exports.fetchProductListing = exports.fetchProduct = exports.getCompoundOverview = exports.askJonAI = exports.getUserProtocol = exports.generatePersonalizedProtocol = exports.seedPeptideReference = exports.verifyMagicLink = exports.sendProtocolMagicLink = exports.fixAllArticlesFormatting = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const axios_1 = __importDefault(require("axios"));
@@ -458,6 +458,161 @@ ${truncatedHtml}`;
             throw new functions.https.HttpsError('not-found', 'Page not found');
         }
         throw new functions.https.HttpsError('internal', `Failed to fetch product listing: ${error.message}`);
+    }
+});
+/**
+ * Cloud Function to generate SEO-optimized blog posts using Gemini AI.
+ * Keeps API key secure on server-side instead of exposing in client code.
+ */
+exports.generateBlogPost = functions
+    .runWith({ timeoutSeconds: 120, memory: '512MB' })
+    .https.onCall(async (data, context) => {
+    var _a, _b, _c;
+    // Require authentication
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated to generate blog posts');
+    }
+    const { topic, keywords } = data;
+    if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Blog topic is required');
+    }
+    // Get Gemini API key securely from environment/config
+    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.api_key);
+    if (!apiKey) {
+        console.error('Gemini API key not configured');
+        throw new functions.https.HttpsError('failed-precondition', 'AI service not configured');
+    }
+    try {
+        const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-flash-lite-latest' });
+        const contentPrompt = `You are a PROFESSIONAL SEO EXPERT and content strategist for JA Protocols (japrotocols.web.app), a leading authority website focused on peptides, performance optimization, biohacking, and health protocols.
+
+Write a highly SEO-optimized, Google-ranking blog post about: "${topic}"
+${keywords ? `Primary keywords to target: ${keywords}` : ''}
+
+## SEO REQUIREMENTS (CRITICAL):
+
+### 1. TITLE OPTIMIZATION
+- Create a compelling, click-worthy title (50-60 characters ideal)
+- Include the primary keyword naturally at the beginning
+- Use power words (Ultimate, Complete, Essential, Proven, Science-Backed)
+- Consider adding year (2025) or numbers for freshness signals
+
+### 2. CONTENT STRUCTURE FOR SEO
+- Start with a hook paragraph that includes the primary keyword in first 100 words
+- Use H2 headers for main sections (include keywords naturally)
+- Use H3 headers for subsections
+- Keep paragraphs short (2-3 sentences max) for readability
+- Include bullet points and numbered lists for featured snippets
+- Aim for 1500-2000 words (longer content ranks better)
+
+### 3. KEYWORD OPTIMIZATION
+- Primary keyword density: 1-2% (natural placement)
+- Include LSI (Latent Semantic Indexing) keywords related to the topic
+- Use keyword variations and synonyms throughout
+- Place keywords in: first paragraph, at least 2 H2s, last paragraph
+
+### 4. INTERNAL LINKING (Add these exact links)
+- Link to Academy: <a href="/academy" class="text-[#FF5252] hover:underline">JA Protocols Academy</a>
+- Link to Calculator: <a href="/calculator" class="text-[#FF5252] hover:underline">Free AI Protocol Calculator</a>
+- Link to Shop: <a href="/shop" class="text-[#FF5252] hover:underline">recommended supplements</a>
+- Link to Coaching: <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener" class="text-[#FF5252] hover:underline">personal coaching with Jon Andersen</a>
+
+### 5. EXTERNAL AUTHORITY BACKLINKS (Include 2-3 of these)
+- Link to PubMed studies: <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] hover:underline">research published in PubMed</a>
+- Link to examine.com for supplement info
+- Link to reputable health sources (NIH, Mayo Clinic, etc.)
+
+### 6. SCHEMA-FRIENDLY CONTENT
+- Include a clear "What you'll learn" or "Key Takeaways" section at the top
+- Add a FAQ section at the end with 3-5 common questions (great for featured snippets)
+- Include actionable steps/protocols
+
+### 7. ENGAGEMENT SIGNALS
+- Ask questions to encourage comments
+- Include a strong CTA (Call to Action) at the end
+- Make content shareable with quotable statements
+
+### 8. HASHTAGS FOR SOCIAL SHARING
+- Generate 8-10 relevant hashtags for social media promotion
+
+Return your response as valid JSON with this exact structure:
+{
+  "title": "SEO-optimized title with primary keyword",
+  "metaDescription": "Compelling 150-160 character meta description with keyword for Google snippets",
+  "excerpt": "A compelling 2-3 sentence summary optimized for social media sharing with hashtags",
+  "keywords": ["primary keyword", "secondary keyword", "LSI keyword 1", "LSI keyword 2", "LSI keyword 3"],
+  "hashtags": ["#peptides", "#biohacking", "#healthoptimization", "etc"],
+  "content": "Full HTML-formatted blog content following all SEO requirements above. Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <a> tags. Include internal links, external authority links, FAQ section, and strong CTA."
+}
+
+Important: Return ONLY the JSON object, no markdown code blocks or other text. Make this content RANK on Google.`;
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: contentPrompt }] }],
+            generationConfig: {
+                maxOutputTokens: 8192,
+                temperature: 0.7,
+            }
+        });
+        const responseText = ((_b = result.response.text()) === null || _b === void 0 ? void 0 : _b.trim()) || '';
+        console.log('generateBlogPost: Raw AI Response length:', responseText.length);
+        // Clean up the response - remove markdown code blocks and find JSON
+        let cleanedText = responseText
+            .replace(/```json\n?/gi, '')
+            .replace(/```\n?/gi, '')
+            .trim();
+        // Try to find JSON object in the response
+        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            console.error('generateBlogPost: Could not find JSON in response');
+            throw new functions.https.HttpsError('internal', 'AI response was not in expected format. Please try again.');
+        }
+        let blogData;
+        try {
+            blogData = JSON.parse(jsonMatch[0]);
+        }
+        catch (parseError) {
+            console.error('generateBlogPost: JSON parse error:', parseError);
+            // Fallback: Try to extract content manually using regex
+            const titleMatch = responseText.match(/"title"\s*:\s*"([^"]+)"/);
+            const excerptMatch = responseText.match(/"excerpt"\s*:\s*"([^"]+)"/);
+            const contentMatch = responseText.match(/"content"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"|"\s*\})/);
+            if (titleMatch && contentMatch) {
+                blogData = {
+                    title: titleMatch[1],
+                    metaDescription: '',
+                    excerpt: excerptMatch ? excerptMatch[1] : '',
+                    content: contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
+                    keywords: [],
+                    hashtags: ['#peptides', '#biohacking', '#health', '#wellness', '#performance'],
+                    imageUrl: ''
+                };
+                console.log('generateBlogPost: Used fallback regex parsing');
+            }
+            else {
+                throw new functions.https.HttpsError('internal', 'Failed to parse AI response. Please try again with a different topic.');
+            }
+        }
+        // Generate image URL based on keywords
+        const imageKeywords = ((_c = blogData.keywords) === null || _c === void 0 ? void 0 : _c.slice(0, 2).join(',')) || topic.split(' ')[0];
+        const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeywords) + ',health,fitness,science';
+        blogData.imageUrl = imageUrl;
+        // Build excerpt with hashtags for social sharing
+        if (blogData.hashtags && blogData.hashtags.length > 0 && blogData.excerpt) {
+            blogData.excerpt = blogData.excerpt + '\n\n' + blogData.hashtags.join(' ');
+        }
+        console.log('generateBlogPost: Successfully generated blog -', blogData.title);
+        return {
+            success: true,
+            blog: blogData
+        };
+    }
+    catch (error) {
+        console.error('generateBlogPost error:', error);
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+        throw new functions.https.HttpsError('internal', `Failed to generate blog: ${error.message}`);
     }
 });
 // ==================== ARTICLE SPACING FIX FUNCTION ====================

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-import { GoogleGenAI } from "@google/genai";
+// GoogleGenAI removed - AI calls now go through Cloud Functions for security
 
 // BlockNote Rich Text Editor imports
 import { BlockNoteEditor, Block } from "@blocknote/core";
@@ -64,7 +64,7 @@ const analytics = getAnalytics(firebaseApp);
 const functions = getFunctions(firebaseApp);
 
 // Gemini AI Configuration (for admin blog generation)
-const GEMINI_API_KEY = "AIzaSyCxzk32YbLnu_XT-h346mwh3KB9slXUvvQ";
+// API keys removed - all AI calls go through secure Cloud Functions
 
 // ==================== ANALYTICS UTILITY FUNCTIONS ====================
 
@@ -8242,7 +8242,7 @@ const ArticleEditor = ({
         }
     };
 
-    // AI Blog Generation function - SEO Optimized
+    // AI Blog Generation function - SEO Optimized (via secure Cloud Function)
     const handleGenerateWithAi = async () => {
         if (!aiTopic.trim()) {
             alert('Please enter a blog topic');
@@ -8252,136 +8252,27 @@ const ArticleEditor = ({
         setAiGenerating(true);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
-            const contentPrompt = `You are a PROFESSIONAL SEO EXPERT and content strategist for JA Protocols (japrotocols.web.app), a leading authority website focused on peptides, performance optimization, biohacking, and health protocols.
-
-Write a highly SEO-optimized, Google-ranking blog post about: "${aiTopic}"
-${aiKeywords ? `Primary keywords to target: ${aiKeywords}` : ''}
-
-## SEO REQUIREMENTS (CRITICAL):
-
-### 1. TITLE OPTIMIZATION
-- Create a compelling, click-worthy title (50-60 characters ideal)
-- Include the primary keyword naturally at the beginning
-- Use power words (Ultimate, Complete, Essential, Proven, Science-Backed)
-- Consider adding year (2025) or numbers for freshness signals
-
-### 2. CONTENT STRUCTURE FOR SEO
-- Start with a hook paragraph that includes the primary keyword in first 100 words
-- Use H2 headers for main sections (include keywords naturally)
-- Use H3 headers for subsections
-- Keep paragraphs short (2-3 sentences max) for readability
-- Include bullet points and numbered lists for featured snippets
-- Aim for 1500-2000 words (longer content ranks better)
-
-### 3. KEYWORD OPTIMIZATION
-- Primary keyword density: 1-2% (natural placement)
-- Include LSI (Latent Semantic Indexing) keywords related to the topic
-- Use keyword variations and synonyms throughout
-- Place keywords in: first paragraph, at least 2 H2s, last paragraph
-
-### 4. INTERNAL LINKING (Add these exact links)
-- Link to Academy: <a href="/academy" class="text-[#FF5252] hover:underline">JA Protocols Academy</a>
-- Link to Calculator: <a href="/calculator" class="text-[#FF5252] hover:underline">Free AI Protocol Calculator</a>
-- Link to Shop: <a href="/shop" class="text-[#FF5252] hover:underline">recommended supplements</a>
-- Link to Coaching: <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener" class="text-[#FF5252] hover:underline">personal coaching with Jon Andersen</a>
-
-### 5. EXTERNAL AUTHORITY BACKLINKS (Include 2-3 of these)
-- Link to PubMed studies: <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] hover:underline">research published in PubMed</a>
-- Link to examine.com for supplement info
-- Link to reputable health sources (NIH, Mayo Clinic, etc.)
-
-### 6. SCHEMA-FRIENDLY CONTENT
-- Include a clear "What you'll learn" or "Key Takeaways" section at the top
-- Add a FAQ section at the end with 3-5 common questions (great for featured snippets)
-- Include actionable steps/protocols
-
-### 7. ENGAGEMENT SIGNALS
-- Ask questions to encourage comments
-- Include a strong CTA (Call to Action) at the end
-- Make content shareable with quotable statements
-
-### 8. HASHTAGS FOR SOCIAL SHARING
-- Generate 8-10 relevant hashtags for social media promotion
-
-Return your response as valid JSON with this exact structure:
-{
-  "title": "SEO-optimized title with primary keyword",
-  "metaDescription": "Compelling 150-160 character meta description with keyword for Google snippets",
-  "excerpt": "A compelling 2-3 sentence summary optimized for social media sharing with hashtags",
-  "keywords": ["primary keyword", "secondary keyword", "LSI keyword 1", "LSI keyword 2", "LSI keyword 3"],
-  "hashtags": ["#peptides", "#biohacking", "#healthoptimization", "etc"],
-  "content": "Full HTML-formatted blog content following all SEO requirements above. Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <a> tags. Include internal links, external authority links, FAQ section, and strong CTA."
-}
-
-Important: Return ONLY the JSON object, no markdown code blocks or other text. Make this content RANK on Google.`;
-
-            const contentResponse = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: contentPrompt
+            // Call secure Cloud Function instead of direct API call
+            const generateBlogPost = httpsCallable(functions, 'generateBlogPost');
+            const result = await generateBlogPost({
+                topic: aiTopic.trim(),
+                keywords: aiKeywords.trim() || null
             });
 
-            let blogData;
-            try {
-                const responseText = contentResponse.text?.trim() || '';
-                console.log('Raw AI Response:', responseText.substring(0, 500) + '...');
+            const response = result.data as { success: boolean; blog: any };
 
-                // Clean up the response - remove markdown code blocks and find JSON
-                let cleanedText = responseText
-                    .replace(/```json\n?/gi, '')
-                    .replace(/```\n?/gi, '')
-                    .trim();
-
-                // Try to find JSON object in the response
-                const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    cleanedText = jsonMatch[0];
-                }
-
-                blogData = JSON.parse(cleanedText);
-            } catch (parseError) {
-                console.error('Failed to parse AI response:', parseError);
-                console.error('Response text:', contentResponse.text);
-
-                // Fallback: Try to extract content manually
-                const responseText = contentResponse.text || '';
-                const titleMatch = responseText.match(/"title"\s*:\s*"([^"]+)"/);
-                const excerptMatch = responseText.match(/"excerpt"\s*:\s*"([^"]+)"/);
-                const contentMatch = responseText.match(/"content"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"|"\s*\})/);
-
-                if (titleMatch && contentMatch) {
-                    blogData = {
-                        title: titleMatch[1],
-                        excerpt: excerptMatch ? excerptMatch[1] : '',
-                        content: contentMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'),
-                        keywords: [],
-                        hashtags: ['#peptides', '#biohacking', '#health', '#wellness', '#performance']
-                    };
-                    console.log('Used fallback parsing');
-                } else {
-                    alert('Failed to parse AI response. Please try again with a simpler topic.');
-                    setAiGenerating(false);
-                    return;
-                }
+            if (!response.success || !response.blog) {
+                throw new Error('Failed to generate blog content');
             }
 
-            // Generate image URL based on keywords
-            const imageKeywords = blogData.keywords?.slice(0, 2).join(',') || aiTopic.split(' ')[0];
-            const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeywords) + ',health,fitness,science';
-
-            // Build excerpt with hashtags for social sharing
-            let seoExcerpt = blogData.excerpt || '';
-            if (blogData.hashtags && blogData.hashtags.length > 0) {
-                seoExcerpt += '\n\n' + blogData.hashtags.join(' ');
-            }
+            const blogData = response.blog;
 
             // Fill in the form fields with SEO-optimized content
             setTitle(blogData.title || aiTopic);
             setSlug(generateSlug(blogData.title || aiTopic));
-            setExcerpt(seoExcerpt);
+            setExcerpt(blogData.excerpt || '');
             setContent(blogData.content || '');
-            setThumbnailUrl(imageUrl);
+            setThumbnailUrl(blogData.imageUrl || '');
             setCategory('blog');
             setShowAiGenerator(false);
             setAiTopic('');
@@ -8395,9 +8286,10 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text. M
                 hashtags: blogData.hashtags
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error generating blog:', error);
-            alert('Failed to generate blog. Please try again.');
+            const errorMessage = error?.message || 'Failed to generate blog. Please try again.';
+            alert(errorMessage);
         } finally {
             setAiGenerating(false);
         }
