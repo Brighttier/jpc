@@ -8132,24 +8132,37 @@ const RichTextEditor = ({
     onChange: (content: string) => void;
     placeholder?: string;
 }) => {
-    // Parse initial content only once
-    const initialBlocks = React.useMemo(() => {
-        try {
-            return content ? parseHTMLToBlocks(content) : undefined;
-        } catch (e) {
-            console.error('Error parsing initial content:', e);
-            return undefined;
-        }
-    }, []);
+    const editor = useCreateBlockNote();
+    const lastContentRef = React.useRef<string>('');
+    const isInternalChange = React.useRef(false);
 
-    const editor = useCreateBlockNote({
-        initialContent: initialBlocks,
-    });
+    // Update editor when content prop changes externally (e.g., from AI generation)
+    React.useEffect(() => {
+        if (!editor || isInternalChange.current) {
+            isInternalChange.current = false;
+            return;
+        }
+
+        // Only update if content actually changed from external source
+        if (content !== lastContentRef.current && content) {
+            try {
+                const blocks = parseHTMLToBlocks(content);
+                if (blocks && blocks.length > 0) {
+                    editor.replaceBlocks(editor.document, blocks);
+                    lastContentRef.current = content;
+                }
+            } catch (e) {
+                console.error('Error parsing content for editor:', e);
+            }
+        }
+    }, [content, editor]);
 
     const handleChange = useCallback(() => {
         if (editor) {
             try {
                 const html = editor.topLevelBlocks.map(blockToHTML).join('\n');
+                isInternalChange.current = true;
+                lastContentRef.current = html;
                 onChange(html);
             } catch (e) {
                 console.error('Error converting blocks to HTML:', e);

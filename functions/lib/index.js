@@ -467,7 +467,7 @@ ${truncatedHtml}`;
 exports.generateBlogPost = functions
     .runWith({ timeoutSeconds: 120, memory: '512MB' })
     .https.onCall(async (data, context) => {
-    var _a, _b, _c;
+    var _a, _b;
     // Require authentication
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated to generate blog posts');
@@ -593,9 +593,10 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text. M
                 throw new functions.https.HttpsError('internal', 'Failed to parse AI response. Please try again with a different topic.');
             }
         }
-        // Generate image URL based on keywords
-        const imageKeywords = ((_c = blogData.keywords) === null || _c === void 0 ? void 0 : _c.slice(0, 2).join(',')) || topic.split(' ')[0];
-        const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeywords) + ',health,fitness,science';
+        // Generate image URL - use Picsum for reliable public images
+        // Generate a consistent seed based on topic for reproducible images
+        const seed = topic.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const imageUrl = `https://picsum.photos/seed/${seed}/800/400`;
         blogData.imageUrl = imageUrl;
         // Build excerpt with hashtags for social sharing
         if (blogData.hashtags && blogData.hashtags.length > 0 && blogData.excerpt) {

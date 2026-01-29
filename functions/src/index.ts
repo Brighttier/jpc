@@ -630,9 +630,10 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text. M
         }
       }
 
-      // Generate image URL based on keywords
-      const imageKeywords = blogData.keywords?.slice(0, 2).join(',') || topic.split(' ')[0];
-      const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeywords) + ',health,fitness,science';
+      // Generate image URL - use Picsum for reliable public images
+      // Generate a consistent seed based on topic for reproducible images
+      const seed = topic.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const imageUrl = `https://picsum.photos/seed/${seed}/800/400`;
       blogData.imageUrl = imageUrl;
 
       // Build excerpt with hashtags for social sharing
