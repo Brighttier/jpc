@@ -10894,16 +10894,6 @@ const AdminDashboard = ({
                                             <h3 className="font-bold text-white mb-1">Import Product</h3>
                                             <p className="text-sm text-zinc-500">Add affiliate product from URL</p>
                                         </button>
-                                        <button
-                                            onClick={handleSeedAcademyVideos}
-                                            className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:border-[#9d4edd] transition-colors text-left group"
-                                        >
-                                            <div className="w-12 h-12 bg-[#9d4edd]/10 rounded-xl flex items-center justify-center text-[#9d4edd] mb-4 group-hover:bg-[#9d4edd] group-hover:text-white transition-colors">
-                                                <i className="fa-solid fa-graduation-cap text-lg"></i>
-                                            </div>
-                                            <h3 className="font-bold text-white mb-1">Seed Academy Videos</h3>
-                                            <p className="text-sm text-zinc-500">Add 30 Academy videos to Firestore</p>
-                                        </button>
                                     </div>
 
                                     {/* Recent Content */}
