@@ -63,6 +63,9 @@ const auth = getAuth(firebaseApp);
 const analytics = getAnalytics(firebaseApp);
 const functions = getFunctions(firebaseApp);
 
+// Gemini AI Configuration (for admin blog generation)
+const GEMINI_API_KEY = "AIzaSyCxzk32YbLnu_XT-h346mwh3KB9slXUvvQ";
+
 // ==================== ANALYTICS UTILITY FUNCTIONS ====================
 
 interface AnalyticsEventParams {
@@ -6454,8 +6457,6 @@ const CalculatorView = ({
                  <div className="bg-zinc-900/20 rounded-[22px] h-full flex-1 flex flex-col p-6 sm:p-10 relative z-10">
                      
                      {/* Tab Switcher - Floating Island Style */}
-                     {/* Debug: Show hasAssessment status */}
-                     {console.log('[JPC Render] Tab switcher - user?.hasAssessment:', user?.hasAssessment)}
                      <div className="flex justify-center mb-10">
                         <div className="bg-black/50 backdrop-blur-xl p-1.5 rounded-2xl border border-zinc-800 inline-flex shadow-xl">
                             {user?.hasAssessment && (
@@ -8173,7 +8174,7 @@ const RichTextEditor = ({
 
 // Helper to convert Block to HTML
 const blockToHTML = (block: Block): string => {
-    const { type, content, props } = block;
+    const { type, content, props } = block as any;
     const renderInline = (c: any): string => {
         if (typeof c === 'string') return c;
         if (c.type === 'text') {
@@ -8189,7 +8190,8 @@ const blockToHTML = (block: Block): string => {
         return '';
     };
 
-    const contentHTML = content?.map(renderInline).join('') || '';
+    // Handle content - it can be an array or other types
+    const contentHTML = Array.isArray(content) ? content.map(renderInline).join('') : '';
     switch (type) {
         case "paragraph": return `<p>${contentHTML}</p>`;
         case "heading": return `<h${props?.level || 2}>${contentHTML}</h${props?.level || 2}>`;
@@ -8250,7 +8252,7 @@ const ArticleEditor = ({
         setAiGenerating(true);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
             const contentPrompt = `You are a PROFESSIONAL SEO EXPERT and content strategist for JA Protocols (japrotocols.web.app), a leading authority website focused on peptides, performance optimization, biohacking, and health protocols.
 
