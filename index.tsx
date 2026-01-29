@@ -8240,7 +8240,7 @@ const ArticleEditor = ({
         }
     };
 
-    // AI Blog Generation function
+    // AI Blog Generation function - SEO Optimized
     const handleGenerateWithAi = async () => {
         if (!aiTopic.trim()) {
             alert('Please enter a blog topic');
@@ -8252,26 +8252,68 @@ const ArticleEditor = ({
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-            const contentPrompt = `You are an expert content writer for JA Protocols, a website focused on peptides, performance optimization, and health.
+            const contentPrompt = `You are a PROFESSIONAL SEO EXPERT and content strategist for JA Protocols (japrotocols.web.app), a leading authority website focused on peptides, performance optimization, biohacking, and health protocols.
 
-Write a comprehensive, engaging blog post about: "${aiTopic}"
-${aiKeywords ? `Focus on these keywords for SEO: ${aiKeywords}` : ''}
+Write a highly SEO-optimized, Google-ranking blog post about: "${aiTopic}"
+${aiKeywords ? `Primary keywords to target: ${aiKeywords}` : ''}
 
-The blog should:
-- Be written for a health-conscious audience interested in peptides and biohacking
-- Be informative yet accessible
-- Include practical insights and actionable advice
-- Be well-structured with clear sections
-- Be between 800-1200 words
+## SEO REQUIREMENTS (CRITICAL):
+
+### 1. TITLE OPTIMIZATION
+- Create a compelling, click-worthy title (50-60 characters ideal)
+- Include the primary keyword naturally at the beginning
+- Use power words (Ultimate, Complete, Essential, Proven, Science-Backed)
+- Consider adding year (2025) or numbers for freshness signals
+
+### 2. CONTENT STRUCTURE FOR SEO
+- Start with a hook paragraph that includes the primary keyword in first 100 words
+- Use H2 headers for main sections (include keywords naturally)
+- Use H3 headers for subsections
+- Keep paragraphs short (2-3 sentences max) for readability
+- Include bullet points and numbered lists for featured snippets
+- Aim for 1500-2000 words (longer content ranks better)
+
+### 3. KEYWORD OPTIMIZATION
+- Primary keyword density: 1-2% (natural placement)
+- Include LSI (Latent Semantic Indexing) keywords related to the topic
+- Use keyword variations and synonyms throughout
+- Place keywords in: first paragraph, at least 2 H2s, last paragraph
+
+### 4. INTERNAL LINKING (Add these exact links)
+- Link to Academy: <a href="/academy" class="text-[#FF5252] hover:underline">JA Protocols Academy</a>
+- Link to Calculator: <a href="/calculator" class="text-[#FF5252] hover:underline">Free AI Protocol Calculator</a>
+- Link to Shop: <a href="/shop" class="text-[#FF5252] hover:underline">recommended supplements</a>
+- Link to Coaching: <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener" class="text-[#FF5252] hover:underline">personal coaching with Jon Andersen</a>
+
+### 5. EXTERNAL AUTHORITY BACKLINKS (Include 2-3 of these)
+- Link to PubMed studies: <a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer" class="text-[#FF5252] hover:underline">research published in PubMed</a>
+- Link to examine.com for supplement info
+- Link to reputable health sources (NIH, Mayo Clinic, etc.)
+
+### 6. SCHEMA-FRIENDLY CONTENT
+- Include a clear "What you'll learn" or "Key Takeaways" section at the top
+- Add a FAQ section at the end with 3-5 common questions (great for featured snippets)
+- Include actionable steps/protocols
+
+### 7. ENGAGEMENT SIGNALS
+- Ask questions to encourage comments
+- Include a strong CTA (Call to Action) at the end
+- Make content shareable with quotable statements
+
+### 8. HASHTAGS FOR SOCIAL SHARING
+- Generate 8-10 relevant hashtags for social media promotion
 
 Return your response as valid JSON with this exact structure:
 {
-  "title": "Catchy, SEO-friendly title",
-  "excerpt": "A compelling 2-3 sentence summary for social media sharing",
-  "content": "Full HTML-formatted blog content with <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em> tags. Include proper sections and formatting."
+  "title": "SEO-optimized title with primary keyword",
+  "metaDescription": "Compelling 150-160 character meta description with keyword for Google snippets",
+  "excerpt": "A compelling 2-3 sentence summary optimized for social media sharing with hashtags",
+  "keywords": ["primary keyword", "secondary keyword", "LSI keyword 1", "LSI keyword 2", "LSI keyword 3"],
+  "hashtags": ["#peptides", "#biohacking", "#healthoptimization", "etc"],
+  "content": "Full HTML-formatted blog content following all SEO requirements above. Use <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <a> tags. Include internal links, external authority links, FAQ section, and strong CTA."
 }
 
-Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
+Important: Return ONLY the JSON object, no markdown code blocks or other text. Make this content RANK on Google.`;
 
             const contentResponse = await ai.models.generateContent({
                 model: 'gemini-2.0-flash',
@@ -8290,20 +8332,34 @@ Important: Return ONLY the JSON object, no markdown code blocks or other text.`;
                 return;
             }
 
-            // Generate image URL
-            const imageKeyword = aiTopic.split(' ')[0];
-            const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeyword) + ',health,science';
+            // Generate image URL based on keywords
+            const imageKeywords = blogData.keywords?.slice(0, 2).join(',') || aiTopic.split(' ')[0];
+            const imageUrl = 'https://source.unsplash.com/800x400/?' + encodeURIComponent(imageKeywords) + ',health,fitness,science';
 
-            // Fill in the form fields
+            // Build excerpt with hashtags for social sharing
+            let seoExcerpt = blogData.excerpt || '';
+            if (blogData.hashtags && blogData.hashtags.length > 0) {
+                seoExcerpt += '\n\n' + blogData.hashtags.join(' ');
+            }
+
+            // Fill in the form fields with SEO-optimized content
             setTitle(blogData.title || aiTopic);
             setSlug(generateSlug(blogData.title || aiTopic));
-            setExcerpt(blogData.excerpt || '');
+            setExcerpt(seoExcerpt);
             setContent(blogData.content || '');
             setThumbnailUrl(imageUrl);
             setCategory('blog');
             setShowAiGenerator(false);
             setAiTopic('');
             setAiKeywords('');
+
+            // Log SEO data for reference
+            console.log('SEO Blog Generated:', {
+                title: blogData.title,
+                metaDescription: blogData.metaDescription,
+                keywords: blogData.keywords,
+                hashtags: blogData.hashtags
+            });
 
         } catch (error) {
             console.error('Error generating blog:', error);
