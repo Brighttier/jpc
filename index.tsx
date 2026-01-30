@@ -5714,24 +5714,6 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                             Leverage 15+ years of elite bio-hacking expertise. Optimize longevity, cognitive function, and performance with precision.
                         </p>
 
-                        <div className="flex gap-4 pt-4">
-                             <button
-                                onClick={() => {
-                                    trackCTAClick('get_free_protocol', 'landing_hero', 'calculator');
-                                    onStartCalculator();
-                                }}
-                                className="bg-[#FF5252] hover:bg-[#ff3333] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:shadow-[0_0_40px_-10px_rgba(255,82,82,0.6)] hover:scale-105 active:scale-95 flex items-center gap-3"
-                            >
-                                Sign-up To Get Free Protocol
-                                <ArrowRightIcon />
-                            </button>
-                             <button onClick={() => {
-                                trackCTAClick('explore_academy', 'landing_hero', 'academy');
-                                onStartAcademy();
-                             }} className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border border-zinc-800 hover:border-zinc-700">
-                                Explore Academy
-                            </button>
-                        </div>
                     </div>
 
                     {/* Hero Visual / Image Gallery - Mobile Version */}
@@ -5839,6 +5821,15 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                 </span>
                                 <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5252] to-transparent"></div>
                             </div>
+                            {/* Know more about Jon's legacy button */}
+                            <a
+                                href="https://www.jon-andersen.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-4 px-4 py-2 rounded-lg border border-[#FF5252]/50 bg-[#FF5252]/10 text-[10px] font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] hover:bg-[#FF5252]/20 hover:border-[#FF5252] transition-all shadow-[0_0_20px_rgba(255,82,82,0.2)] hover:shadow-[0_0_30px_rgba(255,82,82,0.4)]"
+                            >
+                                Know Jon's Legacy →
+                            </a>
                         </div>
 
                     </div>
