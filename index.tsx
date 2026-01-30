@@ -5435,9 +5435,31 @@ const VideoCard = ({
     // Use controlled state from parent - only render iframe when active
     const isActive = controlledIsPlaying === true;
 
+    // Lazy loading - only load iframe when visible
+    const [isVisible, setIsVisible] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px', threshold: 0.1 }
+        );
+
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
     // Track video view on mount if embedUrl is present
     useEffect(() => {
-        if (embedUrl && videoId) {
+        if (embedUrl && videoId && isVisible) {
             trackEvent('video_impression', {
                 content_type: 'video',
                 video_id: videoId,
@@ -5445,7 +5467,7 @@ const VideoCard = ({
                 content_source: 'landing',
             });
         }
-    }, [embedUrl, videoId, title]);
+    }, [embedUrl, videoId, title, isVisible]);
 
     const handleActivate = () => {
         if (embedUrl && onPlay && videoId) {
@@ -5462,11 +5484,21 @@ const VideoCard = ({
         }
     };
 
+    const handleOpenChat = () => {
+        // Open the Peptide Chat widget
+        if (typeof (window as any).peptideChat === 'function') {
+            (window as any).peptideChat('open');
+        } else {
+            // Fallback - alert user chat is not available
+            alert('Chat is currently being set up. Please check back soon!');
+        }
+    };
+
     return (
-        <div className="group relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:border-zinc-700">
+        <div ref={cardRef} className="group relative bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:border-zinc-700">
             <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden">
-                {/* Always show iframe for video preview, but control interaction */}
-                {embedUrl ? (
+                {/* Lazy load iframe - only render when visible */}
+                {embedUrl && isVisible ? (
                     <>
                         <iframe
                             key={isActive ? 'active' : 'preview'}
@@ -5478,6 +5510,7 @@ const VideoCard = ({
                             referrerPolicy="no-referrer-when-downgrade"
                             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                             style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+                            loading="lazy"
                         />
 
                         {/* Transparent overlay when not active - blocks interaction and shows play button */}
@@ -5502,6 +5535,13 @@ const VideoCard = ({
                             </>
                         )}
                     </>
+                ) : embedUrl && !isVisible ? (
+                    /* Loading placeholder before iframe is visible */
+                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black flex items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-zinc-500">
+                            <PlayIcon />
+                        </div>
+                    </div>
                 ) : (
                     <>
                         {/* Show thumbnail or gradient for non-video cards */}
@@ -5510,6 +5550,7 @@ const VideoCard = ({
                                 src={image}
                                 alt={title}
                                 className="absolute inset-0 w-full h-full object-cover"
+                                loading="lazy"
                             />
                         ) : (
                             <div className="absolute inset-0 bg-gradient-to-br from-[#FF5252]/20 via-zinc-800/60 to-black"></div>
@@ -5535,7 +5576,14 @@ const VideoCard = ({
             </div>
             <div className="p-5">
                 <h4 className="text-base font-bold text-white mb-2 line-clamp-1">{title}</h4>
-                <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{desc}</p>
+                <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-3">{desc}</p>
+                <button
+                    onClick={handleOpenChat}
+                    className="w-full py-2 px-4 rounded-lg bg-[#FF5252]/10 border border-[#FF5252]/30 text-[#FF5252] text-xs font-bold uppercase tracking-wider hover:bg-[#FF5252]/20 hover:border-[#FF5252]/50 transition-all flex items-center justify-center gap-2"
+                >
+                    <i className="fa-solid fa-comments"></i>
+                    Chat with me now
+                </button>
             </div>
         </div>
     );
@@ -5822,14 +5870,12 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                 <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5252] to-transparent"></div>
                             </div>
                             {/* Know more about Jon's legacy button */}
-                            <a
-                                href="https://www.jon-andersen.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={onStartAbout}
                                 className="mt-4 px-4 py-2 rounded-lg border border-[#FF5252]/50 bg-[#FF5252]/10 text-[10px] font-bold uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] hover:bg-[#FF5252]/20 hover:border-[#FF5252] transition-all shadow-[0_0_20px_rgba(255,82,82,0.2)] hover:shadow-[0_0_30px_rgba(255,82,82,0.4)]"
                             >
-                                Know Jon's Legacy →
-                            </a>
+                                Know Jon's Legacy - Click Here
+                            </button>
                         </div>
 
                     </div>
