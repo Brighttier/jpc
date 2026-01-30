@@ -5574,11 +5574,9 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         <button onClick={onStartAcademy} className={navItemClass}>ACADEMY</button>
                         <button onClick={onStartShop} className={navItemClass}>SHOP</button>
                         <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className={navItemClass}>COACHING</a>
+                        <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
                         {user && (
-                            <>
-                                <button onClick={onStartCalculator} className={navItemClass}>JON'S AI CALCULATOR</button>
-                                <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
-                            </>
+                            <button onClick={onStartCalculator} className={navItemClass}>JON'S AI CALCULATOR</button>
                         )}
                         {user ? (
                              <div className="flex items-center gap-3 text-white pl-4 border-l border-zinc-800">
@@ -5660,15 +5658,13 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                     >
                         <i className="fa-solid fa-dumbbell w-6 mr-3"></i>COACHING
                     </a>
+                    <button onClick={() => { setMobileMenuOpen(false); onStartBlog(); }} className={mobileNavItemClass(false)}>
+                        <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
+                    </button>
                     {user && (
-                        <>
-                            <button onClick={() => { setMobileMenuOpen(false); onStartCalculator(); }} className={mobileNavItemClass(false)}>
-                                <i className="fa-solid fa-calculator w-6 mr-3"></i>JON'S AI CALCULATOR
-                            </button>
-                            <button onClick={() => { setMobileMenuOpen(false); onStartBlog(); }} className={mobileNavItemClass(false)}>
-                                <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
-                            </button>
-                        </>
+                        <button onClick={() => { setMobileMenuOpen(false); onStartCalculator(); }} className={mobileNavItemClass(false)}>
+                            <i className="fa-solid fa-calculator w-6 mr-3"></i>JON'S AI CALCULATOR
+                        </button>
                     )}
                     <div className="border-t border-zinc-800 mt-4 pt-4 px-4">
                         {user ? (
@@ -5706,9 +5702,9 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                             Protocol Optimization
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[0.9]">
-                            PROVEN <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">STACKS</span> & <br />
-                            PROTOCOLS
+                            MY PROVEN <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">PEPTIDE STACKS</span> <br />
+                            & PROTOCOLS
                         </h1>
                         <p className="text-zinc-400 text-lg md:text-xl font-light max-w-lg leading-relaxed border-l-2 border-zinc-800 pl-6">
                             Leverage 15+ years of elite bio-hacking expertise. Optimize longevity, cognitive function, and performance with precision.
