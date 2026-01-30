@@ -5703,8 +5703,8 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         </div>
                         <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[0.9]">
                             MY PROVEN <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">PEPTIDE STACKS</span> <br />
-                            & PROTOCOLS
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">PEPTIDE STACKS</span> & <br />
+                            PROTOCOLS
                         </h1>
                         <p className="text-zinc-400 text-lg md:text-xl font-light max-w-lg leading-relaxed border-l-2 border-zinc-800 pl-6">
                             Leverage 15+ years of elite bio-hacking expertise. Optimize longevity, cognitive function, and performance with precision.
