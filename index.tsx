@@ -5827,15 +5827,18 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         </div>
 
                         {/* Floating Card 3: Animated Video Circle */}
-                        <div className="absolute bottom-0 right-10 w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] z-40 hover:scale-110 transition-transform duration-300 bg-black">
-                            <video
-                                src="/Images/jon-andersen-animated.webm"
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-contain"
-                            />
+                        <div className="absolute bottom-0 right-10 z-40 flex flex-col items-center">
+                            <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_30px_rgba(255,82,82,0.3)] hover:scale-110 transition-transform duration-300 bg-black">
+                                <video
+                                    src="/Images/jon-andersen-animated.webm"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <span className="mt-3 text-[10px] text-white uppercase font-bold tracking-widest">Entrepreneur</span>
                         </div>
 
                     </div>
@@ -5846,7 +5849,6 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                      <Badge icon={<i className="fa-solid fa-medal"></i>} text="IFBB Pro" image="/Images/IFBB Pro.jpg" />
                      <Badge icon={<i className="fa-solid fa-dumbbell"></i>} text="Elite Coach" image="/Images/Main.jpg" />
                      <Badge icon={<i className="fa-solid fa-trophy"></i>} text="Pro Wrestler" image="/Images/Pro-Wrestler-Credential.jpg" />
-                     <Badge icon={<i className="fa-solid fa-briefcase"></i>} text="Entrepreneur" image="/Images/Entrepreneur.jpeg" />
                 </div>
             </section>
 
