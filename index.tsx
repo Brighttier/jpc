@@ -5988,6 +5988,107 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                 </div>
             </section>
 
+            {/* CTA Section - Three Cards */}
+            <section className="py-24 relative bg-black">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                        {/* Explore Peptides Academy CTA */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="relative mb-8">
+                                <div className="absolute inset-0 rounded-3xl border-4 border-[#FF5252] animate-ping opacity-20"></div>
+                                <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF5252] via-transparent to-[#FF5252] opacity-40 animate-spin" style={{ animationDuration: '5s' }}></div>
+                                <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#2a1515] to-[#1a0a0a] border-4 border-[#FF5252] shadow-[0_0_60px_rgba(255,82,82,0.4)] flex items-center justify-center">
+                                    <i className="fa-solid fa-graduation-cap text-[#FF5252] text-5xl animate-pulse" style={{ animationDuration: '2s' }}></i>
+                                </div>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse mb-3" style={{ animationDuration: '2.5s' }}>
+                                Explore Peptides Academy
+                            </h3>
+                            <div className="h-[2px] w-32 mx-auto mb-4 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2s' }}></div>
+                            <p className="text-zinc-400 text-sm mb-6 max-w-xs">
+                                Master the science of peptides with expert-led courses and protocols
+                            </p>
+                            <button
+                                onClick={onStartAcademy}
+                                className="relative group px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-[#FF5252] group-hover:bg-[#ff3333] transition-colors"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span className="relative flex items-center gap-2 text-white">
+                                    <i className="fa-solid fa-play"></i>
+                                    Start Learning
+                                    <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Buy Peptides CTA */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="relative mb-8">
+                                <div className="absolute inset-0 rounded-3xl border-4 border-[#FF5252] animate-ping opacity-20"></div>
+                                <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF5252] via-transparent to-[#FF5252] opacity-40 animate-spin" style={{ animationDuration: '6s' }}></div>
+                                <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#2a1515] to-[#1a0a0a] border-4 border-[#FF5252] shadow-[0_0_60px_rgba(255,82,82,0.4)] flex items-center justify-center">
+                                    <i className="fa-solid fa-flask-vial text-[#FF5252] text-5xl animate-pulse" style={{ animationDuration: '2.2s' }}></i>
+                                </div>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse mb-3" style={{ animationDuration: '2.7s' }}>
+                                Buy Peptides
+                            </h3>
+                            <div className="h-[2px] w-32 mx-auto mb-4 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2.2s' }}></div>
+                            <p className="text-zinc-400 text-sm mb-6 max-w-xs">
+                                Premium quality peptides from trusted sources with verified purity
+                            </p>
+                            <button
+                                onClick={onStartShop}
+                                className="relative group px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-[#FF5252] group-hover:bg-[#ff3333] transition-colors"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span className="relative flex items-center gap-2 text-white">
+                                    <i className="fa-solid fa-cart-shopping"></i>
+                                    Shop Now
+                                    <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Personalized Coaching CTA */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="relative mb-8">
+                                <div className="absolute inset-0 rounded-3xl border-4 border-[#FF5252] animate-ping opacity-20"></div>
+                                <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF5252] via-transparent to-[#FF5252] opacity-40 animate-spin" style={{ animationDuration: '7s' }}></div>
+                                <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#2a1515] to-[#1a0a0a] border-4 border-[#FF5252] shadow-[0_0_60px_rgba(255,82,82,0.4)] flex items-center justify-center">
+                                    <i className="fa-solid fa-user-tie text-[#FF5252] text-5xl animate-pulse" style={{ animationDuration: '2.4s' }}></i>
+                                </div>
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse mb-3" style={{ animationDuration: '2.9s' }}>
+                                Personalized Coaching
+                            </h3>
+                            <div className="h-[2px] w-32 mx-auto mb-4 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2.4s' }}></div>
+                            <p className="text-zinc-400 text-sm mb-6 max-w-xs">
+                                One-on-one guidance from Jon Andersen to optimize your protocol
+                            </p>
+                            <a
+                                href="https://www.jon-andersen.com/coaching/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative group px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs overflow-hidden inline-block"
+                            >
+                                <div className="absolute inset-0 bg-[#FF5252] group-hover:bg-[#ff3333] transition-colors"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                <span className="relative flex items-center gap-2 text-white">
+                                    <i className="fa-solid fa-handshake"></i>
+                                    Get Coached
+                                    <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                </span>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
             <Footer user={user} onStartAdmin={onStartAdmin} onPrivacy={onPrivacy} onTerms={onTerms} />
         </div>
     );
