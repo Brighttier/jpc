@@ -5820,30 +5820,24 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         </div>
 
                         {/* Floating Card 3: Animated Video Circle */}
-                        <div className="absolute bottom-0 right-10 z-40 flex flex-col items-center group">
-                            <div className="relative">
-                                {/* Pulsing ring animation */}
-                                <div className="absolute inset-0 rounded-full border-4 border-[#FF5252] animate-ping opacity-30"></div>
-                                {/* Rotating glow ring */}
-                                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#FF5252] via-transparent to-[#FF5252] opacity-50 animate-spin" style={{ animationDuration: '4s' }}></div>
-                                {/* Main video circle */}
-                                <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_40px_rgba(255,82,82,0.5)] hover:scale-110 transition-transform duration-300 bg-black">
-                                    <video
-                                        src="/Images/jon-andersen-animated.webm"
-                                        autoPlay
-                                        loop
-                                        muted
-                                        playsInline
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
+                        <div className="absolute bottom-0 right-10 z-40 flex flex-col items-center">
+                            {/* Main video circle with static shiny red */}
+                            <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-[#FF5252] shadow-[0_0_40px_rgba(255,82,82,0.5)] hover:scale-110 transition-transform duration-300 bg-black">
+                                <video
+                                    src="/Images/jon-andersen-animated.webm"
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    className="w-full h-full object-contain"
+                                />
                             </div>
-                            {/* Animated text with gradient and glow */}
+                            {/* Static text with gradient */}
                             <div className="mt-4 relative">
-                                <span className="text-sm font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse" style={{ animationDuration: '2s' }}>
+                                <span className="text-sm font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252]">
                                     Entrepreneur
                                 </span>
-                                <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2s' }}></div>
+                                <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5252] to-transparent"></div>
                             </div>
                         </div>
 
