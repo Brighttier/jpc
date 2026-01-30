@@ -1945,8 +1945,8 @@ const AssessmentWizard = ({
                              <div className="pt-4 border-t border-zinc-800">
                                 <label className="text-xs font-bold text-zinc-400 uppercase mb-3 block">Any Current Injuries?</label>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['None', 'Tendon/Ligament', 'Post-Surgery', 'Chronic Pain'].map(injury => (
-                                        <div 
+                                    {['None', 'Tendon/Ligament', 'Post-Surgery', 'Chronic Pain', 'Other'].map(injury => (
+                                        <div
                                             key={injury}
                                             onClick={() => setFormData({...formData, injuries: toggleItem(formData.injuries, injury)})}
                                             className={`px-4 py-3 rounded-lg border flex items-center gap-3 cursor-pointer transition-colors ${formData.injuries.includes(injury) ? 'bg-[#FF5252]/10 border-[#FF5252] text-white' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
@@ -2032,28 +2032,6 @@ const AssessmentWizard = ({
                                             <p className="text-xs text-zinc-500 mt-0.5">Get updates on new products, exclusive discounts, and peptide research news</p>
                                         </div>
                                     </label>
-
-                                    {formData.newsletterOptIn && (
-                                        <div className="mt-4 ml-7 animate-fadeIn">
-                                            <label className="text-xs font-bold text-zinc-400 uppercase mb-2 block">How often would you like to hear from us?</label>
-                                            <div className="flex gap-3">
-                                                {(['weekly', 'biweekly', 'monthly'] as const).map(freq => (
-                                                    <button
-                                                        key={freq}
-                                                        type="button"
-                                                        onClick={() => setFormData({...formData, newsletterFrequency: freq})}
-                                                        className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${
-                                                            formData.newsletterFrequency === freq
-                                                                ? 'bg-[#FF5252] text-white'
-                                                                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-zinc-600'
-                                                        }`}
-                                                    >
-                                                        {freq === 'biweekly' ? 'Bi-Weekly' : freq.charAt(0).toUpperCase() + freq.slice(1)}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                              </div>
                          </div>
