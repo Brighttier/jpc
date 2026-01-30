@@ -6566,7 +6566,17 @@ const CalculatorView = ({
           currentPage="calculator"
       />
 
-      <div className="w-full max-w-[90rem] mx-auto p-6 lg:p-12 pt-28">
+      {/* Research Disclaimer Banner */}
+      <div className="w-full bg-amber-500/10 border-b border-amber-500/30">
+        <div className="max-w-[90rem] mx-auto px-6 py-3 flex items-center gap-3">
+          <i className="fa-solid fa-triangle-exclamation text-amber-500"></i>
+          <p className="text-xs text-amber-200/80">
+            <span className="font-bold text-amber-400">Disclaimer:</span> This calculator is for research and educational purposes only. Not intended for medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional.
+          </p>
+        </div>
+      </div>
+
+      <div className="w-full max-w-[90rem] mx-auto p-6 lg:p-12 pt-8">
         {/* Calculator Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
