@@ -4969,13 +4969,13 @@ const AboutView = ({
                     </div>
 
                     <div className="relative">
-                        {/* Timeline line */}
-                        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#FF5252] via-zinc-700 to-[#FF5252]/30" />
+                        {/* Timeline line - solid red */}
+                        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-1 bg-[#FF5252] shadow-[0_0_10px_rgba(255,82,82,0.5)]" style={{ transform: 'translateX(-50%)' }} />
 
                         {timeline.map((item, i) => (
                             <div key={i} className={`relative flex items-center mb-12 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
                                 {/* Timeline dot */}
-                                <div className="absolute left-8 md:left-1/2 w-4 h-4 -translate-x-1/2 rounded-full bg-[#FF5252] border-4 border-[#050505] z-10" />
+                                <div className="absolute left-8 md:left-1/2 w-5 h-5 -translate-x-1/2 rounded-full bg-[#FF5252] border-4 border-[#050505] z-10 shadow-[0_0_15px_rgba(255,82,82,0.6)]" />
 
                                 {/* Content card */}
                                 <div className={`ml-16 md:ml-0 md:w-[45%] ${i % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12'}`}>
@@ -5126,12 +5126,14 @@ const AboutView = ({
                         >
                             Enter the Academy
                         </button>
-                        <button
-                            onClick={onCalculator}
+                        <a
+                            href="https://www.jon-andersen.com/coaching/"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="px-8 py-4 bg-zinc-900 border border-zinc-700 text-white font-bold uppercase tracking-wider rounded-xl hover:border-[#FF5252]/50 transition-all"
                         >
-                            Try AI Calculator
-                        </button>
+                            Personalized Coaching
+                        </a>
                     </div>
                 </div>
             </section>
@@ -5993,7 +5995,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                        {/* Explore Peptides Academy CTA */}
+                        {/* Peptides Academy CTA */}
                         <div className="flex flex-col items-center text-center">
                             <div className="relative mb-8">
                                 <div className="absolute inset-0 rounded-3xl border-4 border-[#FF5252] animate-ping opacity-20"></div>
@@ -6003,7 +6005,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                 </div>
                             </div>
                             <h3 className="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse mb-3" style={{ animationDuration: '2.5s' }}>
-                                Explore Peptides Academy
+                                Peptides Academy
                             </h3>
                             <div className="h-[2px] w-32 mx-auto mb-4 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2s' }}></div>
                             <p className="text-zinc-400 text-sm mb-6 max-w-xs">
