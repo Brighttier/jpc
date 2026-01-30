@@ -4682,6 +4682,7 @@ const AboutView = ({
     onShop,
     onCalculator,
     onBlog,
+    onCoaching,
     onLogin,
     onLogout,
     onPrivacy,
@@ -4694,6 +4695,7 @@ const AboutView = ({
     onShop: () => void;
     onCalculator: () => void;
     onBlog: () => void;
+    onCoaching: () => void;
     onLogin: () => void;
     onLogout: () => void;
     onPrivacy: () => void;
@@ -5126,14 +5128,382 @@ const AboutView = ({
                         >
                             Enter the Academy
                         </button>
-                        <a
-                            href="https://www.jon-andersen.com/coaching/"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <button
+                            onClick={onCoaching}
                             className="px-8 py-4 bg-zinc-900 border border-zinc-700 text-white font-bold uppercase tracking-wider rounded-xl hover:border-[#FF5252]/50 transition-all"
                         >
                             Personalized Coaching
-                        </a>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <Footer onPrivacy={onPrivacy} onTerms={onTerms} />
+        </div>
+    );
+};
+
+// --- Coaching View Component ---
+const CoachingView = ({
+    user,
+    onHome,
+    onAbout,
+    onAcademy,
+    onShop,
+    onCalculator,
+    onBlog,
+    onLogin,
+    onLogout,
+    onPrivacy,
+    onTerms
+}: {
+    user: User | null;
+    onHome: () => void;
+    onAbout: () => void;
+    onAcademy: () => void;
+    onShop: () => void;
+    onCalculator: () => void;
+    onBlog: () => void;
+    onLogin: () => void;
+    onLogout: () => void;
+    onPrivacy: () => void;
+    onTerms: () => void;
+}) => {
+    const [formData, setFormData] = useState({
+        name: user?.email?.split('@')[0] || '',
+        email: user?.email || '',
+        phone: '',
+        coachingType: '' as 'peptides' | 'nutrition' | '',
+        message: '',
+        goals: [] as string[]
+    });
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
+
+    const coachingGoals = [
+        'Build Muscle & Strength',
+        'Fat Loss & Body Recomposition',
+        'Recovery & Injury Healing',
+        'Anti-Aging & Longevity',
+        'Cognitive Enhancement',
+        'Overall Health Optimization'
+    ];
+
+    const toggleGoal = (goal: string) => {
+        setFormData(prev => ({
+            ...prev,
+            goals: prev.goals.includes(goal)
+                ? prev.goals.filter(g => g !== goal)
+                : [...prev.goals, goal]
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formData.name || !formData.email || !formData.coachingType) {
+            setError('Please fill in all required fields');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            // Save to CRM collection
+            const crmDocId = formData.email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            await setDoc(doc(db, 'jpc_crm', crmDocId), {
+                email: formData.email.toLowerCase(),
+                name: formData.name,
+                phone: formData.phone,
+                instagram: '',
+                uid: user?.uid || null,
+                waitlist: false,
+                waitlistJoinedAt: null,
+                newsletterSubscribed: true,
+                newsletterFrequency: 'monthly',
+                newsletterOptedInAt: serverTimestamp(),
+                source: 'coaching_inquiry',
+                coachingType: formData.coachingType,
+                coachingGoals: formData.goals,
+                coachingMessage: formData.message,
+                coachingInquiryAt: serverTimestamp(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            // Also save to a dedicated coaching inquiries collection
+            await addDoc(collection(db, 'jpc_coaching_inquiries'), {
+                name: formData.name,
+                email: formData.email.toLowerCase(),
+                phone: formData.phone,
+                coachingType: formData.coachingType,
+                goals: formData.goals,
+                message: formData.message,
+                userId: user?.uid || null,
+                status: 'new',
+                createdAt: serverTimestamp()
+            });
+
+            setSubmitted(true);
+        } catch (err) {
+            console.error('Error submitting coaching inquiry:', err);
+            setError('Failed to submit. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-zinc-200 font-inter selection:bg-[#FF5252] selection:text-white">
+            <AmbientBackground />
+
+            <GlobalHeader
+                user={user}
+                onHome={onHome}
+                onAbout={onAbout}
+                onAcademy={onAcademy}
+                onShop={onShop}
+                onCalculator={onCalculator}
+                onBlog={onBlog}
+                onLogin={onLogin}
+                onLogout={onLogout}
+                currentPage="coaching"
+            />
+
+            {/* Hero Section */}
+            <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#FF5252]/5 rounded-full blur-[150px]" />
+
+                <div className="max-w-6xl mx-auto relative z-10">
+                    <div className="text-center mb-16">
+                        <div className="inline-block px-4 py-2 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/20 text-[#FF5252] text-xs font-bold uppercase tracking-widest mb-6">
+                            Elite Coaching Program
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
+                            TAKE YOUR <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] to-[#ff8f8f]">PEPTIDE GAME</span>
+                            <br />TO THE NEXT LEVEL
+                        </h1>
+                        <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+                            Get trained and receive expert advice directly from Jon Andersen.
+                            15+ years of elite bio-hacking expertise at your service.
+                        </p>
+                    </div>
+
+                    {/* Coaching Options */}
+                    <div className="grid md:grid-cols-2 gap-8 mb-16">
+                        {/* Peptides & Stack Protocols */}
+                        <div
+                            onClick={() => setFormData(prev => ({ ...prev, coachingType: 'peptides' }))}
+                            className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 group ${
+                                formData.coachingType === 'peptides'
+                                    ? 'bg-[#FF5252]/10 border-[#FF5252] shadow-[0_0_40px_rgba(255,82,82,0.3)]'
+                                    : 'bg-zinc-900/50 border-zinc-800 hover:border-[#FF5252]/50'
+                            }`}
+                        >
+                            <div className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                formData.coachingType === 'peptides' ? 'border-[#FF5252] bg-[#FF5252]' : 'border-zinc-600'
+                            }`}>
+                                {formData.coachingType === 'peptides' && <i className="fa-solid fa-check text-white text-xs"></i>}
+                            </div>
+                            <div className="w-16 h-16 rounded-2xl bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-flask-vial text-[#FF5252] text-2xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-black text-white mb-3">Peptides & Stack Protocols</h3>
+                            <p className="text-zinc-400 mb-4">
+                                Master the science of peptide optimization. Learn proper dosing, stacking strategies,
+                                timing protocols, and how to maximize results safely.
+                            </p>
+                            <ul className="space-y-2 text-sm text-zinc-500">
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Custom peptide protocols</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Stacking strategies</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Dosing optimization</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Cycling guidance</li>
+                            </ul>
+                        </div>
+
+                        {/* Personalized Nutrition & Health */}
+                        <div
+                            onClick={() => setFormData(prev => ({ ...prev, coachingType: 'nutrition' }))}
+                            className={`relative p-8 rounded-3xl border-2 cursor-pointer transition-all duration-300 group ${
+                                formData.coachingType === 'nutrition'
+                                    ? 'bg-[#FF5252]/10 border-[#FF5252] shadow-[0_0_40px_rgba(255,82,82,0.3)]'
+                                    : 'bg-zinc-900/50 border-zinc-800 hover:border-[#FF5252]/50'
+                            }`}
+                        >
+                            <div className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                formData.coachingType === 'nutrition' ? 'border-[#FF5252] bg-[#FF5252]' : 'border-zinc-600'
+                            }`}>
+                                {formData.coachingType === 'nutrition' && <i className="fa-solid fa-check text-white text-xs"></i>}
+                            </div>
+                            <div className="w-16 h-16 rounded-2xl bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-heart-pulse text-[#FF5252] text-2xl"></i>
+                            </div>
+                            <h3 className="text-2xl font-black text-white mb-3">Personalized Nutrition & Health</h3>
+                            <p className="text-zinc-400 mb-4">
+                                Complete health transformation coaching. Nutrition planning, training guidance,
+                                lifestyle optimization, and holistic wellness strategies.
+                            </p>
+                            <ul className="space-y-2 text-sm text-zinc-500">
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Custom nutrition plans</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Training programming</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Recovery protocols</li>
+                                <li className="flex items-center gap-2"><i className="fa-solid fa-check text-[#FF5252]"></i> Lifestyle optimization</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Submission Form */}
+                    {!submitted ? (
+                        <div className="max-w-2xl mx-auto">
+                            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                                <h2 className="text-2xl font-black text-white mb-2 text-center">Request Coaching Consultation</h2>
+                                <p className="text-zinc-500 text-center mb-8">Fill out the form below and Jon's team will reach out to you</p>
+
+                                {error && (
+                                    <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                                        <i className="fa-solid fa-circle-exclamation mr-2"></i>{error}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Name *</label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                                placeholder="Your name"
+                                                className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF5252] transition-colors"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Email *</label>
+                                            <input
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                                placeholder="your@email.com"
+                                                className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF5252] transition-colors"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Phone (Optional)</label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                            placeholder="+1 (555) 000-0000"
+                                            className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF5252] transition-colors"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 block">What are your goals? (Select all that apply)</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {coachingGoals.map(goal => (
+                                                <div
+                                                    key={goal}
+                                                    onClick={() => toggleGoal(goal)}
+                                                    className={`px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${
+                                                        formData.goals.includes(goal)
+                                                            ? 'bg-[#FF5252]/10 border-[#FF5252] text-white'
+                                                            : 'bg-black border-zinc-800 text-zinc-400 hover:border-zinc-600'
+                                                    }`}
+                                                >
+                                                    <i className={`fa-solid ${formData.goals.includes(goal) ? 'fa-check-square text-[#FF5252]' : 'fa-square text-zinc-600'} mr-2`}></i>
+                                                    {goal}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 block">Tell us more about your goals (Optional)</label>
+                                        <textarea
+                                            value={formData.message}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                                            placeholder="Share any specific goals, challenges, or questions you have..."
+                                            rows={4}
+                                            className="w-full px-4 py-3 bg-black border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF5252] transition-colors resize-none"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading || !formData.coachingType}
+                                        className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-3 ${
+                                            loading || !formData.coachingType
+                                                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                                                : 'bg-[#FF5252] text-white hover:bg-[#ff3333] hover:shadow-[0_0_40px_rgba(255,82,82,0.4)]'
+                                        }`}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <i className="fa-solid fa-circle-notch animate-spin"></i>
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fa-solid fa-paper-plane"></i>
+                                                Request Consultation
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {!formData.coachingType && (
+                                        <p className="text-center text-zinc-500 text-sm">
+                                            <i className="fa-solid fa-arrow-up mr-2"></i>
+                                            Please select a coaching type above
+                                        </p>
+                                    )}
+                                </form>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="max-w-2xl mx-auto text-center">
+                            <div className="bg-zinc-900/50 border border-[#FF5252]/30 rounded-3xl p-12">
+                                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#FF5252]/10 border border-[#FF5252]/30 flex items-center justify-center">
+                                    <i className="fa-solid fa-check text-[#FF5252] text-3xl"></i>
+                                </div>
+                                <h2 className="text-3xl font-black text-white mb-4">Request Submitted!</h2>
+                                <p className="text-zinc-400 mb-8">
+                                    Thank you for your interest in coaching with Jon.
+                                    Our team will review your request and reach out within 24-48 hours.
+                                </p>
+                                <button
+                                    onClick={onHome}
+                                    className="px-8 py-4 bg-[#FF5252] text-white font-bold uppercase tracking-wider rounded-xl hover:bg-[#ff3333] transition-all"
+                                >
+                                    Return Home
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Trust Indicators */}
+                    <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
+                            <div className="text-3xl font-black text-[#FF5252] mb-2">15+</div>
+                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Years Experience</div>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
+                            <div className="text-3xl font-black text-[#FF5252] mb-2">IFBB</div>
+                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Pro Bodybuilder</div>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
+                            <div className="text-3xl font-black text-[#FF5252] mb-2">1000+</div>
+                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Athletes Coached</div>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
+                            <div className="text-3xl font-black text-[#FF5252] mb-2">WWE</div>
+                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Pro Wrestler</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -5591,7 +5961,7 @@ const VideoCard = ({
     );
 };
 
-const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onLogout, onPrivacy, onTerms, user, mainPageVideos, videosLoading }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[], videosLoading: boolean }) => {
+const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginRequest, onStartShop, onStartAdmin, onStartBlog, onStartCoaching, onLogout, onPrivacy, onTerms, user, mainPageVideos, videosLoading }: { onStartCalculator: () => void, onStartAcademy: () => void, onStartAbout: () => void, onLoginRequest: () => void, onStartShop: () => void, onStartAdmin: () => void, onStartBlog: () => void, onStartCoaching: () => void, onLogout: () => void, onPrivacy: () => void, onTerms: () => void, user: User | null, mainPageVideos: VideoContent[], videosLoading: boolean }) => {
     // Track which video is currently playing (only one at a time)
     const [currentlyPlayingVideoId, setCurrentlyPlayingVideoId] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -5626,7 +5996,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                         <button onClick={onStartAbout} className={navItemClass}>ABOUT</button>
                         <button onClick={onStartAcademy} className={navItemClass}>ACADEMY</button>
                         <button onClick={onStartShop} className={navItemClass}>SHOP</button>
-                        <a href="https://www.jon-andersen.com/coaching/" target="_blank" rel="noopener noreferrer" className={navItemClass}>COACHING</a>
+                        <button onClick={onStartCoaching} className={navItemClass}>COACHING</button>
                         <button onClick={onStartBlog} className={navItemClass}>BLOG</button>
                         {user && (
                             <button onClick={onStartCalculator} className={navItemClass}>JON'S AI CALCULATOR</button>
@@ -5702,15 +6072,9 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                     <button onClick={() => { setMobileMenuOpen(false); onStartShop(); }} className={mobileNavItemClass(false)}>
                         <i className="fa-solid fa-bag-shopping w-6 mr-3"></i>SHOP
                     </button>
-                    <a
-                        href="https://www.jon-andersen.com/coaching/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full text-left py-3 px-4 uppercase font-bold tracking-widest text-sm transition-colors text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-                        onClick={() => setMobileMenuOpen(false)}
-                    >
+                    <button onClick={() => { setMobileMenuOpen(false); onStartCoaching(); }} className={mobileNavItemClass(false)}>
                         <i className="fa-solid fa-dumbbell w-6 mr-3"></i>COACHING
-                    </a>
+                    </button>
                     <button onClick={() => { setMobileMenuOpen(false); onStartBlog(); }} className={mobileNavItemClass(false)}>
                         <i className="fa-solid fa-newspaper w-6 mr-3"></i>BLOG
                     </button>
@@ -6071,11 +6435,9 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                             <p className="text-zinc-400 text-sm mb-6 max-w-xs">
                                 One-on-one guidance from Jon Andersen to optimize your protocol
                             </p>
-                            <a
-                                href="https://www.jon-andersen.com/coaching/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="relative group px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs overflow-hidden inline-block"
+                            <button
+                                onClick={onStartCoaching}
+                                className="relative group px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-[#FF5252] group-hover:bg-[#ff3333] transition-colors"></div>
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -6084,7 +6446,7 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                                     Get Coached
                                     <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                                 </span>
-                            </a>
+                            </button>
                         </div>
 
                     </div>
@@ -11868,7 +12230,7 @@ const App = () => {
     const hasMagicLink = urlParams.get('token') && urlParams.get('assessmentId');
 
     // App Flow State - start on welcomeSetup if magic link detected
-    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'privacy' | 'terms' | 'thankYou' | 'welcomeSetup'>(hasMagicLink ? 'welcomeSetup' : 'landing');
+    const [view, setView] = useState<'landing' | 'about' | 'calculator' | 'academy' | 'assessment' | 'shop' | 'admin' | 'blog' | 'coaching' | 'privacy' | 'terms' | 'thankYou' | 'welcomeSetup'>(hasMagicLink ? 'welcomeSetup' : 'landing');
     const [user, setUser] = useState<User | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
@@ -12140,6 +12502,10 @@ const App = () => {
         setView('blog');
     };
 
+    const handleStartCoaching = () => {
+        setView('coaching');
+    };
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -12171,6 +12537,7 @@ const App = () => {
                     onStartShop={handleStartShop}
                     onStartAdmin={handleStartAdmin}
                     onStartBlog={handleStartBlog}
+                    onStartCoaching={handleStartCoaching}
                     onLogout={handleLogout}
                     onLoginRequest={() => setIsLoginModalOpen(true)}
                     onPrivacy={() => setView('privacy')}
@@ -12190,6 +12557,7 @@ const App = () => {
                     onShop={handleStartShop}
                     onCalculator={() => setView('calculator')}
                     onBlog={handleStartBlog}
+                    onCoaching={handleStartCoaching}
                     onLogin={() => setIsLoginModalOpen(true)}
                     onLogout={handleLogout}
                     onPrivacy={() => setView('privacy')}
@@ -12253,6 +12621,22 @@ const App = () => {
             {view === 'blog' && (
                 <BlogView
                     onBack={() => setView('landing')}
+                    user={user}
+                    onHome={() => setView('landing')}
+                    onAbout={handleStartAbout}
+                    onAcademy={handleStartAcademy}
+                    onShop={handleStartShop}
+                    onCalculator={() => setView('calculator')}
+                    onBlog={handleStartBlog}
+                    onLogin={() => setIsLoginModalOpen(true)}
+                    onLogout={handleLogout}
+                    onPrivacy={() => setView('privacy')}
+                    onTerms={() => setView('terms')}
+                />
+            )}
+
+            {view === 'coaching' && (
+                <CoachingView
                     user={user}
                     onHome={() => setView('landing')}
                     onAbout={handleStartAbout}
