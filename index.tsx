@@ -1727,6 +1727,7 @@ const AssessmentWizard = ({
         unit: 'Imperial',
         goals: [] as string[],
         injuries: [] as string[],
+        otherInjury: '',
         email: '',
         password: '',
         newsletterOptIn: false,
@@ -1757,7 +1758,9 @@ const AssessmentWizard = ({
                     weight: formData.weight,
                     unit: formData.unit,
                     goals: formData.goals,
-                    injuries: formData.injuries,
+                    injuries: formData.injuries.includes('Other') && formData.otherInjury
+                        ? [...formData.injuries.filter(i => i !== 'Other'), `Other: ${formData.otherInjury}`]
+                        : formData.injuries,
                 }
             });
 
@@ -1958,6 +1961,18 @@ const AssessmentWizard = ({
                                         </div>
                                     ))}
                                 </div>
+                                {formData.injuries.includes('Other') && (
+                                    <div className="mt-3 animate-fadeIn">
+                                        <input
+                                            type="text"
+                                            placeholder="Please describe your injury..."
+                                            value={formData.otherInjury}
+                                            onChange={(e) => setFormData({...formData, otherInjury: e.target.value})}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-[#FF5252] transition-colors"
+                                        />
+                                    </div>
+                                )}
                              </div>
                          </div>
                      )}
@@ -5840,6 +5855,51 @@ const LandingPage = ({ onStartCalculator, onStartAcademy, onStartAbout, onLoginR
                      <Badge icon={<i className="fa-solid fa-medal"></i>} text="IFBB Pro" image="/Images/IFBB Pro.jpg" />
                      <Badge icon={<i className="fa-solid fa-dumbbell"></i>} text="Elite Coach" image="/Images/Main.jpg" />
                      <Badge icon={<i className="fa-solid fa-trophy"></i>} text="Pro Wrestler" image="/Images/Pro-Wrestler-Credential.jpg" />
+                </div>
+
+                {/* Peptide Stack Calculator CTA */}
+                <div className="max-w-2xl mx-auto mt-24 flex flex-col items-center">
+                    {/* Animated Calculator Icon */}
+                    <div className="relative mb-8">
+                        {/* Pulsing ring animation */}
+                        <div className="absolute inset-0 rounded-3xl border-4 border-[#FF5252] animate-ping opacity-20"></div>
+                        {/* Rotating glow */}
+                        <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF5252] via-transparent to-[#FF5252] opacity-40 animate-spin" style={{ animationDuration: '5s' }}></div>
+                        {/* Main icon container */}
+                        <div className="relative w-48 h-48 rounded-3xl bg-gradient-to-br from-[#2a1515] to-[#1a0a0a] border-4 border-[#FF5252] shadow-[0_0_60px_rgba(255,82,82,0.4)] flex items-center justify-center">
+                            <i className="fa-solid fa-calculator text-[#FF5252] text-7xl animate-pulse" style={{ animationDuration: '2s' }}></i>
+                        </div>
+                    </div>
+
+                    {/* Animated Title */}
+                    <div className="text-center mb-6">
+                        <h3 className="text-3xl md:text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#FF5252] via-white to-[#FF5252] animate-pulse" style={{ animationDuration: '2.5s' }}>
+                            Peptide Stack / Protocol Calculator
+                        </h3>
+                        <div className="h-[2px] w-48 mx-auto mt-3 bg-gradient-to-r from-transparent via-[#FF5252] to-transparent animate-pulse" style={{ animationDuration: '2s' }}></div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-zinc-400 text-center mb-8 max-w-md">
+                        Generate your very own personalized Peptide stack protocol
+                    </p>
+
+                    {/* Animated Button */}
+                    <button
+                        onClick={onStartCalculator}
+                        className="relative group px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm overflow-hidden"
+                    >
+                        {/* Button glow background */}
+                        <div className="absolute inset-0 bg-[#FF5252] group-hover:bg-[#ff3333] transition-colors"></div>
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                        {/* Button content */}
+                        <span className="relative flex items-center gap-3 text-white">
+                            <i className="fa-solid fa-layer-group"></i>
+                            Start Here
+                            <i className="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                    </button>
                 </div>
             </section>
 
