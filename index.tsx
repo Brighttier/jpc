@@ -5151,21 +5151,21 @@ const AboutView = ({
 // --- Landing Page Components ---
 
 const Badge = ({ icon, text, image }: { icon: any, text: string, image?: string }) => (
-    <div className="flex flex-col items-center gap-3 group">
+    <div className="flex flex-col items-center gap-3">
         {image && (
-            <div className="w-20 h-20 rounded-xl overflow-hidden border border-zinc-800 group-hover:border-[#FF5252]/50 shadow-lg transition-all duration-300 transform group-hover:-translate-y-1 group-hover:shadow-[0_10px_30px_-10px_rgba(255,82,82,0.3)]">
+            <div className="w-20 h-20 rounded-xl overflow-hidden border border-[#FF5252]/50 shadow-lg shadow-[0_10px_30px_-10px_rgba(255,82,82,0.3)]">
                 <img
                     src={image}
                     alt={text}
-                    className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 transition-all duration-300"
+                    className="w-full h-full object-cover object-top"
                     loading="lazy"
                 />
             </div>
         )}
-        <div className="w-16 h-16 rounded-2xl bg-zinc-900/50 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF5252] group-hover:border-[#FF5252]/50 group-hover:bg-[#FF5252]/5 shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
+        <div className="w-16 h-16 rounded-2xl bg-[#FF5252]/5 border border-[#FF5252]/50 flex items-center justify-center text-[#FF5252] shadow-xl">
            <span className="text-2xl">{icon}</span>
         </div>
-        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest group-hover:text-white transition-colors">{text}</span>
+        <span className="text-[10px] text-white uppercase font-bold tracking-widest">{text}</span>
     </div>
 );
 
