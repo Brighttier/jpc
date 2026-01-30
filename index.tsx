@@ -5501,8 +5501,8 @@ const CoachingView = ({
                             <div className="text-xs text-zinc-500 uppercase tracking-wider">Athletes Coached</div>
                         </div>
                         <div className="p-6 rounded-2xl bg-zinc-900/30 border border-zinc-800">
-                            <div className="text-3xl font-black text-[#FF5252] mb-2">WWE</div>
-                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Pro Wrestler</div>
+                            <div className="text-3xl font-black text-[#FF5252] mb-2">PRO</div>
+                            <div className="text-xs text-zinc-500 uppercase tracking-wider">Wrestler</div>
                         </div>
                     </div>
                 </div>
